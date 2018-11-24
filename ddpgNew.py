@@ -2,6 +2,9 @@ import tensorflow as tf
 import numpy as np
 import gym
 import quanser_robots
+import torch.nn as nn
+import torch.nn.functional as F
+import torch
 from keras.layers import Dense, Input, Activation
 from keras.optimizers import Adam
 from keras.models import Model
@@ -33,19 +36,57 @@ class Replay(object):
         return states, actions, rewards, next_states, times
 
 
-class Actor(object):
-    def __init__(self, state_size, action_size, learningrate, batch_size, hidden_neurons):
+class Actor(nn.Module):
+    def __init__(self, state_size, action_size, learningrate, batch_size, hidden_neurons, action_limit):
         self.learning = learningrate
         self.state_space = state_size
         self.action_space = action_size
         self.replay_buffer = Replay(5000)
-        self.tau = 0.1
+        #self.tau = 0.1
+
+        self.action_limit = action_limit
+
+        self.input = nn.Linear(self.state_space, hidden_neurons)
+        self.input.weight.data.uniform_(-0.05, 0.05)
+
+        self.hidden = nn.Linear(hidden_neurons, self.action_space)
+        self.hidden.weight.data.uniform_(-0.05,0.05)
+
+    def forward(self, state):
+        f1 = F.relu(self.input(state))
+        f2 = F.relu(self.hidden(f1))
+        out = F.tanh(self.output(f2))
+
+        out = out*self.action_limit
+        return out
 
 
-    def create_network(self):
-        input = Input(self.state_space)
-        h1 = Dense(100, activation='relu')(input)
-        output = Dense(self.action_space, activation='tanh')(h1)
-        nn = Model(input= input, output=output)
-        adam_optimizer = Adam(self.learning)
-        nn.compile(loss='mse', optimizer=adam_optimizer)
+class Critic(nn.Module):
+    def __init__(self, state_size, action_size, learningrate, batch_size, hidden_neurons, action_limit):
+        self.learning = learningrate
+        self.state_space = state_size
+        self.action_space = action_size
+        self.replay_buffer = Replay(5000)
+        #self.tau = 0.1
+
+        self.action_limit = action_limit
+
+        self.input = nn.Linear(self.state_space, hidden_neurons)
+        self.input.weight.data.uniform_(-0.05, 0.05)
+
+        self.hidden = nn.Linear(hidden_neurons+ self.action_space, hidden_neurons)
+        self.hidden.weight.data.uniform_(-0.05,0.05)
+
+        self.out = nn.Linear(hidden_neurons, 1)
+        self.out.weight.data.uniform_(-0.05,0.05)
+
+
+    def forward(self, state, action):
+        f1 = F.relu(self.input(state))
+
+        x = torch.cat((f1, action),1)
+        x = self.hidden(x)
+        out = F.relu(x)
+
+        out = self.out(out)
+        return out
