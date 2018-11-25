@@ -29,3 +29,4 @@
 # PyCharm file #
 ################
 *.idea
+*/__pycache__/*
