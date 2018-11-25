@@ -11,28 +11,7 @@ import keras.backend as K
 import random
 from collections import deque
 
-
-class Replay(object):
-    def __init__(self, buffer_number):
-        self.size = buffer_number
-        self.ReplayBuffer = deque()
-
-    def add_observation(self, state, action, reward, next_state, time):
-        self.ReplayBuffer.append([state, action, reward, next_state, time])
-        if len(self.ReplayBuffer) > self.size:
-            self.ReplayBuffer.popleft()
-
-    def random_batch(self, batch_size):
-        element_number = len(self.ReplayBuffer)
-        if element_number > batch_size:
-            batch_size = element_number
-        expectations = random.sample(self.ReplayBuffer, k=element_number)
-        states = list(zip(*expectations))[0]
-        actions = list(zip(*expectations))[1]
-        rewards = list(zip(*expectations))[2]
-        next_states = list(zip(*expectations))[3]
-        times = list(zip(*expectations))[4]
-        return states, actions, rewards, next_states, times
+from ReplayBuffer import ReplayBuffer
 
 '''
 class Actor(nn.Module):
@@ -161,7 +140,7 @@ class Critic(object):
 
 class ActorCriticTargets(object):
     def __init__(self, state_space, action_space, learningrate, hidden_neurons):
-        self.replay = Replay(5000)
+        self.replay = ReplayBuffer(5000)
         self.tau = 0.1
         self.gamma = 0.9
         self.epsilon = 1.0
@@ -187,6 +166,7 @@ class ActorCriticTargets(object):
     def train(self):
         batch_size = 64
         if self.replay.size<batch_size:
+            print("Replay buffer smaller than batch size")
             return
         sample = self.replay.random_batch(self.replay, batch_size)
         self.critic.train(self.critic_model)
