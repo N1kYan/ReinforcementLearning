@@ -50,12 +50,12 @@ class Discretization:
             cos = x[0]
             sin = x[1]
             atan = np.rad2deg(np.arctan2(sin, cos))
-            index = [int(atan+180), int(Decimal(x[2]+self.state_space_size[2]-1)/2)]
+            index = [int(atan+180), int(Decimal(x[2]+(self.state_space_size[1]-1)/2))]
             return index
         
         if(self.platform=="Pendulum" and self.name=="easy"):
             index = [int(10*(Decimal(x[0])+1)), int(10*(Decimal(x[1])+1)),
-                     int(Decimal(x[2]+self.state_space_size[2]-1)/2)]
+                     int(Decimal(x[2]+(self.state_space_size[2]-1)/2))]
             return index
     
     # Maps index back to state
@@ -65,10 +65,10 @@ class Discretization:
             # Inverse of arctan not given
             s1 = np.cos(np.deg2rad(x[0]))
             s2 = np.sin(np.deg2rad(x[0]))
-            s3 = x[1]-(self.state_space_size[2]-1)/2
+            s3 = x[1]-(self.state_space_size[1]-1)/2
             state = [s1, s2, s3]
             return state
         
         if(self.platform=="Pendulum" and self.name=="easy"):
-            state = [(x[0]/10)-1, (x[1]/10)-1, x[2]-8]
+            state = [(x[0]/10)-1, (x[1]/10)-1, x[2]-(self.state_space_size[2]-1)/2]
             return state
