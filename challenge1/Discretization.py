@@ -7,8 +7,6 @@ from decimal import *
 
 class Discretization:
     
-    
-    
     def __init__(self, name, platform, state_space_size = (21, 21, 17), action_space_size = 9):
         
         # Setting precision for decimals
@@ -48,27 +46,29 @@ class Discretization:
     # Maps discrete state to index for value function or policy lookup table
     def map_to_index(self, x):
         if (self.platform=="Pendulum" and self.name=="degree_only"):
-            #x0 = int(np.rad2deg(np.arccos(np.deg2rad(x[0])))+180)
-            x0 = int(Decimal(x[0])+180)
-            x2 = int(Decimal(x[1])+8)
-            index = [x0, x2]
+            # Calculate true angle with arctan operation from cos and sin
+            cos = x[0]
+            sin = x[1]
+            atan = np.rad2deg(np.arctan2(sin, cos))
+            index = [int(atan+180), int(Decimal(x[2]+self.state_space_size[2]-1)/2)]
             return index
         
         if(self.platform=="Pendulum" and self.name=="easy"):
-            index = [int(10*(Decimal(x[0])+1)), int(10*(Decimal(x[1])+1)), int(Decimal(x[2])+(self.state_space_size-1)/2)]
+            index = [int(10*(Decimal(x[0])+1)), int(10*(Decimal(x[1])+1)),
+                     int(Decimal(x[2]+self.state_space_size[2]-1)/2)]
             return index
     
     # Maps index back to state
     def map_to_state(self, x):
         if (self.platform=="Pendulum" and self.name=="degree_only"):
-            s1 = x[0]-180
-            #s1 = np.rad2deg(np.cos(np.deg2rad(x[0])))
-            #s2 = np.rad2deg(np.sin(np.deg2rad(x[0])))
-            s3 = x[1]-(self.state_space_size-1)/2
-            state = [s1, s1, s3]
+            # TODO: not correct yet!
+            # Inverse of arctan not given
+            s1 = np.cos(np.deg2rad(x[0]))
+            s2 = np.sin(np.deg2rad(x[0]))
+            s3 = x[1]-(self.state_space_size[2]-1)/2
+            state = [s1, s2, s3]
             return state
         
         if(self.platform=="Pendulum" and self.name=="easy"):
             state = [(x[0]/10)-1, (x[1]/10)-1, x[2]-8]
             return state
-
