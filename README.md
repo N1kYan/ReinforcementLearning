@@ -9,3 +9,4 @@ Repo for the RL course at TU Darmstadt.
 * [FurutaPend](https://www.quanser.com/products/rotary-inverted-pendulum/)
 * DoubleCartPole
 * [BallBalancer](https://www.quanser.com/products/2-dof-ball-balancer/)
+
