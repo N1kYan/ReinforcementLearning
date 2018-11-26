@@ -46,29 +46,20 @@ class Discretization:
     # Maps discrete state to index for value function or policy lookup table
     def map_to_index(self, x):
         if (self.platform=="Pendulum" and self.name=="degree_only"):
-            # Calculate true angle with arctan operation from cos and sin
-            cos = x[0]
-            sin = x[1]
-            atan = np.rad2deg(np.arctan2(sin, cos))
-            index = [int(atan+180), int(Decimal(x[2]+(self.state_space_size[1]-1)/2))]
+            # Map to positive state space
+            i1 = Decimal(x[0])+180
+            # Divide by 'frequency' of first state space dimension
+            i1 = i1/(360/(Decimal(self.state_space_size[0])-1))
+            # Round to integer
+            i1 = int(i1)
+            # Analogue with angular velocity
+            i2 = Decimal(x[1]) + 8
+            i2 = i2/(16/(Decimal(self.state_space_size[1])-1))
+            i2 = int(i2)
+            index = [i1, i2]
             return index
         
         if(self.platform=="Pendulum" and self.name=="easy"):
             index = [int(10*(Decimal(x[0])+1)), int(10*(Decimal(x[1])+1)),
                      int(Decimal(x[2]+(self.state_space_size[2]-1)/2))]
             return index
-    
-    # Maps index back to state
-    def map_to_state(self, x):
-        if (self.platform=="Pendulum" and self.name=="degree_only"):
-            # TODO: not correct yet!
-            # Inverse of arctan not given
-            s1 = np.cos(np.deg2rad(x[0]))
-            s2 = np.sin(np.deg2rad(x[0]))
-            s3 = x[1]-(self.state_space_size[1]-1)/2
-            state = [s1, s2, s3]
-            return state
-        
-        if(self.platform=="Pendulum" and self.name=="easy"):
-            state = [(x[0]/10)-1, (x[1]/10)-1, x[2]-(self.state_space_size[2]-1)/2]
-            return state
