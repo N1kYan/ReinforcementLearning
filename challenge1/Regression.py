@@ -23,26 +23,22 @@ class Regressor:
         plots = []
 
         regressorReward = RandomForestRegressor(n_estimators=10, min_samples_split=2)
-        regressorState = RandomForestRegressor(n_estimators=10, min_samples_split=2)
+        regressorState = RandomForestRegressor(n_estimators=20, min_samples_split=2)
 
         old_state = env.reset()
-        # Transform from 3 to 2 dim:(cos, sin, angular velocity) -> (angle, angular velocity)
-        old_state = np.array([my_arctan(old_state[0], old_state[1]), old_state[2]])
 
-        print("Regression: 0% ... ", end='')
+        print("Regression: 0% ... ")
         for i in range(epochs):
 
             action = env.action_space.sample()
             next_state, reward, done, info = env.step(action)
-            # Transform from 3 to 2 dim:(cos, sin, angular velocity) -> (angle, angular velocity)
-            next_state = np.array([my_arctan(next_state[0], next_state[1]), next_state[2]])
 
             rtx.append(np.append(old_state, action))
             rty.append(reward)
             stx.append(np.append(old_state, action))
             sty.append(next_state)
 
-            if i % 10 == 0:  # 50 works nicely
+            if i % 50 == 0:  # 50 works nicely
 
                 regressorReward.fit(rtx, rty)
                 fitrtx = regressorReward.predict(rtx)
@@ -58,11 +54,11 @@ class Regressor:
             old_state = np.copy(next_state)
 
             if i == int(epochs * 0.25):
-                print("25% ... ", end='')
+                print("25% ... ")
             if i == int(epochs * 0.5):
-                print("50% ... ", end='')
+                print("50% ... ")
             if i == int(epochs * 0.75):
-                print("75% ... ", end='')
+                print("75% ... ")
 
         print("Done!")
 

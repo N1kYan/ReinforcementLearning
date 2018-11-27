@@ -13,7 +13,7 @@ import numpy as np
 
 # TODO: Good choice of a learning rate (gamma)
 
-def value_iteration(disc, theta, gamma):
+def value_iteration(regressorState, regressorReward, disc, theta, gamma):
     print("Starting Value iteration:")
 
     value_function = np.zeros(shape=disc.state_space_size)
@@ -92,7 +92,7 @@ def value_iteration(disc, theta, gamma):
 """
 
 
-def policy_iteration(disc, theta, gamma):
+def policy_iteration(regressorState, regressorReward, disc, theta, gamma):
     print("Policy iteration...")
 
     value_function = np.ones(shape=disc.state_space_size)

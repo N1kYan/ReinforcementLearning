@@ -32,19 +32,21 @@ print("Action space:  Shape:{}  Min:{}  Max:{} ".format(np.shape(env.action_spac
 
 # Create Discretization and Regression objects
 
-larry = Discretization("degree_only","Pendulum",state_space_size=(18+1, 16+1),action_space_size=17)
-# print(larry.state_space)
-# print(larry.action_space)
+larry = Discretization("easy","Pendulum",state_space_size=(16+1, 16+1),action_space_size=17)
+#print(larry.state_space)
+#print(larry.action_space)
+
 reg = Regressor()
 
 # Learning episodes / amount of samples for regression
 epochs = 10000
 
 # Perform regression
-reg.perform_regression(epochs, env)
+regressorState, regressorReward = reg.perform_regression(epochs, env)
 
 # Perform dynamic programming to get value function and near optimal policy
-value_function, policy = value_iteration(disc=larry, theta=0.001, gamma=0.1)
+value_function, policy = value_iteration(regressorState = regressorState, regressorReward = regressorReward, disc=larry,
+                                         theta=0.0001, gamma=0.1)
 # value_function, policy = policy_iteration(larry, theta=1, gamma=0.1)
 
 """
@@ -61,7 +63,6 @@ for e in range(episodes):
 
     # Discretize first state
     state = env.reset()
-    state = np.array([my_arctan(state[0], state[1]), state[2]])
     index = larry.map_to_index(state)
 
     cumulative_reward = [0]
@@ -73,9 +74,7 @@ for e in range(episodes):
         # Do step according to policy and get observation and reward
         action = np.array([policy[index[0], index[1]]])
 
-        # action = env.action_space.sample()
-        observation, reward, done, info = env.step(action)
-        state = np.array([my_arctan(observation[0], observation[1]), observation[2]])
+        state, reward, done, info = env.step(action)
 
         cumulative_reward.append(cumulative_reward[-1] + reward)
 
