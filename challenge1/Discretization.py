@@ -63,3 +63,14 @@ class Discretization:
             index = [int(10*(Decimal(x[0])+1)), int(10*(Decimal(x[1])+1)),
                      int(Decimal(x[2]+(self.state_space_size[2]-1)/2))]
             return index
+
+
+
+
+"""
+          This method transforms cos and sin input
+          to true degree value by arctan2 function
+
+"""
+def my_arctan(cos, sin):
+    return np.rad2deg(np.arctan2(sin, cos))
