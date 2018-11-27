@@ -1,8 +1,6 @@
 from __future__ import print_function
 import gym
-import torch
-from torch.autograd import Variable
-import torch.nn.functional as F
+import quanser_robots
 import time
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,15 +13,20 @@ from DynamicProgramming import value_iteration
 from DynamicProgramming import policy_iteration
 
 # Create gym/quanser environment
-env = gym.make('Pendulum-v0')
+env = gym.make('Pendulum-v2')
+
+print("State space:  Shape:{}  Min:{}  Max:{} ".format(np.shape(env.observation_space), env.observation_space.low,
+                                                     env.observation_space.high))
+print("Action space:  Shape:{}  Min:{}  Max:{} ".format(np.shape(env.action_space), env.action_space.low,
+                                                     env.action_space.high))
 
 """
-    The Pendulum environment:
+    The Pendulum-v2 environment:
 
     The action space is a Box(1,) with values between [-2, 2] (joint effort)
     
-    The state space is the cos, sin and velocity of the angle
-    max:1,1,8; min:-1,-1,-8
+    The state space is the current angle in radians and the angular velocity
+     min:-pi,-8; max:pi,8
 
 """
 
