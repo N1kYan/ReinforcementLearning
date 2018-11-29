@@ -33,6 +33,15 @@ class Discretization:
         i1 = np.where(s1 == i1)[0].reshape(-1)[0]
         return np.array([i0, i1])
 
+class QubeDiscretization(Discretization):
+
+    def __init__(self, state_space_size, action_space_size):
+        super().__init__(state_space_size, action_space_size)
+        self.action_space = np.linspace(-15, 15, self.action_space_size)
+        self.state_space_size = (np.linspace(-2, 2, self.state_space_size[0]),
+                                 np.linspace(-np.pi, np.pi, self.state_space_size[1]),
+                                 np.linspace(-30, 30, self.state_space_size[2]),
+                                 np.linspace(-40, 40, self.state_space_size[3]))
 
 
 # Discretization with equidistand linspaces
