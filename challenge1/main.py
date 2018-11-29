@@ -8,7 +8,6 @@ import numpy as np
 # Local imports
 from Discretization import PendulumDiscretization
 from Discretization import EasyPendulumDiscretization
-from Discretization import my_arctan
 from Regression import Regressor
 from DynamicProgramming import value_iteration
 from DynamicProgramming import policy_iteration
@@ -33,9 +32,9 @@ print("Action space:  Shape:{}  Min:{}  Max:{} ".format(np.shape(env.action_spac
 
 # Create Discretization and Regression objects
 
-larry = EasyPendulumDiscretization(state_space_size=(13, 16+1),action_space_size=17)
+larry = PendulumDiscretization(state_space_size=(33, 16+1), action_space_size=17)
 print(larry.state_space)
-print(larry.map_to_index([-2.0, 2]))
+#print(larry.map_to_index([-1.7, 2]))
 #print(larry.action_space)
 
 reg = Regressor()

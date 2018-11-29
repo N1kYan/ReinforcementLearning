@@ -4,9 +4,6 @@ from sklearn.metrics import mean_squared_error
 import matplotlib.pyplot as plt
 import numpy as np
 
-from Discretization import my_arctan
-
-
 class Regressor:
 
     def __init__(self):

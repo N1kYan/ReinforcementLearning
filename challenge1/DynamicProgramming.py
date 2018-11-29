@@ -49,7 +49,8 @@ def value_iteration(regressorState, regressorReward, disc, theta, gamma):
                     x = np.array([s0, s1, a])
                     x = x.reshape(1, -1)
                     next_s = regressorState.predict(x).T.reshape(-1, )
-                    r = regressorReward.predict(x)
+                    r = - 1.0 * regressorReward.predict(x)
+                    # r = regressorReward.predict(x)
 
                     # Discretize sufficient state
                     next_index = disc.map_to_index([next_s[0], next_s[1]])
@@ -98,13 +99,13 @@ def policy_iteration(regressorState, regressorReward, disc, theta, gamma):
     value_function = np.ones(shape=disc.state_space_size)
     policy = np.zeros(shape=disc.state_space_size)
 
-    def policy_evaluation(theta, gamma):
+    def policy_evaluation(theta=theta, gamma=gamma):
         print()
         print("Evaluating policy")
         delta = theta
         while delta >= theta:
             delta = 0
-            # Iteratate over discrete state space
+            # Iterate over discrete state spaces
             for s0 in disc.state_space[0]:
                 for s1 in disc.state_space[1]:
                     for s2 in disc.state_space[2]:
@@ -137,7 +138,7 @@ def policy_iteration(regressorState, regressorReward, disc, theta, gamma):
                         delta = max(delta, v - value_function[index[0], index[1], index[2]])
             print("Delta: ", delta)
 
-    def policy_improvement(gamma):
+    def policy_improvement(gamma=gamma):
         print()
         print("Improving policy")
         policy_stable = True
