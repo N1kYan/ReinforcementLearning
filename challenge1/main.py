@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Local imports
-from Discretization import Discretization
+from Discretization import PendulumDiscretization
+from Discretization import EasyPendulumDiscretization
 from Discretization import my_arctan
 from Regression import Regressor
 from DynamicProgramming import value_iteration
@@ -32,14 +33,15 @@ print("Action space:  Shape:{}  Min:{}  Max:{} ".format(np.shape(env.action_spac
 
 # Create Discretization and Regression objects
 
-larry = Discretization("easy","Pendulum",state_space_size=(16+1, 16+1),action_space_size=17)
-#print(larry.state_space)
+larry = EasyPendulumDiscretization(state_space_size=(13, 16+1),action_space_size=17)
+print(larry.state_space)
+print(larry.map_to_index([-2.0, 2]))
 #print(larry.action_space)
 
 reg = Regressor()
 
 # Learning episodes / amount of samples for regression
-epochs = 10000
+epochs = 1000
 
 # Perform regression
 regressorState, regressorReward = reg.perform_regression(epochs, env)
