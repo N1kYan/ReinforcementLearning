@@ -32,7 +32,7 @@ print("Action space:  Shape:{}  Min:{}  Max:{} ".format(np.shape(env.action_spac
 
 # Create Discretization and Regression objects
 
-larry = PendulumDiscretization(state_space_size=(33, 16+1), action_space_size=17)
+larry = PendulumDiscretization(state_space_size=(8+1, 16+1), action_space_size=16+1)
 print(larry.state_space)
 #print(larry.map_to_index([-1.7, 2]))
 #print(larry.action_space)
@@ -46,9 +46,10 @@ epochs = 1000
 regressorState, regressorReward = reg.perform_regression(epochs, env)
 
 # Perform dynamic programming to get value function and near optimal policy
-value_function, policy = value_iteration(regressorState = regressorState, regressorReward = regressorReward, disc=larry,
-                                         theta=0.0001, gamma=0.1)
-# value_function, policy = policy_iteration(larry, theta=1, gamma=0.1)
+#value_function, policy = value_iteration(regressorState = regressorState, regressorReward = regressorReward, disc=larry,
+#                                         theta=0.1, gamma=0.9)
+value_function, policy = policy_iteration(regressorState = regressorState, regressorReward = regressorReward,
+                                          disc = larry, theta=0.1, gamma=0.5)
 
 """
     Evaluation stuff to see the predictions, discretizations and learned functions in action
@@ -70,7 +71,7 @@ for e in range(episodes):
 
     for t in range(200):
         # Render environment
-        env.render()
+        # env.render()
 
         # Do step according to policy and get observation and reward
         action = np.array([policy[index[0], index[1]]])

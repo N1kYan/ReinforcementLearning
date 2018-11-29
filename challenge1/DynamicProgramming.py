@@ -70,13 +70,6 @@ def value_iteration(regressorState, regressorReward, disc, theta, gamma):
                 # Update delta
                 delta = max(delta, np.abs(v - value_function[index[0], index[1]]))
 
-            # if s0 == int((disc.state_space_size[0]-1)*0.25):
-            #    print("25%...")
-            # if s0 == int((disc.state_space_size[0]-1)*0.5):
-            #   print("50%...")
-            # if s0 == int((disc.state_space_size[0]-1)*0.75):
-            #    print("75%...")
-
         print("Done! (Delta = {})".format(delta))
 
     print()
@@ -96,7 +89,7 @@ def value_iteration(regressorState, regressorReward, disc, theta, gamma):
 def policy_iteration(regressorState, regressorReward, disc, theta, gamma):
     print("Policy iteration...")
 
-    value_function = np.ones(shape=disc.state_space_size)
+    value_function = np.zeros(shape=disc.state_space_size)
     policy = np.zeros(shape=disc.state_space_size)
 
     def policy_evaluation(theta=theta, gamma=gamma):
@@ -108,34 +101,31 @@ def policy_iteration(regressorState, regressorReward, disc, theta, gamma):
             # Iterate over discrete state spaces
             for s0 in disc.state_space[0]:
                 for s1 in disc.state_space[1]:
-                    for s2 in disc.state_space[2]:
-                        # Get index for state
-                        # The method already iterates over a discretized state space
-                        # But the states need to get mapped to a positive index do to possible 'negative' states
-                        index = disc.map_to_index([s0, s1, s2])
+                    # Get index for state
+                    # The method already iterates over a discretized state space
+                    # But the states need to get mapped to a positive index do to possible 'negative' states
+                    index = disc.map_to_index([s0, s1])
 
-                        v = value_function[index[0], index[1], index[2]]
+                    v = value_function[index[0], index[1]]
 
-                        """
-                         V(s) = Sum...p(s',r|s,pi(s))[r+gamma*V(s')]
+                    """
+                     V(s) = Sum...p(s',r|s,pi(s))[r+gamma*V(s')]
 
-                        """
-                        a = policy[index[0], index[1], index[2]]
+                    """
+                    a = policy[index[0], index[1]]
 
-                        # input for regression
-                        x = np.array([s0, s1, s2, a]).reshape(1, -1)
+                    # input for regression
+                    x = np.array([s0, s1, a]).reshape(1, -1)
 
-                        # Predict next state and reward with regressors
-                        next_s = regressorState.predict(x).T.reshape(-1, )
-                        r = regressorReward.predict(x)
+                    # Predict next state and reward with regressors
+                    next_s = regressorState.predict(x).T.reshape(-1, )
+                    r = regressorReward.predict(x)
 
-                        next_index = disc.map_to_index([next_s[0], next_s[1], next_s[2]])
+                    next_index = disc.map_to_index([next_s[0], next_s[1]])
 
-                        value_function[index[0], index[1], index[2]] = r + gamma * value_function[next_index[0],
-                                                                                                  next_index[1],
-                                                                                                  next_index[2]]
+                    value_function[index[0], index[1]] = r + gamma * value_function[next_index[0], next_index[1]]
 
-                        delta = max(delta, v - value_function[index[0], index[1], index[2]])
+                    delta = max(delta, v - value_function[index[0], index[1]])
             print("Delta: ", delta)
 
     def policy_improvement(gamma=gamma):
@@ -144,36 +134,35 @@ def policy_iteration(regressorState, regressorReward, disc, theta, gamma):
         policy_stable = True
         for s0 in disc.state_space[0]:
             for s1 in disc.state_space[1]:
-                for s2 in disc.state_space[2]:
 
-                    # Indexing
-                    index = disc.map_to_index([s0, s1, s2])
+                # Indexing
+                index = disc.map_to_index([s0, s1])
 
-                    old_action = policy[index[0], index[1], index[2]]
+                old_action = policy[index[0], index[1]]
 
-                    """
-                        pi(s) = argmax_a ... 
-                        We do not have to care about the prob. distribution,
-                        as we have a deterministic env.
-    
-                    """
-                    # Iterate over all actions and get the one with max. expected reward
-                    amax = 2
-                    rmax = -100
-                    for a in disc.action_space:
-                        x = np.array([s0, s1, s2, a])
-                        x = x.reshape(1, -1)
-                        next_s = regressorState.predict(x).T.reshape(-1, )
-                        next_index = disc.map_to_index([next_s[0], next_s[1], next_s[2]])
-                        r = regressorReward.predict(x)
-                        expected_reward = r + gamma * value_function[next_index[0], next_index[1], next_index[2]]
-                        if rmax < expected_reward:
-                            amax = a
-                            rmax = expected_reward
-                    policy[index[0], index[1], index[2]] = amax  # TODO
+                """
+                    pi(s) = argmax_a ... 
+                    We do not have to care about the prob. distribution,
+                    as we have a deterministic env.
 
-                    if old_action != policy[index[0], index[1], index[2]]:
-                        policy_stable = False
+                """
+                # Iterate over all actions and get the one with max. expected reward
+                amax = 2
+                rmax = -100
+                for a in disc.action_space:
+                    x = np.array([s0, s1, a])
+                    x = x.reshape(1, -1)
+                    next_s = regressorState.predict(x).T.reshape(-1, )
+                    next_index = disc.map_to_index([next_s[0], next_s[1]])
+                    r = regressorReward.predict(x)
+                    expected_reward = r + gamma * value_function[next_index[0], next_index[1]]
+                    if rmax < expected_reward:
+                        amax = a
+                        rmax = expected_reward
+                policy[index[0], index[1]] = amax  # TODO
+
+                if old_action != policy[index[0], index[1]]:
+                    policy_stable = False
 
         print("Policy stable: ", policy_stable)
         return policy_stable
