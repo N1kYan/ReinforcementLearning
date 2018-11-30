@@ -22,7 +22,7 @@ from Utils import *
     Learns optimal policy with dynamic programming methods afterwards.
     
 """
-def training(env):
+def training(env, regression_flag):
     # Create Discretization and Regression objects
     disc = PendulumDiscretization(state_space_size=(8 + 1, 16 + 1), action_space_size=8 + 1)
     reg = Regressor()
@@ -31,11 +31,11 @@ def training(env):
     epochs = 10000
 
     # Perform regression
-    regressorState, regressorReward = reg.perform_regression(epochs, env)
+    regressorState, regressorReward = reg.perform_regression(epochs, env, regression_flag)
 
     # Perform dynamic programming to get value function and near optimal policy
     value_function, policy = value_iteration(regressorState=regressorState, regressorReward=regressorReward, disc=disc,
-                                             theta=0.0001, gamma=0.1)
+                                             theta=0.0001, gamma=0.7)
     # value_function, policy = policy_iteration(regressorState = regressorState, regressorReward = regressorReward,
     #                                          disc = larry, theta=0.1, gamma=0.5)
 
@@ -127,16 +127,18 @@ def main():
 
     """
 
-    # Search for value function file, if none exists, perform learning and evaluation and save value function file
-    save_flag = False
+    # Search for value function and regression files,
+    # if none exists, perform learning and evaluation and save value function and regression files
+    value_function_save_flag = False # Set to False to load value function from file
+    regression_flag = True # Set to False to load regressors from file
 
-    if open('vf.pkl') and not save_flag:
+    if open('vf.pkl') and not value_function_save_flag:
         print("Found value function file.")
         with open('vf.pkl', 'rb') as pickle_file:
             vf = pickle.load(pickle_file)
         visualize_value_function(vf)
     else:
-        value_function, policy, disc = training(env=env)
+        value_function, policy, disc = training(env=env, regression_flag=regression_flag)
         save_object(value_function, 'vf.pkl')
         evaluate(env=env, disc=disc, policy=policy)
 
