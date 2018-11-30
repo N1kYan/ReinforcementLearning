@@ -11,94 +11,136 @@ from Discretization import EasyPendulumDiscretization
 from Regression import Regressor
 from DynamicProgramming import value_iteration
 from DynamicProgramming import policy_iteration
+from Utils import *
 
-# Create gym/quanser environment
-env = gym.make('Pendulum-v2')
-
-print("State space:  Shape:{}  Min:{}  Max:{} ".format(np.shape(env.observation_space), env.observation_space.low,
-                                                     env.observation_space.high))
-print("Action space:  Shape:{}  Min:{}  Max:{} ".format(np.shape(env.action_space), env.action_space.low,
-                                                     env.action_space.high))
 
 """
-    The Pendulum-v2 environment:
-
-    The action space is a Box(1,) with values between [-2, 2] (joint effort)
+    Training method
     
-    The state space is the current angle in radians and the angular velocity
-     min:-pi,-8; max:pi,8
-
+    Performs regression on the environment to learn state-transition- and reward function.
+    
+    Learns optimal policy with dynamic programming methods afterwards.
+    
 """
+def training(env):
+    # Create Discretization and Regression objects
+    disc = PendulumDiscretization(state_space_size=(8 + 1, 16 + 1), action_space_size=8 + 1)
+    reg = Regressor()
 
-# Create Discretization and Regression objects
+    # Learning episodes / amount of samples for regression
+    epochs = 10000
 
-larry = PendulumDiscretization(state_space_size=(8+1, 16+1), action_space_size=16+1)
-print(larry.state_space)
-#print(larry.map_to_index([-1.7, 2]))
-#print(larry.action_space)
+    # Perform regression
+    regressorState, regressorReward = reg.perform_regression(epochs, env)
 
-reg = Regressor()
+    # Perform dynamic programming to get value function and near optimal policy
+    value_function, policy = value_iteration(regressorState=regressorState, regressorReward=regressorReward, disc=disc,
+                                             theta=0.0001, gamma=0.1)
+    # value_function, policy = policy_iteration(regressorState = regressorState, regressorReward = regressorReward,
+    #                                          disc = larry, theta=0.1, gamma=0.5)
 
-# Learning episodes / amount of samples for regression
-epochs = 1000
+    return value_function, policy, disc
 
-# Perform regression
-regressorState, regressorReward = reg.perform_regression(epochs, env)
-
-# Perform dynamic programming to get value function and near optimal policy
-#value_function, policy = value_iteration(regressorState = regressorState, regressorReward = regressorReward, disc=larry,
-#                                         theta=0.1, gamma=0.9)
-value_function, policy = policy_iteration(regressorState = regressorState, regressorReward = regressorReward,
-                                          disc = larry, theta=0.1, gamma=0.5)
 
 """
     Evaluation stuff to see the predictions, discretizations and learned functions in action
 
 """
-rewards_per_episode = []
+def evaluate(env, disc, policy):
 
-episodes = 100
+    rewards_per_episode = []
 
-print("Evaluating...")
+    episodes = 100
 
-for e in range(episodes):
+    print("Evaluating...")
 
-    # Discretize first state
-    state = env.reset()
-    index = larry.map_to_index(state)
+    for e in range(episodes):
 
-    cumulative_reward = [0]
+        # Discretize first state
+        state = env.reset()
+        index = disc.map_to_index(state)
 
-    for t in range(200):
-        # Render environment
-        # env.render()
+        cumulative_reward = [0]
 
-        # Do step according to policy and get observation and reward
-        action = np.array([policy[index[0], index[1]]])
+        for t in range(200):
+            # Render environment
+            # env.render()
 
-        state, reward, done, info = env.step(action)
+            # Do step according to policy and get observation and reward
+            action = np.array([policy[index[0], index[1]]])
 
-        cumulative_reward.append(cumulative_reward[-1] + reward)
+            state, reward, done, info = env.step(action)
 
-        # Discretize observed state
-        index = larry.map_to_index(state)
+            cumulative_reward.append(cumulative_reward[-1] + reward)
 
-        if done:
-            print("Episode {} finished after {} timesteps".format(e + 1, t + 1))
-            break
+            # Discretize observed state
+            index = disc.map_to_index(state)
 
-    rewards_per_episode.append(cumulative_reward)
+            if done:
+                print("Episode {} finished after {} timesteps".format(e + 1, t + 1))
+                break
 
-print("...done")
+        rewards_per_episode.append(cumulative_reward)
 
-# TODO: Look at calculation of mean cumulative rewards
-# Average reward over episodes
-rewards = np.average(rewards_per_episode, axis=0)
+    print("...done")
 
-env.close()
+    # TODO: Look at calculation of mean cumulative rewards
+    # Average reward over episodes
+    rewards = np.average(rewards_per_episode, axis=0)
 
-# Plot rewards per timestep averaged over episodes
-plt.figure()
-plt.plot(rewards, label='Cumulative reward per timestep, averaged over {} episodes'.format(episodes))
-plt.legend()
-plt.show()
+    env.close()
+
+    # Plot rewards per timestep averaged over episodes
+    plt.figure()
+    plt.plot(rewards, label='Cumulative reward per timestep, averaged over {} episodes'.format(episodes))
+    plt.legend()
+    plt.show()
+
+
+
+def visualize_value_function(value_function):
+    dim = np.shape(value_function)
+    for a in np.arange(dim[0]):
+        max = 0
+        for b in np.arange(dim[1]):
+            if value_function[a, b] > max:
+                max = value_function[a, b]
+                ind = b
+        print ("Highest value is {} for {} | {}".format(max, a, ind))
+
+def main():
+    # Create gym/quanser environment
+    env = gym.make('Pendulum-v2')
+
+    print("State space:  Shape:{}  Min:{}  Max:{} ".format(np.shape(env.observation_space), env.observation_space.low,
+                                                           env.observation_space.high))
+    print("Action space:  Shape:{}  Min:{}  Max:{} ".format(np.shape(env.action_space), env.action_space.low,
+                                                            env.action_space.high))
+
+    """
+        The Pendulum-v2 environment:
+
+        The action space is a Box(1,) with values between [-2, 2] (joint effort)
+
+        The state space is the current angle in radians and the angular velocity
+         min:-pi,-8; max:pi,8
+
+    """
+
+    # Search for value function file, if none exists, perform learning and evaluation and save value function file
+    save_flag = False
+
+    if open('vf.pkl') and not save_flag:
+        print("Found value function file.")
+        with open('vf.pkl', 'rb') as pickle_file:
+            vf = pickle.load(pickle_file)
+        visualize_value_function(vf)
+    else:
+        value_function, policy, disc = training(env=env)
+        save_object(value_function, 'vf.pkl')
+        evaluate(env=env, disc=disc, policy=policy)
+
+
+
+if __name__ == "__main__":
+    main()

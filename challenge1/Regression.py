@@ -20,7 +20,7 @@ class Regressor:
         plots = []
 
         regressorReward = RandomForestRegressor(n_estimators=10, min_samples_split=2)
-        regressorState = RandomForestRegressor(n_estimators=20, min_samples_split=2)
+        regressorState = RandomForestRegressor(n_estimators=40, min_samples_split=2)
 
         old_state = env.reset()
 

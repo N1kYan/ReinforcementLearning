@@ -59,7 +59,7 @@ def value_iteration(regressorState, regressorReward, disc, theta, gamma):
                     # Deterministic case; we do not need probability distribution
                     expected_reward = r + gamma * value_function[next_index[0], next_index[1]]
 
-                    if rmax < expected_reward:
+                    if rmax <= expected_reward:
                         amax = a
                         rmax = expected_reward
 
