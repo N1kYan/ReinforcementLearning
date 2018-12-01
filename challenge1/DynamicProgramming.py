@@ -41,7 +41,7 @@ def value_iteration(regressorState, regressorReward, disc, theta, gamma):
                 v = value_function[index[0], index[1]]
 
                 # Iterate over all actions to get action maximizing expected reward
-                amax = 2
+                amax = 0
                 rmax = -100
 
                 for a in disc.action_space:
@@ -49,8 +49,7 @@ def value_iteration(regressorState, regressorReward, disc, theta, gamma):
                     x = np.array([s0, s1, a])
                     x = x.reshape(1, -1)
                     next_s = regressorState.predict(x).T.reshape(-1, )
-                    r = - 1.0 * regressorReward.predict(x)
-                    # r = regressorReward.predict(x)
+                    r = regressorReward.predict(x)
 
                     # Discretize sufficient state
                     next_index = disc.map_to_index([next_s[0], next_s[1]])

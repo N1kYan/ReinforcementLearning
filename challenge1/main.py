@@ -25,7 +25,11 @@ from Utils import *
 """
 def training(env, regression_flag):
     # Create Discretization and Regression objects
-    disc = PendulumDiscretization(state_space_size=(8 + 1, 16 + 1), action_space_size=8 + 1)
+    disc = PendulumDiscretization(state_space_size=(16 + 1, 16 + 1), action_space_size=16 + 1)
+
+    print(disc.state_space)
+    print(disc.action_space)
+
     reg = Regressor()
 
     # Learning episodes / amount of samples for regression
@@ -36,7 +40,7 @@ def training(env, regression_flag):
 
     # Perform dynamic programming to get value function and near optimal policy
     value_function, policy = value_iteration(regressorState=regressorState, regressorReward=regressorReward, disc=disc,
-                                             theta=0.0001, gamma=0.7)
+                                             theta=0.01, gamma=0.7)
     # value_function, policy = policy_iteration(regressorState = regressorState, regressorReward = regressorReward,
     #                                          disc = larry, theta=0.1, gamma=0.5)
 
@@ -48,7 +52,7 @@ def training(env, regression_flag):
     Evaluation stuff to see the predictions, discretizations and learned functions in action
 
 """
-def evaluate(env, disc, policy):
+def evaluate(env, disc, policy, render):
 
     rewards_per_episode = []
 
@@ -66,7 +70,8 @@ def evaluate(env, disc, policy):
 
         for t in range(200):
             # Render environment
-            # env.render()
+            if render:
+                env.render()
 
             # Do step according to policy and get observation and reward
             action = np.array([policy[index[0], index[1]]])
@@ -100,15 +105,34 @@ def evaluate(env, disc, policy):
 
 
 
-def visualize_value_function(value_function):
+def visualize(value_function, policy):
+    print()
     dim = np.shape(value_function)
     for a in np.arange(dim[0]):
         max = 0
+        print("Value for {},x is".format(a),end='')
         for b in np.arange(dim[1]):
+            print(" ",value_function[a, b], end='')
+            """
             if value_function[a, b] > max:
                 max = value_function[a, b]
                 ind = b
-        print ("Highest value is {} for {} | {}".format(max, a, ind))
+            """
+        print (".")
+
+    print()
+    dim = np.shape(policy)
+    for a in np.arange(dim[0]):
+        max = 0
+        print("Policy for {},x is".format(a), end='')
+        for b in np.arange(dim[1]):
+            print(" ", policy[a, b], end='')
+            """
+            if value_function[a, b] > max:
+                max = value_function[a, b]
+                ind = b
+            """
+        print(".")
 
 
 
@@ -134,19 +158,21 @@ def main():
     # Search for value function and regression files,
     # if none exists, perform learning and evaluation and save value function and regression files
     regression_flag = False # Set to False to load regressors from file
-    value_function_save_flag = False # Set to False to load value function from file
+    value_function_save_flag = True # Set to False to load value function from file
     # Value function visualisation is only done when set to False
 
 
     if open('vf.pkl') and not value_function_save_flag:
+        print()
         print("Found value function file.")
         with open('vf.pkl', 'rb') as pickle_file:
-            vf = pickle.load(pickle_file)
-        visualize_value_function(vf)
+            (vf, policy) = pickle.load(pickle_file)
+        visualize(vf, policy)
     else:
         value_function, policy, disc = training(env=env, regression_flag=regression_flag)
-        save_object(value_function, 'vf.pkl')
-        evaluate(env=env, disc=disc, policy=policy)
+        save_object((value_function, policy), 'vf.pkl')
+        evaluate(env=env, disc=disc, policy=policy, render=True)
+        #visualize(value_function, policy)
 
 
 

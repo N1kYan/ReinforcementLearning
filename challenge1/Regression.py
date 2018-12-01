@@ -17,6 +17,7 @@ class Regressor:
 
         # Lead regressors from file if any exist and set flag to false
         if not flag and open('reg.pkl'):
+            print()
             print("Found regression file.")
             with open('reg.pkl', 'rb') as pickle_file:
                 (regressorState, regressorReward) = pickle.load(pickle_file)
