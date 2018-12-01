@@ -77,5 +77,5 @@ class Regressor:
             plt.legend()
             plt.show()
 
-            save_object((regressorState, regressorReward), 'vf.pkl')
+            save_object((regressorState, regressorReward), 'reg.pkl')
             return regressorState, regressorReward

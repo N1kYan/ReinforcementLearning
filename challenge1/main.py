@@ -14,6 +14,7 @@ from DynamicProgramming import policy_iteration
 from Utils import *
 
 
+
 """
     Training method
     
@@ -40,6 +41,7 @@ def training(env, regression_flag):
     #                                          disc = larry, theta=0.1, gamma=0.5)
 
     return value_function, policy, disc
+
 
 
 """
@@ -108,6 +110,8 @@ def visualize_value_function(value_function):
                 ind = b
         print ("Highest value is {} for {} | {}".format(max, a, ind))
 
+
+
 def main():
     # Create gym/quanser environment
     env = gym.make('Pendulum-v2')
@@ -129,8 +133,10 @@ def main():
 
     # Search for value function and regression files,
     # if none exists, perform learning and evaluation and save value function and regression files
+    regression_flag = False # Set to False to load regressors from file
     value_function_save_flag = False # Set to False to load value function from file
-    regression_flag = True # Set to False to load regressors from file
+    # Value function visualisation is only done when set to False
+
 
     if open('vf.pkl') and not value_function_save_flag:
         print("Found value function file.")
