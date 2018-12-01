@@ -6,7 +6,6 @@ from quanser_robots import GentlyTerminating
 from quanser_robots.double_pendulum.examples import metronom
 
 
-
 def initialize_objects():
     # Policy network
     policyNetworkModel = Sequential()
@@ -17,8 +16,11 @@ def initialize_objects():
 
     return policyNetworkModel
 
+
 def draw_initial_state(env):
-    return 0 #TODO: definie inital state distribution modular for possible environments
+    # TODO: define initial state distribution modular for possible environments
+    return 0
+
 
 # TODO: How to calculate policy network gradient? Should return np.array
 def train(env, policy, policy_der, sigma):
@@ -29,12 +31,12 @@ def train(env, policy, policy_der, sigma):
     z = 0
     b = z
 
-    for t in range (100):
+    for t in range(100):
         # Draw action from policy network and observe new state and reward
         action = policy(state)
         new_state, reward, done, infos = env.step(action)
 
-        # Critict Evaluation
+        # Critic Evaluation
 
         # Update basis functions
         sigma_tilde = np.array([sigma(new_state).T, 0]).T
@@ -57,19 +59,21 @@ def train(env, policy, policy_der, sigma):
         z = beta*z*A
     return policy
 
-def evaluate(env, crtl):
+
+def evaluate(env, ctrl):
 
     obs = env.reset()
 
     while True:
         env.render()
-        if crtl is None:
+        if ctrl is None:
             act = env.action_space.sample()
         else:
-            act = np.array(crtl(obs))
+            act = np.array(ctrl(obs))
         obs, rwd, done, info = env.step(act)
 
     env.close()
+
 
 def main():
     env = GentlyTerminating(gym.make('DoublePendulum-v0'))
@@ -82,15 +86,17 @@ def main():
 
         The action space is 1 dimensional.
         Min -15 Max: 15
+        
     """
 
     ctrl = ...  # some function f: s -> a
-    obs = env.reset()
-
+    state = env.reset()
     policyNetworkModel = initialize_objects()
-    #ctrl = metronom.MetronomCtrl()
-    ctrl = train(policyNetworkModel)
-    evaluate(env=env, ctrl=None)
+    print(policyNetworkModel.predict(state))
+    # ctrl = metronom.MetronomCtrl()
+    # ctrl = train(env=env, policy=policyNetworkModel, policy_der=policy_der, sigma=rbf)
+    # evaluate(env=env, ctrl=None)
+
 
 if __name__ == "__main__":
     main()
