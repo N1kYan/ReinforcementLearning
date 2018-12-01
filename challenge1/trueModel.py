@@ -35,7 +35,7 @@ def reward(input):
 def main():
     env = gym.make("Pendulum-v2")
     state = env.reset()
-    action = np.array([0.5])
+    action = np.array([2.0])
     x = np.array([state[0], state[1], action])
     print("State: ", state)
     print("Action: ", action)

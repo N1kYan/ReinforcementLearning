@@ -164,7 +164,6 @@ def main():
     value_function_save_flag = True  # Set to False to load value function from file
     # Value function visualisation is only done when set to False
 
-
     if open('vf.pkl') and not value_function_save_flag:
         print()
         print("Found value function file.")
@@ -176,8 +175,7 @@ def main():
                                                 true_model_flag=true_model_flag)
         save_object((value_function, policy), 'vf.pkl')
         evaluate(env=env, disc=disc, policy=policy, render=True)
-        #visualize(value_function, policy)
-
+        # visualize(value_function, policy)
 
 
 if __name__ == "__main__":
