@@ -12,6 +12,7 @@ from Regression import Regressor
 from DynamicProgramming import value_iteration
 from DynamicProgramming import policy_iteration
 from Utils import *
+import trueModel
 
 
 
@@ -23,13 +24,14 @@ from Utils import *
     Learns optimal policy with dynamic programming methods afterwards.
     
 """
-def training(env, regression_flag):
+def training(env, regression_flag, true_model_flag):
     # Create Discretization and Regression objects
     disc = PendulumDiscretization(state_space_size=(16 + 1, 16 + 1), action_space_size=16 + 1)
 
     print(disc.state_space)
     print(disc.action_space)
 
+    #if not true_model_flag: #TODO
     reg = Regressor()
 
     # Learning episodes / amount of samples for regression
@@ -157,8 +159,9 @@ def main():
 
     # Search for value function and regression files,
     # if none exists, perform learning and evaluation and save value function and regression files
-    regression_flag = False # Set to False to load regressors from file
-    value_function_save_flag = True # Set to False to load value function from file
+    regression_flag = False  # Set to False to load regressors from file
+    true_model_flag = True  # Set to True to perform dp with true model instead of model gotten by regression
+    value_function_save_flag = True  # Set to False to load value function from file
     # Value function visualisation is only done when set to False
 
 
@@ -169,7 +172,8 @@ def main():
             (vf, policy) = pickle.load(pickle_file)
         visualize(vf, policy)
     else:
-        value_function, policy, disc = training(env=env, regression_flag=regression_flag)
+        value_function, policy, disc = training(env=env, regression_flag=regression_flag,
+                                                true_model_flag=true_model_flag)
         save_object((value_function, policy), 'vf.pkl')
         evaluate(env=env, disc=disc, policy=policy, render=True)
         #visualize(value_function, policy)
