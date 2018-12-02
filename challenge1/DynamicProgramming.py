@@ -7,12 +7,10 @@ import TrueModel
    Inputs:
    disc: Discriminator object
    theta: Minimal value function difference for convergence
-   gamma: Update learning rate
+   gamma: Discount factor
 
 """
 
-
-# TODO: Good choice of a learning rate (gamma)
 
 def value_iteration(regressorState, regressorReward, disc, theta, gamma,
                     use_true_model=False):
