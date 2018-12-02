@@ -129,35 +129,11 @@ def evaluate(env, disc, policy, render):
 
 
 def visualize(value_function, policy):
-    print()
-    dim = np.shape(value_function)
-    for a in np.arange(dim[0]):
-        max = 0
-        print("Value for {},x is".format(a),end='')
-        for b in np.arange(dim[1]):
-            print(" ",value_function[a, b], end='')
-            """
-            if value_function[a, b] > max:
-                max = value_function[a, b]
-                ind = b
-            """
-        print (".")
-
-    print()
-    dim = np.shape(policy)
-    for a in np.arange(dim[0]):
-        max = 0
-        print("Policy for {},x is".format(a), end='')
-        for b in np.arange(dim[1]):
-            print(" ", policy[a, b], end='')
-            """
-            if value_function[a, b] > max:
-                max = value_function[a, b]
-                ind = b
-            """
-        print(".")
-
-
+    plt.figure()
+    plt.title("Value function")
+    plt.imshow(value_function)
+    plt.colorbar()
+    plt.show()
 
 # TODO: True Model benutzen
 # TODO: Other Discretization
@@ -190,9 +166,9 @@ def main():
 
     # Search for value function and regression files,
     # if none exists, perform learning and evaluation and save value function and regression files
-    regression_flag = True  # Set to False to load regressors from file
-    true_model_flag = True  # Set to True to perform dp with true model instead of model gotten by regression
-    value_function_save_flag = True  # Set to False to load value function from file
+    regression_flag = False  # Set to False to load regressors from file
+    true_model_flag = False  # Set to True to perform dp with true model instead of model gotten by regression
+    value_function_save_flag = False  # Set to False to load value function from file
     # Value function visualisation is only done when set to False
 
     if open('vf.pkl') and not value_function_save_flag:
