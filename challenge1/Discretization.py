@@ -68,6 +68,7 @@ class EasyPendulumDiscretization(Discretization):
 #                                      0.1, 0.25, 0.5, np.pi*0.25, np.pi*0.5, np.pi*0.75, np.pi]),
 #                            np.linspace(-8, 8, self.state_space_size[1]))
 
-        self.state_space = (np.array([-np.pi, -0.5, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, np.pi]),
+        self.state_space = (np.array([-np.pi, -2.5, -2.0, -1.5, -1.0, -0.5, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3,
+                                      0.4, 0.5, 1.0, 1.5, 2.0, 2.5, np.pi]),
                             np.linspace(-8, 8, self.state_space_size[1]))
         self.state_space_size = (np.size(self.state_space[0]), np.shape(self.state_space[1])[0])

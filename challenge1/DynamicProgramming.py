@@ -87,6 +87,7 @@ def value_iteration(regressorState, regressorReward, disc, theta, gamma,
         print("Done! (Delta = {})".format(delta))
 
     # Define policy by action achieving maximum expected reward per state
+    print("Defining policy...")
     for j, s0 in enumerate(disc.state_space[0]):  # degrees
         for s1 in disc.state_space[1]:  # angular velocity
 
