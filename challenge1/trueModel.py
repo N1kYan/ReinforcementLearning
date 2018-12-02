@@ -44,9 +44,9 @@ def reward(input):
     state = np.array([input[0], input[1]])
     action = input[2]
     action = np.clip(action, -2.0, 2.0)
-    costs = - angle_normalize(state[0])**2 + .1 * state[1]**2 + .001 * (action**2)
+    costs = angle_normalize(state[0])**2 + .1 * state[1]**2 + .001 * (action**2)
 
-    return costs
+    return - costs
 
 
 def main():
