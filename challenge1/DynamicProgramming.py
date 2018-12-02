@@ -1,4 +1,5 @@
 import numpy as np
+import TrueModel
 
 """
    Value Iteration
@@ -13,7 +14,8 @@ import numpy as np
 
 # TODO: Good choice of a learning rate (gamma)
 
-def value_iteration(regressorState, regressorReward, disc, theta, gamma):
+def value_iteration(regressorState, regressorReward, disc, theta, gamma,
+                    use_true_model=False):
     print("Starting Value iteration:")
 
     value_function = np.zeros(shape=disc.state_space_size)
@@ -47,9 +49,27 @@ def value_iteration(regressorState, regressorReward, disc, theta, gamma):
                 for a in disc.action_space:
                     # Get sufficient state and reward from regressors
                     x = np.array([s0, s1, a])
-                    x = x.reshape(1, -1)
-                    next_s = regressorState.predict(x).T.reshape(-1, )
-                    r = regressorReward.predict(x)
+
+                    # Get next state and reward
+                    if use_true_model:
+                        next_s = TrueModel.transition(x)
+                        r = [TrueModel.reward(x)]
+                    else:
+                        x_res = x.reshape(1, -1)
+                        next_s = regressorState.predict(x_res).T.reshape(-1, )
+                        r = regressorReward.predict(x_res)
+
+                    # #########################################################
+                    # # TESTING: Compare True vs. learned model
+                    # # Please do not remove
+                    # next_s_1 = TrueModel.transition(x)
+                    # r_1 = [TrueModel.reward(x)]
+                    # x_res = x.reshape(1, -1)
+                    # next_s_2 = regressorState.predict(x_res).T.reshape(-1, )
+                    # r_2 = regressorReward.predict(x_res)
+                    # print("Pred State: ", next_s_2, ", True State: ", next_s_1)
+                    # print("Pred Reward: ", r_2, "True Reward: ", r_1)
+                    # #########################################################
 
                     # Discretize sufficient state
                     next_index = disc.map_to_index([next_s[0], next_s[1]])

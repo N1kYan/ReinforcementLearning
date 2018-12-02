@@ -36,7 +36,7 @@ class Regressor:
 
             old_state = env.reset()
 
-            print("Regression: 0% ... ")
+            print("Regression: 0% ... ", end='')
             for i in range(epochs):
 
                 action = env.action_space.sample()
@@ -63,11 +63,11 @@ class Regressor:
                 old_state = np.copy(next_state)
 
                 if i == int(epochs * 0.25):
-                    print("25% ... ")
+                    print("25% ... ", end='')
                 if i == int(epochs * 0.5):
-                    print("50% ... ")
+                    print("50% ... ", end='')
                 if i == int(epochs * 0.75):
-                    print("75% ... ")
+                    print("75% ... ", end='')
 
             print("Done!")
 
