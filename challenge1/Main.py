@@ -55,14 +55,14 @@ def training(env, load_regressors_from_file, use_true_model):
         epochs = 10000
 
         # Perform regression
-        regressorState, regressorReward = reg.perform_regression(epochs, env, regression_flag)
+        regressorState, regressorReward = reg.perform_regression(epochs, env, load_regressors_from_file)
 
     # Perform dynamic programming to get value function and near optimal policy
     value_function, policy = \
         value_iteration(regressorState=regressorState,
                         regressorReward=regressorReward, disc=disc,
                         theta=0.01, gamma=0.7,
-                        use_true_model=load_regressors_from_file)
+                        use_true_model=use_true_model)
     print("-------------------------\nValue Function:")
     print_array(value_function)
     print("-------------------------\nPolicy Function:")
@@ -170,9 +170,9 @@ def main():
 
     # Search for value function and regression files,
     # if none exists, perform learning and evaluation and save value function and regression files
-    load_val_fct_from_file = True
-    load_regressors_from_file = True
-    use_true_model = True
+    load_val_fct_from_file = False
+    load_regressors_from_file = False
+    use_true_model = False
     # Value function visualisation is only done when set to False
 
     if open('vf.pkl') and load_val_fct_from_file:
@@ -183,8 +183,7 @@ def main():
         visualize(vf, policy)
     else:
         value_function, policy, disc \
-            = training(env=env, regression_flag=load_regressors_from_file,
-                       true_model_flag=use_true_model)
+            = training(env, load_regressors_from_file, use_true_model)
         visualize(value_function, policy, disc)
         save_object((value_function, policy), 'vf.pkl')
         evaluate(env=env, disc=disc, policy=policy, render=True)

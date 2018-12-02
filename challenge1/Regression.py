@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pickle
 from Utils import *
+import sys
 
 class Regressor:
 
@@ -37,6 +38,7 @@ class Regressor:
             old_state = env.reset()
 
             print("Regression: 0% ... ", end='')
+            sys.stdout.flush()
             for i in range(epochs):
 
                 action = env.action_space.sample()
@@ -64,10 +66,13 @@ class Regressor:
 
                 if i == int(epochs * 0.25):
                     print("25% ... ", end='')
+                    sys.stdout.flush()
                 if i == int(epochs * 0.5):
                     print("50% ... ", end='')
+                    sys.stdout.flush()
                 if i == int(epochs * 0.75):
                     print("75% ... ", end='')
+                    sys.stdout.flush()
 
             print("Done!")
 
