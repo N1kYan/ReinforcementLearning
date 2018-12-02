@@ -126,15 +126,6 @@ def evaluate(env, disc, policy, render):
     plt.legend()
     plt.show()
 
-
-
-def visualize(value_function, policy):
-    plt.figure()
-    plt.title("Value function")
-    plt.imshow(value_function)
-    plt.colorbar()
-    plt.show()
-
 # TODO: True Model benutzen
 # TODO: Other Discretization
 # TODO: Transition Probabilities
