@@ -36,7 +36,7 @@ def training(env, regression_flag, true_model_flag):
     discretization object which we used to create the value/policy function
     """
     # DISCRETIZATION
-    disc = EasyPendulumDiscretization(state_space_size=(20 + 1, 16 + 1), action_space_size=16 + 1)
+    disc = PendulumDiscretization(state_space_size=(16 + 1, 16 + 1), action_space_size=16 + 1)
 
     print("-------------------------\nState Space Discretization:")
     print(disc.state_space)
@@ -64,9 +64,9 @@ def training(env, regression_flag, true_model_flag):
                         theta=0.01, gamma=0.7,
                         use_true_model=true_model_flag)
     print("-------------------------\nValue Function:")
-    print(value_function)
+    print_array(value_function)
     print("-------------------------\nPolicy Function:")
-    print(policy)
+    print_array(policy)
     return value_function, policy, disc
 
 
@@ -126,6 +126,22 @@ def evaluate(env, disc, policy, render):
     plt.legend()
     plt.show()
 
+
+
+def visualize(value_function, policy, disc=None):
+    plt.figure()
+    plt.title("Value function")
+    plt.imshow(value_function)
+    plt.colorbar()
+
+    if disc is not None:
+        plt.ylabel("Angle in Radians")
+        plt.yticks(range(disc.state_space_size[0]), labels=disc.state_space[0].round(2))
+        plt.xlabel("Velocity")
+        plt.xticks(range(disc.state_space_size[1]), labels=disc.state_space[1].round(1))
+
+    plt.show()
+
 # TODO: True Model benutzen
 # TODO: Other Discretization
 # TODO: Transition Probabilities
@@ -169,9 +185,9 @@ def main():
         value_function, policy, disc \
             = training(env=env, regression_flag=regression_flag,
                        true_model_flag=true_model_flag)
+        visualize(value_function, policy, disc)
         save_object((value_function, policy), 'vf.pkl')
         evaluate(env=env, disc=disc, policy=policy, render=True)
-        # visualize(value_function, policy)
 
 
 if __name__ == "__main__":
