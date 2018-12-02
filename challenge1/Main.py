@@ -165,7 +165,7 @@ def main():
     # if none exists, perform learning and evaluation and save value function and regression files
     regression_flag = False  # Set to False to load regressors from file
     true_model_flag = False  # Set to True to perform dp with true model instead of model gotten by regression
-    value_function_save_flag = True  # Set to False to load value function from file
+    value_function_save_flag = False  # Set to False to load value function from file
     # Value function visualisation is only done when set to False
 
     if open('vf.pkl') and not value_function_save_flag:

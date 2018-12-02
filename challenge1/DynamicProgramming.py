@@ -114,10 +114,10 @@ def value_iteration(regressorState, regressorReward, disc, theta, gamma,
                 expected_reward = r + gamma * value_function[next_index[0], next_index[1]]
 
                 if rmax <= expected_reward:
+                    rmax = expected_reward
                     amax = a
 
             policy[index[0], index[1]] = amax
-
 
     print()
     print("... done!")
