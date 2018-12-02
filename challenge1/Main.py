@@ -23,7 +23,7 @@ import TrueModel
 """
 
 
-def training(env, regression_flag, true_model_flag):
+def training(env, load_regressors_from_file, use_true_model):
     """
     Learning the value and policy function for our environment.
     :param env: The environment we want to learn the value and policy function
@@ -48,7 +48,7 @@ def training(env, regression_flag, true_model_flag):
 
     # REGRESSION
     # We want to use regression to learn the rewards and state transitions
-    if not true_model_flag:
+    if not use_true_model:
         reg = Regressor()
 
         # Learning episodes / amount of samples for regression
@@ -62,7 +62,7 @@ def training(env, regression_flag, true_model_flag):
         value_iteration(regressorState=regressorState,
                         regressorReward=regressorReward, disc=disc,
                         theta=0.01, gamma=0.7,
-                        use_true_model=true_model_flag)
+                        use_true_model=load_regressors_from_file)
     print("-------------------------\nValue Function:")
     print_array(value_function)
     print("-------------------------\nPolicy Function:")
@@ -170,12 +170,12 @@ def main():
 
     # Search for value function and regression files,
     # if none exists, perform learning and evaluation and save value function and regression files
-    regression_flag = False  # Set to False to load regressors from file
-    true_model_flag = False  # Set to True to perform dp with true model instead of model gotten by regression
-    value_function_save_flag = False  # Set to False to load value function from file
+    load_val_fct_from_file = True
+    load_regressors_from_file = True
+    use_true_model = True
     # Value function visualisation is only done when set to False
 
-    if open('vf.pkl') and not value_function_save_flag:
+    if open('vf.pkl') and load_val_fct_from_file:
         print()
         print("Found value function file.")
         with open('vf.pkl', 'rb') as pickle_file:
@@ -183,8 +183,8 @@ def main():
         visualize(vf, policy)
     else:
         value_function, policy, disc \
-            = training(env=env, regression_flag=regression_flag,
-                       true_model_flag=true_model_flag)
+            = training(env=env, regression_flag=load_regressors_from_file,
+                       true_model_flag=use_true_model)
         visualize(value_function, policy, disc)
         save_object((value_function, policy), 'vf.pkl')
         evaluate(env=env, disc=disc, policy=policy, render=True)

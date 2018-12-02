@@ -13,10 +13,10 @@ class Regressor:
 
     # Performs regression from given state and performed action
     # to successive state and observed reward
-    def perform_regression(self, epochs, env, flag):
+    def perform_regression(self, epochs, env, load_regressors_from_file):
 
         # Lead regressors from file if any exist and set flag to false
-        if not flag and open('reg.pkl'):
+        if load_regressors_from_file and open('reg.pkl'):
             print()
             print("Found regression file.")
             with open('reg.pkl', 'rb') as pickle_file:
