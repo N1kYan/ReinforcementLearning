@@ -43,7 +43,6 @@ def value_iteration(regressorState, regressorReward, disc, theta, gamma,
                 v = value_function[index[0], index[1]]
 
                 # Iterate over all actions to get action maximizing expected reward
-                amax = 0
                 rmax = -100
 
                 for a in disc.action_space:
@@ -79,17 +78,45 @@ def value_iteration(regressorState, regressorReward, disc, theta, gamma,
                     expected_reward = r + gamma * value_function[next_index[0], next_index[1]]
 
                     if rmax <= expected_reward:
-                        amax = a
                         rmax = expected_reward
 
-                        # Define value function by maximum expected reward per state
+                # Define value function by maximum expected reward per state
                 value_function[index[0], index[1]] = rmax
-                # Define policy by action achieving maximum expected reward per state
-                policy[index[0], index[1]] = amax
                 # Update delta
                 delta = max(delta, np.abs(v - value_function[index[0], index[1]]))
-
         print("Done! (Delta = {})".format(delta))
+
+    # Define policy by action achieving maximum expected reward per state
+    for j, s0 in enumerate(disc.state_space[0]):  # degrees
+        for s1 in disc.state_space[1]:  # angular velocity
+
+            index = disc.map_to_index([s0, s1])
+
+            amax = 0
+            rmax = -100
+            for a in disc.action_space:
+
+                x = np.array([s0, s1, a])
+
+                # Get next state and reward
+                if use_true_model:
+                    next_s = TrueModel.transition(x)
+                    r = [TrueModel.reward(x)]
+                else:
+                    x_res = x.reshape(1, -1)
+                    next_s = regressorState.predict(x_res).T.reshape(-1, )
+                    r = regressorReward.predict(x_res)
+
+                # Discretize sufficient state
+                next_index = disc.map_to_index([next_s[0], next_s[1]])
+
+                expected_reward = r + gamma * value_function[next_index[0], next_index[1]]
+
+                if rmax <= expected_reward:
+                    amax = a
+
+            policy[index[0], index[1]] = amax
+
 
     print()
     print("... done!")
