@@ -26,11 +26,8 @@ class DiscreteEnvironment:
         # Currently only 1D actions
         self.action_space = (np.linspace(self.env.action_space.low, self.env.action_space.high,
                                         self.action_space_size[0]),)
-        # Transition probabilities
-        self.p = np.zeros(shape=(self.state_space_size + self.action_space_size + self.state_space_size))
-        self.p_counter = np.zeros(shape=(self.state_space_size + self.action_space_size + self.state_space_size))
-        self.action_counter = np.zeros(shape=(self.state_space_size + self.action_space_size))
 
+    # TODO: change to 1d arrays for discrete state space
     # Maps discrete state to index for value function or policy lookup table
     def map_to_state(self, x):
 
@@ -62,8 +59,6 @@ class DiscreteEnvironment:
                     indices.append(index)
         return np.array(indices)
 
-
-
     # Maps action
     def map_to_action(self, x):
         if len(x) != len(self.action_space_size):
@@ -80,9 +75,9 @@ class DiscreteEnvironment:
         return np.array(indices)
 
     """
-        This function updates the environments transition probability function by sampling for 
-        'epochs' and counting the results        
-    """
+        # This function updates the environments transition probability function by sampling for 
+        # 'epochs' and counting the results        
+    
     def update_transition_probabilities(self, policy, epochs):
 
         state = self.env.reset()
@@ -123,12 +118,12 @@ class DiscreteEnvironment:
                                 prob = self.p_counter[s1, s2, a, ns1, ns2] / self.action_counter[s1, s2, a]
                             self.p[s1, s2, a, ns1, ns2] = prob
 
-    """
-        This function returns a dictionary of successor states and their probabilities.
-        The inputs are indices of a discrete state and a discrete action.
-        The output is a python dictionary with state tuples and their probability.
-        Returns -1 if no successors sampled (yet)
-    """
+    
+        # This function returns a dictionary of successor states and their probabilities.
+        # The inputs are indices of a discrete state and a discrete action.
+        # The output is a python dictionary with state tuples and their probability.
+        # Returns -1 if no successors sampled (yet)
+    
     def return_successors(self, x, a):
         successors = self.p[x[0], x[1], a, :, :]
         successors_dict = {}
@@ -142,5 +137,6 @@ class DiscreteEnvironment:
             return -1
         else:
             return successors_dict
+    """
 
 

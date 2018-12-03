@@ -42,7 +42,7 @@ def main():
     disc_env = DiscreteEnvironment(env=env, name='EasyPendulum',
                                    state_space_size=(16+1, 16+1),
                                    action_space_size=(16+1,))
-    disc_env.get_transition_prob(epochs = 10000) # TODO
+    disc_env.evaluate_transition_prob(epochs = 10000) # TODO
     value_function, policy = value_iteration(env=disc_env, theta=1e-1, gamma=0.1)
 
 if __name__=="__main__":
