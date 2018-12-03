@@ -5,11 +5,21 @@ import matplotlib.pyplot as plt
 class DiscreteEnvironment:
     def __init__(self, env, name, state_space_size, action_space_size):
         self.env = env
-        self.state_space_size = state_space_size
+        self.name = name
+
         if name == 'EasyPendulum':
+            self.state_space_size = state_space_size
             # Pendulum-v2 equidistand
             self.state_space = (np.linspace(-np.pi, np.pi, self.state_space_size[0]),
                             np.linspace(-8, 8, self.state_space_size[1]))
+
+        elif name == 'LowerBorder' or name == 'UpperBorder':
+            self.state_space = (np.array([-np.pi, -np.pi*(2/3), -np.pi*(1/3), -0.8, -0.6, -0.4, -0.2, -0.15, -0.1, -0.05,
+                                 0.05, 0.1, 0.15, 0.2, 0.4, 0.6, 0.8, np.pi*(1/3), np.pi*(2/3), np.pi]),
+                                np.array([-8.0, -7.0, -6.0, -5.0, -4.0, -3.5, -3.0, -2.5, -2.0, -1.5, -1.0, -0.5, -0.25,
+                                 0.25, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0, 6.0, 7.0, 8.0]))
+            self.state_space_size = (len(self.state_space[0]), len(self.state_space[1]))
+
         else:
             print("Unknown discrete environment name.")
         self.action_space_size = action_space_size
@@ -23,19 +33,36 @@ class DiscreteEnvironment:
 
     # Maps discrete state to index for value function or policy lookup table
     def map_to_state(self, x):
+
         if len(x) != len(self.state_space_size):
             print("Input shape not matching state space shape.")
             return -1
-        # Map every dimension of input to closest value of state space in same dimension
+
         indices = []
+
         for i in range(len(x)):
-            s = self.state_space[i]
-            # Get list of distances from x[0] to all elements in state_space[0]
-            index = min(self.state_space[i], key=lambda c: abs(c-x[i]))
-            # Get index of element with min distance
-            index = np.where(s == index)[0].reshape(-1)[0]
-            indices.append(index)
+            for s in np.arange(0, len(self.state_space[i])-1):
+                if self.name=='LowerBorder':
+                    if x[i] <= 0:
+                        #print("{} <= {} < {} : {}".format(self.state_space[i][s],
+                        #                                   x[i], self.state_space[i][s+1],
+                        #                                   self.state_space[i][s] <= x[i] < self.state_space[i][s+1]))
+                        if self.state_space[i][s] <= x[i] < self.state_space[i][s+1]:
+                            indices.append(s)
+                    elif x[i] > 0:
+                        if self.state_space[i][s] < x[i] <= self.state_space[i][s+1]:
+                            indices.append(s+1)
+                elif self.name=='EasyPendulum':
+                    # Map every dimension of input to closest value of state space in same dimension
+                    s = self.state_space[i]
+                    # Get list of distances from x[0] to all elements in state_space[0]
+                    index = min(self.state_space[i], key=lambda c: abs(c-x[i]))
+                    # Get index of element with min distance
+                    index = np.where(s == index)[0].reshape(-1)[0]
+                    indices.append(index)
         return np.array(indices)
+
+
 
     # Maps action
     def map_to_action(self, x):
@@ -76,11 +103,9 @@ class DiscreteEnvironment:
             self.action_counter[index[0], index[1], index[2]] += 1
             self.p_counter[index[0], index[1], index[2], index[3], index[4]] += 1
 
-
             prob = self.p_counter[index[0], index[1], index[2], index[3], index[4]] / \
                 self.action_counter[index[0], index[1], index[2]]
             self.p[index[0], index[1], index[2], index[3], index[4]] = prob
-
 
             state = new_state
             if done:

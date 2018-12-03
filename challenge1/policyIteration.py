@@ -21,7 +21,9 @@ def policy_iteration(env, disc_env, regressorState, regressorReward, theta, gamm
             # TODO: Bellman in matrix equation?
             for s0 in disc_env.state_space[0]:
                 for s1 in disc_env.state_space[1]:
+
                     index = disc_env.map_to_state([s0, s1])
+                    #print("{}|{} -> {}".format(s0, s1, index))
                     v = value_function[index[0], index[1]]
                     a = disc_env.map_to_action([policy[index[0], index[1]]])
 
@@ -94,14 +96,13 @@ def main():
     env = gym.make('Pendulum-v2')
     reg = Regressor()
     # Please use tuples for state and action space sizes
-    disc_env = DiscreteEnvironment(env=env, name='EasyPendulum', state_space_size=(32+1, 16+1),
+    disc_env = DiscreteEnvironment(env=env, name='LowerBorder', state_space_size=(32+1, 16+1),
                                    action_space_size=(16+1,))
 
     regressorState, regressorReward = reg.perform_regression(epochs=10000, env=env, save_flag=False)
-    value_function, policy = policy_iteration(env, disc_env, regressorState, regressorReward, theta=1e-1, gamma=0.95)
+    value_function, policy = policy_iteration(env, disc_env, regressorState, regressorReward, theta=1e-1, gamma=0.6)
     evaluate(env=env, episodes=100, disc = disc_env, policy=policy, render=False)
     visualize(policy=policy, value_function=value_function, state_space=disc_env.state_space)
-
 
 if __name__ == "__main__":
     main()
