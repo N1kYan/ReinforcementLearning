@@ -68,17 +68,18 @@ def training(env, disc_env, value_function, load_regression_flag, load_value_fun
             policy = p
     else:
         theta = 1e-1
-        gamma = 0.85
+        gamma = 0.01
 
         # Perform dynamic programming to get value function and near optimal policy
         print("Training episode 0...")
-        disc_env.update_transition_probabilities(policy=None, epochs=500)
+        disc_env.update_transition_probabilities(policy=None, epochs=10000)
         value_function, policy = \
             value_iteration(regressorState=regressorState,
                             regressorReward=regressorReward, disc=disc_env, vf=None, theta=theta, gamma=gamma,
                             use_true_model=use_true_model_flag)
-        #evaluate(env, disc_env, policy, render=True)
-
+        evaluate(env=env, episodes=100, disc=disc_env, policy=policy, render=False)
+        visualize(value_function, policy, disc=disc_env)
+        """
         for i in range(19):
             print("Training episode {}...".format(i+1))
             disc_env.update_transition_probabilities(policy=policy, epochs=500)
@@ -87,6 +88,7 @@ def training(env, disc_env, value_function, load_regression_flag, load_value_fun
                                 regressorReward=regressorReward, disc=disc_env, vf=value_function, theta=theta,
                                 gamma=gamma, use_true_model=use_true_model_flag)
             #evaluate(env, disc_env, policy, render=True)
+        """
 
         save_object((value_function, policy), './pickle/vf.pkl')
         #print("-------------------------\nValue Function:")
