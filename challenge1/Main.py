@@ -68,9 +68,15 @@ def training(env, disc_env, value_function, load_regression_flag, load_value_fun
             policy = p
     else:
         theta = 1e-1
-        gamma = 0.01
+        gamma = 0.95
 
         # Perform dynamic programming to get value function and near optimal policy
+
+
+        disc_env.update_transition_probabilities(policy=None, epochs=10000)
+        value_function, policy = policy_iteration(regressorState, regressorReward,
+                                                  disc = disc_env, theta=theta, gamma=gamma)
+        """
         print("Training episode 0...")
         disc_env.update_transition_probabilities(policy=None, epochs=10000)
         value_function, policy = \
@@ -79,7 +85,7 @@ def training(env, disc_env, value_function, load_regression_flag, load_value_fun
                             use_true_model=use_true_model_flag)
         evaluate(env=env, episodes=100, disc=disc_env, policy=policy, render=False)
         visualize(value_function, policy, disc=disc_env)
-        """
+        
         for i in range(19):
             print("Training episode {}...".format(i+1))
             disc_env.update_transition_probabilities(policy=policy, epochs=500)
@@ -99,86 +105,6 @@ def training(env, disc_env, value_function, load_regression_flag, load_value_fun
     return value_function, policy
 
 
-"""
-    Evaluation stuff to see the predictions, discretizations and learned functions in action
-"""
-def evaluate(env, episodes, disc, policy, render):
-
-    rewards_per_episode = []
-
-    print("Evaluating...")
-
-    for e in range(episodes):
-
-        # Discretize first state
-        state = env.reset()
-        index = disc.map_to_state(state)
-
-        cumulative_reward = [0]
-
-        for t in range(200):
-            # Render environment
-            if render:
-                env.render()
-            #time.sleep(2)
-
-            # Do step according to policy and get observation and reward
-            action = np.array([policy[index[0], index[1]]])
-
-            state, reward, done, info = env.step(action)
-
-            cumulative_reward.append(cumulative_reward[-1] + reward)
-
-            # Discretize observed state
-            index = disc.map_to_state(state)
-
-            if done:
-                print("Episode {} finished after {} timesteps".format(e + 1, t + 1))
-                break
-
-        rewards_per_episode.append(cumulative_reward)
-
-    print("...done")
-
-    # TODO: Look at calculation of mean cumulative rewards
-    # Average reward over episodes
-    rewards = np.average(rewards_per_episode, axis=0)
-
-    env.close()
-
-    # Plot rewards per timestep averaged over episodes
-    plt.figure()
-    plt.plot(rewards, label='Cumulative reward per timestep, averaged over {} episodes'.format(episodes))
-    plt.legend()
-    plt.show()
-
-
-
-def visualize(value_function, policy, disc=None):
-    plt.figure()
-    plt.title("Value function")
-    plt.imshow(value_function)
-    plt.colorbar()
-
-    if disc is not None:
-        plt.ylabel("Angle in Radians")
-        plt.yticks(range(disc.state_space_size[0]), labels=disc.state_space[0].round(2))
-        plt.xlabel("Velocity")
-        plt.xticks(range(disc.state_space_size[1]), labels=disc.state_space[1].round(1))
-
-    plt.show()
-
-    plt.title("Policy")
-    plt.imshow(policy)
-    plt.colorbar()
-
-    if disc is not None:
-        plt.ylabel("Angle in Radians")
-        plt.yticks(range(disc.state_space_size[0]), labels=disc.state_space[0].round(2))
-        plt.xlabel("Velocity")
-        plt.xticks(range(disc.state_space_size[1]), labels=disc.state_space[1].round(1))
-
-    plt.show()
 
 # TODO: True Model benutzen
 # TODO: Other Discretization
@@ -209,7 +135,7 @@ def main():
     value_function, policy = training(env=env, disc_env=disc_env, value_function=None, load_regression_flag=True,
                                        load_value_function_flag=False, use_true_model_flag=False)
 
-    evaluate(env=env, episodes=100, disc=disc_env, policy=policy, render=True)
+    evaluate(env=env, episodes=100, disc=disc_env, policy=policy, render=False)
     visualize(value_function, policy)
 
 

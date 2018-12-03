@@ -23,10 +23,12 @@ class Regressor:
         plotr = []
         plots = []
         regressorReward = RandomForestRegressor(n_estimators=10, min_samples_split=2)
-        regressorState = RandomForestRegressor(n_estimators=10, min_samples_split=2)
+        regressorState = RandomForestRegressor(n_estimators=50, min_samples_split=2)
         old_state = env.reset()
 
         print("Regression: 0% ... ", end='')
+        sys.stdout.flush()
+
         for i in range(epochs):
             action = env.action_space.sample()
             next_state, reward, done, info = env.step(action)
@@ -54,12 +56,16 @@ class Regressor:
             # TODO: These prints somehow dont work anymore...
             if i == int(epochs * 0.25):
                 print("25% ... ", end='')
+                sys.stdout.flush()
             if i == int(epochs * 0.5):
                 print("50% ... ", end='')
+                sys.stdout.flush()
             if i == int(epochs * 0.75):
                 print("75% ... ", end='')
+                sys.stdout.flush()
 
         print("Done!")
+        sys.stdout.flush()
 
         # Plot loss curves
         plt.figure(0)

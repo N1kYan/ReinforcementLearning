@@ -165,7 +165,7 @@ def policy_iteration(regressorState, regressorReward, disc, theta, gamma):
                     # Get index for state
                     # The method already iterates over a discretized state space
                     # But the states need to get mapped to a positive index do to possible 'negative' states
-                    index = disc.map_to_index([s0, s1])
+                    index = disc.map_to_state([s0, s1])
 
                     v = value_function[index[0], index[1]]
 
@@ -175,17 +175,33 @@ def policy_iteration(regressorState, regressorReward, disc, theta, gamma):
                     """
                     a = policy[index[0], index[1]]
 
-                    # input for regression
-                    x = np.array([s0, s1, a]).reshape(1, -1)
-
+                    """
+                        # input for regression
+                        x = np.array([s0, s1, a]).reshape(1, -1)
+                    """
+                    # Get successors
+                    i0 = index[0]
+                    i1 = index[1]
+                    ia = disc.map_to_action([a])[0]
+                    succ = disc.return_successors([i0, i1], ia)
+                    if succ == -1:
+                        expected_reward = -100
+                    else:
+                        expected_reward = 0
+                        for succ_state in succ:
+                            # Expected reward over all (yet discovered) possible successive states
+                            expected_reward += succ[succ_state] * \
+                                               (regressorReward.predict(np.array([i0, i1, ia]).reshape(1, -1)) +
+                                                gamma * value_function[i0, i1])
+                    """
                     # Predict next state and reward with regressors
                     next_s = regressorState.predict(x).T.reshape(-1, )
                     r = regressorReward.predict(x)
 
                     next_index = disc.map_to_index([next_s[0], next_s[1]])
-
-                    value_function[index[0], index[1]] = r + gamma * value_function[next_index[0], next_index[1]]
-
+                    """
+                    #value_function[index[0], index[1]] = r + gamma * value_function[next_index[0], next_index[1]]
+                    value_function[i0, i1] = expected_reward
                     delta = max(delta, v - value_function[index[0], index[1]])
             print("Delta: ", delta)
 
@@ -197,7 +213,7 @@ def policy_iteration(regressorState, regressorReward, disc, theta, gamma):
             for s1 in disc.state_space[1]:
 
                 # Indexing
-                index = disc.map_to_index([s0, s1])
+                index = disc.map_to_state([s0, s1])
 
                 old_action = policy[index[0], index[1]]
 
@@ -210,13 +226,31 @@ def policy_iteration(regressorState, regressorReward, disc, theta, gamma):
                 # Iterate over all actions and get the one with max. expected reward
                 amax = 2
                 rmax = -100
-                for a in disc.action_space:
+                for a in disc.action_space[0]:
+                    """
                     x = np.array([s0, s1, a])
                     x = x.reshape(1, -1)
                     next_s = regressorState.predict(x).T.reshape(-1, )
                     next_index = disc.map_to_index([next_s[0], next_s[1]])
                     r = regressorReward.predict(x)
                     expected_reward = r + gamma * value_function[next_index[0], next_index[1]]
+                    """
+
+                    # Get successors
+                    i0 = index[0]
+                    i1 = index[1]
+                    ia = disc.map_to_action([a])[0]
+                    succ = disc.return_successors([i0, i1], ia)
+                    if succ == -1:
+                        expected_reward = -100
+                    else:
+                        expected_reward = 0
+                        for succ_state in succ:
+                            # Expected reward over all (yet discovered) possible successive states
+                            expected_reward += succ[succ_state] * \
+                                               (regressorReward.predict(np.array([i0, i1, ia]).reshape(1, -1)) +
+                                                gamma * value_function[i0, i1])
+
                     if rmax < expected_reward:
                         amax = a
                         rmax = expected_reward
