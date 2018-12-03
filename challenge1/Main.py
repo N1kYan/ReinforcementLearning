@@ -168,6 +168,18 @@ def visualize(value_function, policy, disc=None):
 
     plt.show()
 
+    plt.title("Policy")
+    plt.imshow(policy)
+    plt.colorbar()
+
+    if disc is not None:
+        plt.ylabel("Angle in Radians")
+        plt.yticks(range(disc.state_space_size[0]), labels=disc.state_space[0].round(2))
+        plt.xlabel("Velocity")
+        plt.xticks(range(disc.state_space_size[1]), labels=disc.state_space[1].round(1))
+
+    plt.show()
+
 # TODO: True Model benutzen
 # TODO: Other Discretization
 # TODO: Transition Probabilities
@@ -186,7 +198,7 @@ def main():
         [min:-pi,-8; max:pi,8].
     """
     env = gym.make('Pendulum-v2') # Create gym/quanser environment
-    disc_env = DiscreteEnvironment(env, 'EasyPendulum', state_space_size=(16 + 1, 16 + 1),
+    disc_env = DiscreteEnvironment(env, 'EasyPendulum', state_space_size=(40 + 1, 30 + 1),
                                    action_space_size=(16+1,))
 
     #print("-------------------------\nState Space Discretization:")
