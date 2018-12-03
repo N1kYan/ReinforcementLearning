@@ -14,6 +14,7 @@ class Regressor:
 
     # Performs regression from given state and performed action
     # to successive state and observed reward
+<<<<<<< Updated upstream
     def perform_regression(self, epochs, env, load_regressors_from_file):
 
         # Lead regressors from file if any exist and set flag to false
@@ -85,3 +86,60 @@ class Regressor:
 
             save_object((regressorState, regressorReward), 'reg.pkl')
             return regressorState, regressorReward
+=======
+    def perform_regression(self, epochs, env):
+
+        rtx = []
+        rty = []
+        stx = []
+        sty = []
+        plotr = []
+        plots = []
+        regressorReward = RandomForestRegressor(n_estimators=10, min_samples_split=2)
+        regressorState = RandomForestRegressor(n_estimators=10, min_samples_split=2)
+        old_state = env.reset()
+
+        print("Regression: 0% ... ", end='')
+        for i in range(epochs):
+            action = env.action_space.sample()
+            next_state, reward, done, info = env.step(action)
+
+            rtx.append(np.append(old_state, action))
+            rty.append(reward)
+            stx.append(np.append(old_state, action))
+            sty.append(next_state)
+
+            if i % 50 == 0:  # 50 works nicely
+
+                regressorReward.fit(rtx, rty)
+                fitrtx = regressorReward.predict(rtx)
+                mse = mean_squared_error(rty, fitrtx)
+                plotr.append(mse)
+
+                regressorState.fit(stx, sty)
+                fitstx = regressorState.predict(stx)
+                mse = mean_squared_error(sty, fitstx)
+
+                plots.append(mse)
+
+            old_state = np.copy(next_state)
+
+            # TODO: These prints somehow dont work anymore...
+            if i == int(epochs * 0.25):
+                print("25% ... ", end='')
+            if i == int(epochs * 0.5):
+                print("50% ... ", end='')
+            if i == int(epochs * 0.75):
+                print("75% ... ", end='')
+
+        print("Done!")
+
+        # Plot loss curves
+        plt.figure(0)
+        plt.plot(plotr, label="Loss for reward fitting")
+        plt.plot(plots, label="Loss for state fitting")
+        plt.legend()
+        plt.show()
+
+        return regressorState, regressorReward
+>>>>>>> Stashed changes
