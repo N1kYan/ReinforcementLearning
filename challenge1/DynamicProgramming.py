@@ -12,11 +12,14 @@ import TrueModel
 """
 
 
-def value_iteration(regressorState, regressorReward, disc, theta, gamma,
+def value_iteration(regressorState, regressorReward, disc, vf, theta, gamma,
                     use_true_model=False):
     print("Starting Value iteration:")
 
-    value_function = np.zeros(shape=disc.state_space_size)
+    if vf is None:
+        value_function = np.zeros(shape=disc.state_space_size)
+    else:
+        value_function = vf
     policy = np.zeros(shape=disc.state_space_size)
 
     delta = theta
@@ -31,11 +34,11 @@ def value_iteration(regressorState, regressorReward, disc, theta, gamma,
         while_loop_num += 1
 
         # Iterate over discrete state space
-        for j, s0 in enumerate(disc.state_space[0]):  # degrees
+        for s0 in disc.state_space[0]:  # degrees
             for s1 in disc.state_space[1]:  # angular velocity
 
                 # Get (only positive) indexes for (possibly negative) discrete state(s)
-                index = disc.map_to_index([s0, s1])
+                index = disc.map_to_state([s0, s1])
                 # print(index)
 
                 v = value_function[index[0], index[1]]
@@ -43,19 +46,16 @@ def value_iteration(regressorState, regressorReward, disc, theta, gamma,
                 # Iterate over all actions to get action maximizing expected reward
                 rmax = -100
 
-                for a in disc.action_space:
+                for a in disc.action_space[0]:
                     # Get sufficient state and reward from regressors
                     x = np.array([s0, s1, a])
 
-                    # Get next state and reward
+                    # TODO: not usable anymore
+                    """
                     if use_true_model:
                         next_s = TrueModel.transition(x)
                         r = [TrueModel.reward(x)]
-                    else:
-                        x_res = x.reshape(1, -1)
-                        next_s = regressorState.predict(x_res).T.reshape(-1, )
-                        r = regressorReward.predict(x_res)
-
+                    """
                     # #########################################################
                     # # TESTING: Compare True vs. learned model
                     # # Please do not remove
@@ -68,14 +68,22 @@ def value_iteration(regressorState, regressorReward, disc, theta, gamma,
                     # print("Pred Reward: ", r_2, "True Reward: ", r_1)
                     # #########################################################
 
-                    # Discretize sufficient state
-                    next_index = disc.map_to_index([next_s[0], next_s[1]])
+                    # Get successors
+                    i0 = index[0]
+                    i1 = index[1]
+                    ia = disc.map_to_action([a])[0]
+                    succ = disc.return_successors([i0, i1], ia)
+                    if succ == -1:
+                        expected_reward = -100
+                    else:
+                        expected_reward = 0
+                        for succ_state in succ:
+                            # Expected reward over all (yet discovered) possible successive states
+                            expected_reward += succ[succ_state]*\
+                                               (regressorReward.predict(np.array([i0, i1, ia]).reshape(1, -1)) +
+                                                gamma*value_function[i0, i1])
 
-                    # Calculate expected reward
-                    # Deterministic case; we do not need probability distribution
-                    expected_reward = r + gamma * value_function[next_index[0], next_index[1]]
-
-                    if rmax <= expected_reward:
+                    if expected_reward >= rmax:
                         rmax = expected_reward
 
                 # Define value function by maximum expected reward per state
@@ -86,39 +94,47 @@ def value_iteration(regressorState, regressorReward, disc, theta, gamma,
 
     # Define policy by action achieving maximum expected reward per state
     print("Defining policy...")
-    for j, s0 in enumerate(disc.state_space[0]):  # degrees
+    for s0 in disc.state_space[0]:  # degrees
         for s1 in disc.state_space[1]:  # angular velocity
 
-            index = disc.map_to_index([s0, s1])
+            index = disc.map_to_state([s0, s1])
 
             amax = 0
             rmax = -100
-            for a in disc.action_space:
+            for a in disc.action_space[0]:
 
                 x = np.array([s0, s1, a])
 
                 # Get next state and reward
+                """
                 if use_true_model:
                     next_s = TrueModel.transition(x)
                     r = [TrueModel.reward(x)]
+                """
+                # Get successors
+                i0 = index[0]
+                i1 = index[1]
+                ia = disc.map_to_action([a])[0]
+                succ = disc.return_successors([i0, i1], ia)
+                if succ == -1:
+                    expected_reward = -100
                 else:
-                    x_res = x.reshape(1, -1)
-                    next_s = regressorState.predict(x_res).T.reshape(-1, )
-                    r = regressorReward.predict(x_res)
+                    expected_reward = 0
+                    for succ_state in succ:
+                        # Expected reward over all (yet discovered) possible successive states
+                        expected_reward += succ[succ_state] * \
+                                           (regressorReward.predict(np.array([i0, i1, ia]).reshape(1, -1)) +
+                                            gamma * value_function[i0, i1])
 
-                # Discretize sufficient state
-                next_index = disc.map_to_index([next_s[0], next_s[1]])
-
-                expected_reward = r + gamma * value_function[next_index[0], next_index[1]]
-
-                if rmax <= expected_reward:
-                    rmax = expected_reward
+                if expected_reward >= rmax:
                     amax = a
+                    rmax = expected_reward
 
             policy[index[0], index[1]] = amax
 
     print()
     print("... done!")
+
     return value_function, policy
 
 
