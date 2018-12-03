@@ -107,8 +107,9 @@ class DiscreteEnvironment:
     def return_successors(self, x, a):
         successors = self.p[x[0], x[1], a, :, :]
         successors_dict = {}
-        for s1 in range(successors.shape[0]):
-            for s2 in range(successors.shape[1]):
+        for s1 in range(successors.shape[0]-1):
+            for s2 in range(successors.shape[1]-1):
+                print(x[0], x[1], a, s1, s2)
                 prob = self.p[x[0], x[1], a, s1, s2]
                 if prob != 0:
                     successors_dict.update({(s1, s2): prob})

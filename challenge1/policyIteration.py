@@ -1,9 +1,12 @@
+from __future__ import print_function
+import sys
 import numpy as np
 import gym
 import quanser_robots
 from Regression import Regressor
 from Evaluation import *
 from DiscreteEnvironment import DiscreteEnvironment
+from Utils import *
 
 def policy_iteration(env, disc_env, regressorState, regressorReward, theta, gamma):
 
@@ -12,64 +15,93 @@ def policy_iteration(env, disc_env, regressorState, regressorReward, theta, gamm
     policy = np.zeros(shape=disc_env.state_space_size)
 
     def policy_evaluation():
+        print("Policy Evaluation ...")
         while True:
             delta = 0
             # TODO: Bellman in matrix equation?
             for s0 in disc_env.state_space[0]:
                 for s1 in disc_env.state_space[1]:
                     index = disc_env.map_to_state([s0, s1])
-                    v =  value_function[index[0], index[1]]
+                    v = value_function[index[0], index[1]]
                     a = disc_env.map_to_action([policy[index[0], index[1]]])
-                    regression_input = np.array([s0, s1, a]).reshape(1, -1)
-                    print(regression_input)
 
+                    regression_input = np.array([s0, s1, a]).reshape(1, -1)
+                    new_index = disc_env.map_to_state(regressorState.predict(regression_input)[0])
                     expected_reward = regressorReward.predict(regression_input) +\
-                                      gamma * regressorState.predict(regression_input)
-                    print(expected_reward)
+                                      gamma * value_function[new_index[0], new_index[1]]
+
                     value_function[index[0], index[1]] = expected_reward
-                    delta = max(delta, np.abs(v-expected_reward))
+                    delta = max(delta, np.abs(v-expected_reward)[0])
             print("Delta: ", delta)
             if delta < theta:
                 break
-        policy_improvement()
+        print()
+        return delta
 
-    def policy_improvement():
+    def policy_improvement(delta):
+        #if delta <= 1e-6:
+        #    print(" Exit")
+        #    return True
+        print("Policy Improvement ... ", end='')
+        sys.stdout.flush()
         policy_stable = True
-        while True:
-            for s0 in disc_env.state_space[0]:
-                for s1 in disc_env.state_space[1]:
-                    index = disc_env.map_to_state([s0, s1])
-                    old_action = policy[index[0], index[1]]
+        for s0 in disc_env.state_space[0]:
+            for s1 in disc_env.state_space[1]:
+                index = disc_env.map_to_state([s0, s1])
+                old_action = policy[index[0], index[1]]
 
-                    max_reward = -10
-                    max_action = None
-                    for a in disc_env.action_space[0]:
-                        regression_input = [s0, s1, disc_env.map_to_action([a])]
-                        expected_reward = regressorReward.predict(regression_input) + \
-                                          gamma * regressorState.predict(regression_input)
-                        if expected_reward >= max_reward:
-                            max_action = a
-                    policy[index[0], index[1]] = max_action
-                    if old_action != max_action:
-                        policy_stable = False
-            if policy_stable:
-                break
-            else:
-                policy_evaluation()
+                max_reward = -25
+                max_actions = [old_action] #TODO: ???
+                # TODO: What happens for actions with equal expected reward?
+                for a in disc_env.action_space[0]:
+                    regression_input = np.array([s0, s1, disc_env.map_to_action([a])]).reshape(1, -1)
+                    new_index = disc_env.map_to_state(regressorState.predict(regression_input)[0])
+                    expected_reward = regressorReward.predict(regression_input) + \
+                                      gamma * value_function[new_index[0], new_index[1]]
 
-    policy_evaluation()
-    return policy
+                    if expected_reward > max_reward:
+                        max_actions = []
+                        max_actions.append(a)
+                        max_reward = expected_reward
+                    #elif expected_reward == max_reward:
+                    #    max_actions.append(a)
+
+                max_actions = np.array(max_actions)
+                # Sample random for multiple actions with max expected rewards
+                policy[index[0], index[1]] = np.random.choice(max_actions) #TODO: not used, always take first?
+                #print("old action {} policy {}".format(old_action, policy[index[0], index[1]]))
+                if old_action != policy[index[0], index[1]]:
+                    policy_stable = False
+
+        if policy_stable:
+            print(" policy stable")
+            print()
+        else:
+            print(" policy not stable")
+            print()
+
+        return policy_stable
+
+    policy_stable = False
+    while not policy_stable:
+        delta = policy_evaluation()
+        policy_stable = policy_improvement(delta)
+
+    return value_function, policy
 
 
 def main():
     env = gym.make('Pendulum-v2')
     reg = Regressor()
     # Please use tuples for state and action space sizes
-    disc_env = DiscreteEnvironment(env=env, name='EasyPendulum', state_space_size=(16+1, 16+1),
-                                   action_space_size=(8+1,))
-    regressorState, regressorReward = reg.perform_regression(epochs=1000, env=env)
-    policy = policy_iteration(env, disc_env, regressorState, regressorReward, theta=1e-2, gamma=0.1)
-    evaluate(env=env, episodes=100 , disc = disc_env, policy=policy, render=True)
+    disc_env = DiscreteEnvironment(env=env, name='EasyPendulum', state_space_size=(32+1, 16+1),
+                                   action_space_size=(16+1,))
+
+    regressorState, regressorReward = reg.perform_regression(epochs=10000, env=env, save_flag=False)
+    value_function, policy = policy_iteration(env, disc_env, regressorState, regressorReward, theta=1e-1, gamma=0.95)
+    evaluate(env=env, episodes=100, disc = disc_env, policy=policy, render=False)
+    visualize(policy=policy, value_function=value_function, state_space=disc_env.state_space)
+
 
 if __name__ == "__main__":
     main()
