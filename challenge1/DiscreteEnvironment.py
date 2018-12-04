@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 from Regression import Regressor
@@ -10,26 +11,26 @@ class DiscreteEnvironment:
         if name == 'EasyPendulum':
             self.state_space_shape = state_space_shape
             # Pendulum-v2 equidistand
-            self.state_space = (np.linspace(-np.pi, np.pi, self.state_space_size[0]),
-                            np.linspace(-8, 8, self.state_space_size[1]))
-            self.number_states = np.prod(self.state_space_size)
+            self.state_space = (np.linspace(-np.pi, np.pi, self.state_space_shape[0]),
+                            np.linspace(-8, 8, self.state_space_shape[1]))
+            self.number_states = np.prod(self.state_space_shape)
 
         elif name == 'LowerBorder' or name == 'UpperBorder':
             self.state_space = (np.array([-np.pi, -np.pi*(2/3), -np.pi*(1/3), -0.8, -0.6, -0.4, -0.2, -0.15, -0.1, -0.05,
                                  0.05, 0.1, 0.15, 0.2, 0.4, 0.6, 0.8, np.pi*(1/3), np.pi*(2/3), np.pi]),
                                 np.array([-8.0, -7.0, -6.0, -5.0, -4.0, -3.5, -3.0, -2.5, -2.0, -1.5, -1.0, -0.5, -0.25,
                                  0.25, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0, 6.0, 7.0, 8.0]))
-            self.state_space_size = (len(self.state_space[0]), len(self.state_space[1]))
-            self.number_states = np.prod(self.state_space_size)
+            self.state_space_shape = (len(self.state_space[0]), len(self.state_space[1]))
+            self.number_states = np.prod(self.state_space_shape)
 
         else:
             print("Unknown discrete environment name.")
 
-        self.action_space_size = action_space_shape
+        self.action_space_shape = action_space_shape
         # Currently only 1D actions
         self.action_space = (np.linspace(self.env.action_space.low, self.env.action_space.high,
-                                        self.action_space_size[0]),)
-        self.number_actions = np.prod(self.action_space_size)
+                                        self.action_space_shape[0]),)
+        self.number_actions = np.prod(self.action_space_shape)
 
         # Initialize transition probabilities
         # Will later hold entries with successor states, their probabilities and their reward
@@ -40,7 +41,7 @@ class DiscreteEnvironment:
     # Maps discrete state to index for value function or policy lookup table
     def map_to_state(self, x):
 
-        if len(x) != len(self.state_space_size):
+        if len(x) != len(self.state_space_shape):
             print("Input shape not matching state space shape.")
             return -1
 
@@ -70,7 +71,7 @@ class DiscreteEnvironment:
 
     # Maps action
     def map_to_action(self, x):
-        if len(x) != len(self.action_space_size):
+        if len(x) != len(self.action_space_shape):
             print("Input shape not matching action space shape.")
             return -1
         indices = []
@@ -84,8 +85,22 @@ class DiscreteEnvironment:
         return np.array(indices)
 
     def evaluate_transition_prob(self, env, epochs, save_flag):
+        # TODO: Make modular for n dim states
         reg = Regressor()
         regressorState, regressorReward = reg.perform_regression(env=env, epochs=epochs, save_flag=save_flag)
+        print("Evaluating transition probabilites ...", end = '')
+        for s0 in self.state_space[0]:
+            for s1 in self.state_space[1]:
+                for a in self.action_space[0]:
+                    regression_input = np.array([s0, s1, a])
+                    prob_next_s = 1.0
+                    next_s = regressorState.predict(regression_input)
+                    reward = regressorReward.predict(regression_input)
+                    index  = self.map_to_state(np.array(s0, s1))
+                    # TODO: 1-dim?
+                    self.P[s0, s1, a] = np.array([prob_next_s, next_s, reward])
+        print(" done")
+
 
 
     """
