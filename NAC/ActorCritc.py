@@ -48,6 +48,8 @@ class ActorCritic:
         self.memory.append([cur_state, action, reward, new_state, done])
 
     def create_actor_model(self):
+        input_shape = np.reshape(self.env.observation_space.shape, (4,1))
+        print(input_shape)
         state_input = Input(shape=self.env.observation_space.shape)
         h1 = Dense(24, activation='relu')(state_input)
         h2 = Dense(48, activation='relu')(h1)
@@ -109,12 +111,14 @@ class ActorCritic:
             actor_target_weights[i] = actor_model_weights[i]
         self.target_critic_model.set_weights(actor_target_weights)
 
+    # Choose action by epsilon greedy policy
     def act(self, cur_state):
         self.epsilon *= self.epsilon_decay
         if np.random.random() < self.epsilon:
             return self.env.action_space.sample()
         return self.actor_model.predict(cur_state)
 
+    # Train networks on random sampled mini batches from replay memory
     def train(self):
         batch_size = 32
         if len(self.memory) < batch_size:

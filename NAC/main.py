@@ -5,8 +5,9 @@ import keras.backend as K
 from quanser_robots import GentlyTerminating
 from quanser_robots.double_pendulum.examples import metronom
 
-from NaturalActorCritic import NaturalActorCritic
-from ActorCritc import ActorCritic
+from NaturalActorCritic import *
+from ActorCritc import *
+from Networks import *
 
 
 def evaluate(env, ctrl):
@@ -20,8 +21,12 @@ def evaluate(env, ctrl):
             act = np.array(ctrl(obs))
         obs, rwd, done, info = env.step(act)
 
-    env.close()
 
+def initialize(env, sess):
+    actor = ActorNetwork(env=env, sess=sess)
+    actor.create_actor_model()
+    critic = CriticNetwork(env=env, sess=sess)
+    critic.create_critic_model()
 
 def main():
     #env = GentlyTerminating(gym.make('DoublePendulum-v0'))
@@ -37,30 +42,13 @@ def main():
         Min -15 Max: 15
 
     """
+    # env = gym.make("DoublePendulum-v0')
     # TODO: sess?
     sess = tf.Session()
     K.set_session(sess)
-    nac = ActorCritic(env, sess)
+    initialize(env=env, sess=sess)
 
-    num_trials = 10000
-    trial_len = 500
 
-    cur_state = env.reset()
-    action = env.action_space.sample()
-    while True:
-        env.render()
-        cur_state = cur_state.reshape((1, env.observation_space.shape[0]))
-
-        action = nac.act(cur_state)
-        action = action.reshape((1, env.action_space.shape[0]))
-
-        new_state, reward, done, _ = env.step(action)
-        new_state = new_state.reshape((1, env.observation_space.shape[0]))
-
-        nac.remember(cur_state, action, reward, new_state, done)
-        nac.train()
-
-        cur_state = new_state
 
 if __name__ == "__main__":
     main()
