@@ -47,7 +47,7 @@ class Regressor:
                 stx.append(np.append(old_state, action))
                 sty.append(next_state)
 
-                if i % 50 == 0:  # 50 works nicely
+                if i % 100 == 0:  # 50 works nicely
 
                     regressorReward.fit(rtx, rty)
                     fitrtx = regressorReward.predict(rtx)

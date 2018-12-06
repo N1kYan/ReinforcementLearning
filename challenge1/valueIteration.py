@@ -5,6 +5,7 @@ from DiscreteEnvironment import DiscreteEnvironment
 
 # TODO: comments
 
+
 def value_iteration(env, theta, gamma):
 
     # Initialize value function
@@ -38,13 +39,15 @@ def value_iteration(env, theta, gamma):
 
     return value_function, policy
 
+
 def main():
     env = gym.make('Pendulum-v2')
     disc_env = DiscreteEnvironment(env=env, name='EasyPendulum',
                                    state_space_shape=(16+1, 16+1),
                                    action_space_shape=(16+1,))
-    disc_env.evaluate_transition_prob(env=env, epochs = 10000, save_flag=True) # TODO
+    disc_env.evaluate_transition_prob(env=env, epochs = 10000, save_flag=False) # TODO
     value_function, policy = value_iteration(env=disc_env, theta=1e-1, gamma=0.1)
+
 
 if __name__=="__main__":
     main()

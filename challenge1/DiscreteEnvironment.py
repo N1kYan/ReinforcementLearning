@@ -84,6 +84,11 @@ class DiscreteEnvironment:
             indices.append(index)
         return np.array(indices)
 
+    # Return all states inside the [-3sig,+3sig] interval from a multivariate gaussian
+    # with mean set as the current state
+    def get_successors(self, index):
+
+
     def evaluate_transition_prob(self, env, epochs, save_flag):
         # TODO: Make modular for n dim states
         reg = Regressor()
@@ -96,9 +101,9 @@ class DiscreteEnvironment:
                     prob_next_s = 1.0
                     next_s = regressorState.predict(regression_input)
                     reward = regressorReward.predict(regression_input)
-                    index  = self.map_to_state(np.array(s0, s1))
+                    index = self.map_to_state(np.array(s0, s1))
                     # TODO: 1-dim?
-                    self.P[s0, s1, a] = np.array([prob_next_s, next_s, reward])
+                    self.P[s0, s1, a] = get_successors(index)
         print(" done")
 
 
