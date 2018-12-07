@@ -13,8 +13,9 @@ class DiscreteEnvironment:
         if name == 'EasyPendulum':
             self.state_space_shape = state_space_shape
             # Pendulum-v2 equidistand
-            self.state_space = (np.linspace(-np.pi, np.pi, self.state_space_shape[0]),
-                            np.linspace(-8, 8, self.state_space_shape[1]))
+            self.amp = [np.pi, 8]
+            self.state_space = (np.linspace(-self.amp[0], self.amp[0], self.state_space_shape[0]),
+                            np.linspace(-self.amp[1], self.amp[1], self.state_space_shape[1]))
             self.number_states = np.prod(self.state_space_shape)
 
         elif name == 'LowerBorder' or name == 'UpperBorder':
@@ -37,7 +38,7 @@ class DiscreteEnvironment:
         # Initialize transition probabilities
         # Will later hold entries with successor states, their probabilities and their reward
         # [[prob_next_s, next_s, reward], ...]
-        self.P = np.zeros([self.number_states, self.number_actions])
+        self.P = np.zeros([self.state_space_shape[0], self.state_space_shape[1], self.action_space_shape[0]])
 
     # TODO: change to 1d arrays for discrete state space
     # Maps discrete state to index for value function or policy lookup table
@@ -50,6 +51,14 @@ class DiscreteEnvironment:
         indices = []
 
         for i in range(len(x)):
+
+            # Clamp to values on a circle... (2-pi periodic)
+            # only for first dim of pendulum
+            if x[1] > self.amp[1]:
+                x[1] = x[1]-2*self.amp[1]
+            elif x[1] < -self.amp[1]:
+                x[1] = x[1]+2*self.amp[1]
+
             for s in np.arange(0, len(self.state_space[i])-1):
                 if self.name=='LowerBorder':
                     if x[i] <= 0:
@@ -98,23 +107,42 @@ class DiscreteEnvironment:
     # Return all states inside the [-3sig,+3sig] interval from a (multivariate) gaussian
     # with mean set as the current state
     def get_successors(self, state, action, sigmas):
+        granularity = 10
         successors = []
-        regression_input = np.concatenate(state, action)
-        next_state = self.regressorState(regression_input)
+        regression_input = np.concatenate([state, action]).reshape((1, -1))
+        next_state = self.regressorState.predict(regression_input)[0]
         # (n dimensional) Index of +3sigma
         mean = np.copy(next_state)
-        max_index = state + 3*sigmas
-        min_index = state - 3*sigmas
+        max_index = next_state + np.dot(3, sigmas)
+        min_index = next_state - np.dot(3, sigmas)
         # TODO: Modular for n dim states
-        for s1 in np.arange(min_index[0], max_index[0], 1):
-            for s2 in np.arange(min_index[1], max_index[1], 1):
+        print("state: ", next_state)
+        print("3 sigma: ", np.dot(3, sigmas))
+        print("State - 3 sigma: {}, State + 3 sigma: {}".format(min_index, max_index))
+        for a in np.arange(min_index[0], max_index[0], granularity):
+            for b in np.arange(min_index[1], max_index[0], granularity):
+                state = np.array([a, b])
+                print(state)
+                successor = np.array([self.gaussian(state, mean, sigmas), self.map_to_state(state),
+                                      self.regressorReward.predict(state.reshape((1, -1)))])
+                print(successor)
+                if successor not in successors:
+                    successors.append(successor)
+        print(successors)
+
+        """
+        for s1 in np.arange(min_index[0], max_index[0], self.granularity[0]):
+            for s2 in np.arange(min_index[1], max_index[1], self.granularity[1]):
                 x = np.array([s1, s2])
                 index = self.map_to_state(x)
                 prob = self.gaussian(x, mean, sigmas)
                 reward = self.regressorReward.predict(regression_input)
                 successors.append([index, prob, reward])
+        """
         return np.array(successors)
 
+    # Creates regressor object and performs regression
+    # Returns a regressor for the state and one for the reward
     def perform_regression(self, env, epochs, save_flag):
         reg = Regressor()
         self.regressorState, self.regressorReward = reg.perform_regression(env=env, epochs=epochs, save_flag=save_flag)
