@@ -7,6 +7,8 @@ class DiscreteEnvironment:
     def __init__(self, env, name, state_space_shape, action_space_shape):
         self.env = env
         self.name = name
+        self.regressorState = None
+        self.regressorReward = None
 
         if name == 'EasyPendulum':
             self.state_space_shape = state_space_shape
@@ -84,93 +86,35 @@ class DiscreteEnvironment:
             indices.append(index)
         return np.array(indices)
 
-    # Return all states inside the [-3sig,+3sig] interval from a multivariate gaussian
+    def gaussian_function(self, x, mean, sigma):
+        return (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(-0.5 * np.square((x - mean) / sigma))
+
+    def gaussian(self, x, mean, sigmas):
+        returns = []
+        for c in range(len(x)):
+            returns.append(self.gaussian_function(x[c], mean[c], sigmas[c]))
+        return returns
+
+    # Return all states inside the [-3sig,+3sig] interval from a (multivariate) gaussian
     # with mean set as the current state
-    def get_successors(self, index):
+    def get_successors(self, state, action, sigmas):
+        successors = []
+        regression_input = np.concatenate(state, action)
+        next_state = self.regressorState(regression_input)
+        # (n dimensional) Index of +3sigma
+        mean = np.copy(next_state)
+        max_index = state + 3*sigmas
+        min_index = state - 3*sigmas
+        # TODO: Modular for n dim states
+        for s1 in np.arange(min_index[0], max_index[0], 1):
+            for s2 in np.arange(min_index[1], max_index[1], 1):
+                x = np.array([s1, s2])
+                index = self.map_to_state(x)
+                prob = self.gaussian(x, mean, sigmas)
+                reward = self.regressorReward.predict(regression_input)
+                successors.append([index, prob, reward])
+        return np.array(successors)
 
-
-    def evaluate_transition_prob(self, env, epochs, save_flag):
-        # TODO: Make modular for n dim states
+    def perform_regression(self, env, epochs, save_flag):
         reg = Regressor()
-        regressorState, regressorReward = reg.perform_regression(env=env, epochs=epochs, save_flag=save_flag)
-        print("Evaluating transition probabilites ...", end = '')
-        for s0 in self.state_space[0]:
-            for s1 in self.state_space[1]:
-                for a in self.action_space[0]:
-                    regression_input = np.array([s0, s1, a])
-                    prob_next_s = 1.0
-                    next_s = regressorState.predict(regression_input)
-                    reward = regressorReward.predict(regression_input)
-                    index = self.map_to_state(np.array(s0, s1))
-                    # TODO: 1-dim?
-                    self.P[s0, s1, a] = get_successors(index)
-        print(" done")
-
-
-
-    """
-        # This function updates the environments transition probability function by sampling for 
-        # 'epochs' and counting the results        
-    
-    def update_transition_probabilities(self, policy, epochs):
-
-        state = self.env.reset()
-
-        for i in range(epochs):
-            discrete_state = self.map_to_state(state)
-            # TODO: make modular for different state and action spaces
-            if policy is None:
-                action = self.env.action_space.sample()
-            else:
-                action = [policy[discrete_state[0], discrete_state[1]]]
-            discrete_action = self.map_to_action(action)
-            new_state, reward, done, _ = self.env.step(action)
-            new_discrete_state = self.map_to_state(new_state)
-
-            index = np.concatenate((discrete_state, discrete_action, new_discrete_state))
-            # TODO: make modular for different state and action spaces
-            self.action_counter[index[0], index[1], index[2]] += 1
-            self.p_counter[index[0], index[1], index[2], index[3], index[4]] += 1
-
-            prob = self.p_counter[index[0], index[1], index[2], index[3], index[4]] / \
-                self.action_counter[index[0], index[1], index[2]]
-            self.p[index[0], index[1], index[2], index[3], index[4]] = prob
-
-            state = new_state
-            if done:
-                break
-
-        # TODO: Make modular for all inputs
-        for s1 in range(self.p.shape[0]):
-            for s2 in range(self.p.shape[1]):
-                for a in range(self.p.shape[2]):
-                    for ns1 in range(self.p.shape[3]):
-                        for ns2 in range(self.p.shape[4]):
-                            if self.action_counter[s1, s2, a] == 0:
-                                prob = 0
-                            else:
-                                prob = self.p_counter[s1, s2, a, ns1, ns2] / self.action_counter[s1, s2, a]
-                            self.p[s1, s2, a, ns1, ns2] = prob
-
-    
-        # This function returns a dictionary of successor states and their probabilities.
-        # The inputs are indices of a discrete state and a discrete action.
-        # The output is a python dictionary with state tuples and their probability.
-        # Returns -1 if no successors sampled (yet)
-    
-    def return_successors(self, x, a):
-        successors = self.p[x[0], x[1], a, :, :]
-        successors_dict = {}
-        for s1 in range(successors.shape[0]-1):
-            for s2 in range(successors.shape[1]-1):
-                print(x[0], x[1], a, s1, s2)
-                prob = self.p[x[0], x[1], a, s1, s2]
-                if prob != 0:
-                    successors_dict.update({(s1, s2): prob})
-        if len(successors_dict) == 0:
-            return -1
-        else:
-            return successors_dict
-    """
-
-
+        self.regressorState, self.regressorReward = reg.perform_regression(env=env, epochs=epochs, save_flag=save_flag)
