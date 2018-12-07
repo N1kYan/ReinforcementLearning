@@ -29,6 +29,11 @@ def transition(input):
     newthdot = state[1] + (-3 * g / (2 * l) * np.sin(state[0] + np.pi) + 3. /
                            (m * l ** 2) * action) * dt
     newth = state[0] + newthdot * dt
+    # TODO: What happens if the state is bigger/smaller than pi
+    if newth < -np.pi:
+        newth += 2*np.pi
+    elif newth > np.pi:
+        newth -= 2*np.pi
     newthdot = np.clip(newthdot, -8, 8)
     return np.array([newth, newthdot])
 
