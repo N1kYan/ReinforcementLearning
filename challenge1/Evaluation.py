@@ -5,7 +5,7 @@ import numpy as np
     Evaluation stuff to see the predictions, discretizations and learned functions in action
 """
 
-def evaluate(env, episodes, disc, policy, render):
+def evaluate(env, episodes, map_to_state, policy, render):
 
     rewards_per_episode = []
 
@@ -15,7 +15,7 @@ def evaluate(env, episodes, disc, policy, render):
 
         # Discretize first state
         state = env.reset()
-        index = disc.map_to_state(state)
+        index = map_to_state(state)
 
         cumulative_reward = [0]
 
@@ -33,7 +33,7 @@ def evaluate(env, episodes, disc, policy, render):
             cumulative_reward.append(cumulative_reward[-1] + reward)
 
             # Discretize observed state
-            index = disc.map_to_state(state)
+            index = map_to_state(state)
 
             if done:
                 print("Episode {} finished after {} timesteps".format(e + 1, t + 1))
