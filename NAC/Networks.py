@@ -7,13 +7,30 @@ from keras.layers import Dense, Dropout, Input
 from keras.layers.merge import Add, Multiply
 from keras.optimizers import Adam
 
+"""
+    This file stores all the network we use to create our NAC algorithm.
+    Mainly this is the actor network and the critic network.
+"""
 
 class ActorNetwork:
+    """
+
+    """
     def __init__(self, env, sess):
+        """
+        Initialize Actor Network
+        :param env: the environment (e.g. DoublePendulum, CartPole, etc.)
+        :param sess: the current tensorflow session
+        """
         self.env = env
         self.sess = sess
 
     def create_actor_model(self):
+        """
+        Create the NAC actor model and return it together with the state Input
+        objects.
+        :return: state Input object , the Model object
+        """
         # Netowrk structure with 3 hidden layers
         # state_input = Input(shape=self.env.observation_space.shape)
         state_input = Input(shape=(4,))
@@ -23,7 +40,7 @@ class ActorNetwork:
 
         # output = Dense(self.env.action_space.shape[0], activation='relu')(h3)
         #output = Dense(1, activation='relu')(h3)
-        output = Dense(1) (h3)
+        output = Dense(1)(h3)
         model = Model(input=state_input, output=output)
         adam = Adam(lr=0.001)
         model.compile(loss='mse', optimizer=adam)
@@ -33,17 +50,32 @@ class ActorNetwork:
 
 class CriticNetwork:
     def __init__(self, env, sess):
+        """
+        Initialize CriticNetwork.
+        :param env: the environment (e.g. DoublePendulum, CartPole, etc.)
+        :param sess: the current tensorflow session
+        """
         self.env = env
         self.sess = sess
 
-    # This 'reshaping' is needed for Discrete gym action spaces 
     def reshape_action_space(self):
+        """
+        Return the shape of the action shape, correctly encapsulated in an
+        1 dim array with 2 fields. This 'reshaping' is needed for Discrete
+        gym action spaces.
+        :return: shape of our action space
+        """
         if self.env.action_space.n:
-            return (self.env.action_space.n,1)
+            return print((self.env.action_space.n,1))
         else:
             return self.env.action_space.shape
 
     def create_critic_model(self):
+        """
+        Create the NAC critic model and return it together with the state/
+        action Input objects.
+        :return: state Input object , action Input object , the Model object
+        """
 
         dim_actions = self.reshape_action_space()
 
@@ -54,6 +86,9 @@ class CriticNetwork:
         action_input = Input(shape=dim_actions)
         action_h1 = Dense(48)(action_input)
 
+        # We are adding our 48 neurons of our state layer to our 48 neurons
+        # of our action layer.
+        # What effect does this have ???
         merged = Add()([state_h2, action_h1])
         merged_h1 = Dense(24, activation='relu')(merged)
         output = Dense(1, activation='relu')(merged_h1)

@@ -55,6 +55,12 @@ def nac_with_lstd(env, sess, act, crit, epochs, phi, delta, alpha, beta, epsilon
 
 
 def initialize(env, sess):
+    """
+    Return the actor and the critic model of our NAC algorithm.
+    :param env: the environment (e.g. DoublePendulum, CartPole, etc.)
+    :param sess: the current tensorflow session
+    :return: actor model, critic model
+    """
     actor = ActorNetwork(env=env, sess=sess)
     actor_model = actor.create_actor_model()[1]
     critic = CriticNetwork(env=env, sess=sess)
@@ -64,7 +70,6 @@ def initialize(env, sess):
 
 def main():
     # env = GentlyTerminating(gym.make('DoublePendulum-v0'))
-    env = gym.make('CartPole-v0')
     """
         The DoublePendulum-v0 environment:
 
@@ -77,10 +82,16 @@ def main():
 
     """
     # env = gym.make("DoublePendulum-v0')
-    # TODO: sess?
+    env = gym.make('CartPole-v0')
+
+    # TODO: Session
+    # Create tensorflow session and set Keras session
     sess = tf.Session()
     K.set_session(sess)
+
+    # Get the actor and critic model of our algorithm
     actor, critic = initialize(env=env, sess=sess)
+
     nac_with_lstd(env=env, sess=sess, act=actor, crit=critic, epochs=10, phi=...,
                   delta=0.1, alpha=0.1, beta=0.1, epsilon=1e-2)
 
