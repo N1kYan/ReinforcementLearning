@@ -19,7 +19,7 @@ def gaussian(x, mean, std):
 
 # Sample from given space with gaussian probabilities for given mean and sigma
 space = np.linspace(-10, 10, 21)
-mean = 0.0
+mean = 10.0
 sigma = 0.1
 space_probabilities = np.array(gaussian(space, mean, sigma))
 print (space_probabilities)
