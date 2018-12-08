@@ -97,7 +97,7 @@ class DiscreteEnvironment:
     # with mean set as the current state
     def get_successors(self, state, action, sigmas):
         granularity = (1/1)
-        successors = []
+        successors = np.zeros(shape=(1,4))
         regression_input = np.concatenate([state, action]).reshape((1, -1))
         next_state = self.regressorState.predict(regression_input)[0]
         mean = np.copy(next_state)
@@ -107,6 +107,7 @@ class DiscreteEnvironment:
         print("state: ", next_state)
         print("3 sigma: ", np.dot(3, sigmas))
         print("State - 3 sigma: {}, State + 3 sigma: {}".format(min_index, max_index))
+        print()
         # So far so good
 
 
@@ -115,20 +116,22 @@ class DiscreteEnvironment:
         for a in np.arange(min_index[0], max_index[0], granularity):
             for b in np.arange(min_index[1], max_index[1], granularity):
                 # List holding state, index, prob, reward
-                successor_state = []
-                successor_state.append(np.array([a, b]))
+                successor_state = [np.array([a, b])]
                 print("Successors state: ", successor_state[0])
                 successor_state.append(self.map_to_state(successor_state[0]))
                 print("Successor state index: ", successor_state[1])
                 successor_state.append(np.array([self._gaussian(successor_state, mean, sigma=1.0)]))
+                # TODO: Why does the gaussian return two probabilites
                 print("Successor state probability: ", successor_state[2])
                 successor_state.append(np.array(self.regressorReward.predict(regression_input)))
                 print("Successor state reward: ", successor_state[3])
+                successor_state = np.array(successor_state).reshape(1, 4)
                 print()
                 print()
-                # TODO
+                # TODO: Append successor list holding all information to the list of all successors
+                # TODO: If already in list, just add probability
                 if successor_state[1] not in successors[:, 0]:
-                    successors.append(successor_state)
+                    successors = np.append(successors, successor_state, axis=1)
                 else:
                     index = successors[:, 0].index(successor_state[1])
                     successors[index][2] += successor_state[2]
