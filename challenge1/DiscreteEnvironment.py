@@ -50,34 +50,33 @@ class DiscreteEnvironment:
 
         indices = []
 
-        for i in range(len(x)):
+        # Clamp to values on a circle... (2-pi periodic)
+        # only for first dim of pendulum
+        if x[1] > self.amp[1]:
+            x[1] = x[1] - 2 * self.amp[1]
+        elif x[1] < -self.amp[1]:
+            x[1] = x[1] + 2 * self.amp[1]
 
-            # Clamp to values on a circle... (2-pi periodic)
-            # only for first dim of pendulum
-            if x[1] > self.amp[1]:
-                x[1] = x[1]-2*self.amp[1]
-            elif x[1] < -self.amp[1]:
-                x[1] = x[1]+2*self.amp[1]
-
-            for s in np.arange(0, len(self.state_space[i])-1):
-                if self.name=='LowerBorder':
-                    if x[i] <= 0:
+        for dim in range(len(x)):
+            if self.name=='LowerBorder':
+                for s in np.arange(0, len(self.state_space[dim]) - 1):
+                    if x[dim] <= 0:
                         #print("{} <= {} < {} : {}".format(self.state_space[i][s],
                         #                                   x[i], self.state_space[i][s+1],
                         #                                   self.state_space[i][s] <= x[i] < self.state_space[i][s+1]))
-                        if self.state_space[i][s] <= x[i] < self.state_space[i][s+1]:
+                        if self.state_space[dim][s] <= x[dim] < self.state_space[dim][s+1]:
                             indices.append(s)
-                    elif x[i] > 0:
-                        if self.state_space[i][s] < x[i] <= self.state_space[i][s+1]:
+                    elif x[dim] > 0:
+                        if self.state_space[dim][s] < x[dim] <= self.state_space[dim][s+1]:
                             indices.append(s+1)
-                elif self.name=='EasyPendulum':
-                    # Map every dimension of input to closest value of state space in same dimension
-                    s = self.state_space[i]
-                    # Get list of distances from x[0] to all elements in state_space[0]
-                    index = min(self.state_space[i], key=lambda c: abs(c-x[i]))
-                    # Get index of element with min distance
-                    index = np.where(s == index)[0].reshape(-1)[0]
-                    indices.append(index)
+            elif self.name=='EasyPendulum':
+                # Map every dimension of input to closest value of state space in same dimension
+                s = self.state_space[dim]
+                # Get list of distances from x[0] to all elements in state_space[0]
+                index = min(self.state_space[dim], key=lambda c: abs(c-x[dim]))
+                # Get index of element with min distance
+                index = np.where(s == index)[0].reshape(-1)[0]
+                indices.append(index)
         return np.array(indices)
 
     # Maps action
@@ -122,10 +121,13 @@ class DiscreteEnvironment:
         for a in np.arange(min_index[0], max_index[0], granularity):
             for b in np.arange(min_index[1], max_index[0], granularity):
                 state = np.array([a, b])
-                print(state)
+                state_index = self.map_to_state(state)
+                prob = self.gaussian(state, mean, sigmas)
+                reward = self.regressorReward.predict(regression_input)
+                print("Current state: ", state)
+                print("Current state index: ", state_index)
                 successor = np.array([self.gaussian(state, mean, sigmas), self.map_to_state(state),
-                                      self.regressorReward.predict(state.reshape((1, -1)))])
-                print(successor)
+                                      self.regressorReward.predict(regression_input)])
                 if successor not in successors:
                     successors.append(successor)
         print(successors)
