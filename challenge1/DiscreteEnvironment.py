@@ -97,7 +97,7 @@ class DiscreteEnvironment:
     # with mean set as the current state
     def get_successors(self, state, action, sigmas):
         granularity = (1/1)
-        successors = np.zeros(shape=(1,4))
+        successor_list = [[np.array([0, 0]), 0, 0]]
         regression_input = np.concatenate([state, action]).reshape((1, -1))
         next_state = self.regressorState.predict(regression_input)[0]
         mean = np.copy(next_state)
@@ -116,21 +116,24 @@ class DiscreteEnvironment:
         for a in np.arange(min_index[0], max_index[0], granularity):
             for b in np.arange(min_index[1], max_index[1], granularity):
                 # List holding state, index, prob, reward
-                successor_state = [np.array([a, b])]
-                print("Successors state: ", successor_state[0])
-                successor_state.append(self.map_to_state(successor_state[0]))
-                print("Successor state index: ", successor_state[1])
-                successor_state.append(np.array([self._gaussian(successor_state, mean, sigma=1.0)]))
-                # TODO: Why does the gaussian return two probabilites
-                print("Successor state probability: ", successor_state[2])
-                successor_state.append(np.array(self.regressorReward.predict(regression_input)))
-                print("Successor state reward: ", successor_state[3])
-                successor_state = np.array(successor_state).reshape(1, 4)
+                successor_state = [a, b]
+                successor_index = np.array(self.map_to_state(successor_state))
+                successor_probability = self._gaussian(successor_state, mean=mean, sigma=sigmas)
+                successor_reward = self.regressorReward.predict(regression_input)[0]
+                successor = [[successor_index, successor_probability, successor_reward]]
+                print("Successor List: {} , shape {} ".format(successor_list, np.shape(successor_list)))
+                print("Successor: {} , shape {} ".format(successor, np.shape(successor)))
                 print()
-                print()
-                # TODO: Append successor list holding all information to the list of all successors
-                # TODO: If already in list, just add probability
-                if successor_state[1] not in successors[:, 0]:
+
+
+                # TODO: Check successor list for currently evaluated succesor (check for state index)
+                # If state index already in list, add probabilites
+                successor_list = np.concatenate([successor_list, successor], axis=0)
+                print("Successor List: {} , shape {} ".format(successor_list, np.shape(successor_list)))
+                print("{} in {}: {}".format(successor_index, successor_list[:, 0],
+                                            successor_index in successor_list[:, 0]))
+
+                if successor_state[1] not in successor_list[:, 0]:
                     successors = np.append(successors, successor_state, axis=1)
                 else:
                     index = successors[:, 0].index(successor_state[1])

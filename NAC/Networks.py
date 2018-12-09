@@ -79,11 +79,11 @@ class CriticNetwork:
 
         dim_actions = self.reshape_action_space()
 
-        state_input = Input(shape=self.env.observation_space.shape)
+        state_input = Input(shape=(4,))
         state_h1 = Dense(24, activation='relu')(state_input)
         state_h2 = Dense(48)(state_h1)
 
-        action_input = Input(shape=dim_actions)
+        action_input = Input(shape=(1,))
         action_h1 = Dense(48)(action_input)
 
         # We are adding our 48 neurons of our state layer to our 48 neurons
