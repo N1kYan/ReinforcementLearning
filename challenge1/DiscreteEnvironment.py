@@ -109,7 +109,7 @@ class DiscreteEnvironment:
         # Euklidean distance
         dist = np.linalg.norm(max_index - min_index)
         # Granularity of 3 sigma intervall
-        granularity = 50
+        granularity = 20
         # TODO: Modular for n dim states
         print("State: ", next_state)
         print("Discrete state: ", self.map_to_state(next_state))
