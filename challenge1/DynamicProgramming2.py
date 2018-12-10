@@ -4,6 +4,7 @@ import gym
 import Utils
 import sys
 import Evaluation
+import pickle
 
 """
     Alex wants to implement value iteration again  which is  why he created  
@@ -12,7 +13,7 @@ import Evaluation
 
 
 # PARAMETER
-STATE_SPACE_SIZE = (50 + 1, 50 + 1)
+STATE_SPACE_SIZE = (16 + 1, 16 + 1)
 ACTION_SPACE_SIZE = (16 + 1)
 THETA = 0.1
 GAMMA = 0.8
@@ -87,11 +88,43 @@ def get_probs(space, state, std):
     return i_intervall, probs_list
 
 
-def stochastic_reward(state_space, main_probability, s_dash,
+def learn_discrete_rewards(episodes):
+
+    print("Learning discrete rewards ...", end='')
+    sys.stdout.flush()
+
+    r_dash = np.full(STATE_SPACE_SIZE, 100)
+    state = env.reset()
+
+    for i in range(episodes):
+        a = env.action_space.sample()
+        next_state, reward, done, info = env.step(a)
+        for j in range(STATE_SPACE_SIZE[0]):
+            for k in range(STATE_SPACE_SIZE[1]):
+                # If we already have a saved value (r is not default value), we
+                # don't need to compare the current next_state with the state
+                # underlying r.
+
+                sys.stdout.flush()
+
+                if r_dash[j][k] == 100:
+                    print(next_state)
+
+
+    with open('pickle/discrete_rewards.pkl', 'wb') as handle:
+        pickle.dump(r_dash, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    print("Done!")
+
+    return True
+
+
+
+def stochastic_reward(state_space, s_dash,
                                   immediate_reward, V):
     exp_reward = 0
     index = discretize_index(s_dash)
-    s_indices, probs = get_probs(state_space, s_dash, 1)
+    s_indices, probs = get_probs(state_space, s_dash, 0.1)
 
     #iterate over all possible states
     for i, s_index in enumerate(s_indices):
@@ -152,10 +185,10 @@ def value_iteration(state_space, action_space):
 
                 for a in action_space:
                     s_dash = TrueModel.transition([s0, s1, a])
-                    # print("next state: ", s_dash)
+                    # # print("next state: ", s_dash)
                     immediate_reward = TrueModel.reward([s0, s1, a])
 
-                    R = stochastic_reward(state_space, 0.4, s_dash,
+                    R = stochastic_reward(state_space, s_dash,
                                           immediate_reward, V)
 
                     # print(R)
@@ -223,5 +256,8 @@ def value_iteration(state_space, action_space):
 
     Evaluation.evaluate(env, 100, discretize_index, pi, True)
 
-value_iteration(state_space, action_space)
 
+
+learn_discrete_rewards(1000)
+
+# value_iteration(state_space, action_space)
