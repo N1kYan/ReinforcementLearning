@@ -61,12 +61,14 @@ class CriticNetwork:
     def reshape_action_space(self):
         """
         Return the shape of the action shape, correctly encapsulated in an
-        1 dim array with 2 fields. This 'reshaping' is needed for Discrete
-        gym action spaces.
+        1 dim array with 2 fields. This 'reshaping' is needed for Discrete gym
+        action spaces. These discrete gym action spaces have no proper shape
+        parameter, so we build one ourselves.
         :return: shape of our action space
         """
         if self.env.action_space.n:
-            return print((self.env.action_space.n,1))
+            # env.action_space.n is only defined in discrete action spaces
+            return (self.env.action_space.n,1)
         else:
             return self.env.action_space.shape
 
