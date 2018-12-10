@@ -49,7 +49,7 @@ def main():
                                    action_space_shape=(4+1,))
     state = env.reset()
     disc_env.perform_regression(env=env, epochs=10000, save_flag=False)
-    disc_env.get_successors(state=state, action=[1.0], sigmas=[0.1, 0.1])
+    disc_env.get_successors(state=state, action=[1.0], sigmas=[1.0, 1.0])
     # value_function, policy = value_iteration(env=disc_env, theta=1e-1, gamma=0.1)
 
 

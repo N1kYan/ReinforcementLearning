@@ -6,6 +6,7 @@ from keras.models import Sequential, Model
 from keras.layers import Dense, Dropout, Input
 from keras.layers.merge import Add, Multiply
 from keras.optimizers import Adam
+from keras.activations import softmax
 
 """
     This file stores all the network we use to create our NAC algorithm.
@@ -40,7 +41,7 @@ class ActorNetwork:
 
         # output = Dense(self.env.action_space.shape[0], activation='relu')(h3)
         #output = Dense(1, activation='relu')(h3)
-        output = Dense(1)(h3)
+        output = Dense(2, activation=softmax)(h3)
         model = Model(input=state_input, output=output)
         adam = Adam(lr=0.001)
         model.compile(loss='mse', optimizer=adam)
@@ -80,6 +81,7 @@ class CriticNetwork:
         """
 
         dim_actions = self.reshape_action_space()
+        print(dim_actions)
 
         state_input = Input(shape=(4,))
         state_h1 = Dense(24, activation='relu')(state_input)

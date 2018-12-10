@@ -31,6 +31,25 @@ def _critic_evaluation():
 def _actor_update():
     None
 
+def episodic_nac(env, sess, epochs, act, crit, alpha, gamma):
+    # Parameters of actor network
+    # theta = act.trainable_weights
+    # Gradient of actor network
+    # grad = act.weight
+
+    for u in range(env.action_space.n):
+        for e in range(epochs):
+            state = env.reset().reshape((1, 4))
+            t = 0
+            while True:
+                #TODO: Sotfmax?
+                action = np.argmax(act.predict(state)[0])
+                next_state, reward, done, infos = env.step(action)
+                state = np.copy(next_state).reshape((1, 4))
+                if done:
+                    print("Epoch {} done after {} timesteps".format(e, t))
+                    break
+                t += 1
 
 def nac_with_lstd(env, sess, act, crit, epochs, phi, delta, alpha, beta, epsilon):
     # Draw initial state and reshape for network input
@@ -43,15 +62,21 @@ def nac_with_lstd(env, sess, act, crit, epochs, phi, delta, alpha, beta, epsilon
     z = 0
 
     for t in range(epochs):
+        env.render()
         # Draw action from actor network
         print("Current state: {} Shape: {}".format(state, np.shape(state)))
         # Predict gives LIST of output VECTOR so we have to take [0][0] from it
-        action = act.predict(state)[0][0]
+        action = np.argmax(act.predict(state)[0])
         # TODO: actor network only outputting discrete values? Or values suiting the env.action_space
-        print("Chosen action: {} -> {}".format(action, int(action)))
+        print("Chosen action: ", action)
         print()
         # Perform action and observe next state and reward
         next_state, reward, done, info = env.step(int(action))
+        state = np.copy(next_state).reshape((1, 4))
+
+        if done:
+            print("Epoch finished after {} timesteps".format(t))
+            break
 
 
 def initialize(env, sess):
@@ -92,8 +117,10 @@ def main():
     # Get the actor and critic model of our algorithm
     actor, critic = initialize(env=env, sess=sess)
 
-    nac_with_lstd(env=env, sess=sess, act=actor, crit=critic, epochs=10, phi=...,
-                  delta=0.1, alpha=0.1, beta=0.1, epsilon=1e-2)
+    episodic_nac(env=env, sess=sess, epochs=100, act=actor, crit=critic, alpha=0.5, gamma=0.8)
+
+    #nac_with_lstd(env=env, sess=sess, act=actor, crit=critic, epochs=1000, phi=...,
+    #              delta=0.1, alpha=0.1, beta=0.1, epsilon=1e-2)
 
 
 if __name__ == "__main__":
