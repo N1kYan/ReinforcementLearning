@@ -96,15 +96,23 @@ class DiscreteEnvironment:
     # Return all states inside the [-3sig,+3sig] interval from a (multivariate) gaussian
     # with mean set as the current state
     def get_successors(self, state, action, sigmas):
-        granularity = (1/1)
-        successor_list = [[0, 0, 0, 0]]
+        # List of successors (dictionary)
+        # holding index of discrete state as key
+        # and list of [probability, reward] of this state as value
+        successor_list = {(0, 0): np.array([0, 0])}
         regression_input = np.concatenate([state, action]).reshape((1, -1))
         next_state = self.regressorState.predict(regression_input)[0]
         mean = np.copy(next_state)
+
         max_index = next_state + np.dot(3, sigmas)
         min_index = next_state - np.dot(3, sigmas)
+        # Euklidean distance
+        dist = np.linalg.norm(max_index - min_index)
+        # Granularity of 3 sigma intervall
+        granularity = 50
         # TODO: Modular for n dim states
-        print("state: ", next_state)
+        print("State: ", next_state)
+        print("Discrete state: ", self.map_to_state(next_state))
         print("3 sigma: ", np.dot(3, sigmas))
         print("State - 3 sigma: {}, State + 3 sigma: {}".format(min_index, max_index))
         print()
@@ -113,29 +121,23 @@ class DiscreteEnvironment:
 
 
 
-        for a in np.arange(min_index[0], max_index[0], granularity):
-            for b in np.arange(min_index[1], max_index[1], granularity):
+        for a in np.arange(min_index[0], max_index[0], step=1.0/granularity):
+            for b in np.arange(min_index[1], max_index[1], step=1.0/granularity):
                 # List holding state, index, prob, reward
                 successor_state = [a, b]
                 successor_index = self.map_to_state(successor_state)
                 successor_probability = self._gaussian(successor_state, mean=mean, sigma=sigmas)
                 successor_reward = self.regressorReward.predict(regression_input)[0]
-                successor = [[successor_index[0], successor_index[1], successor_probability, successor_reward]]
 
-                # TODO: Check successor list for currently evaluated succesor (check for state index)
                 # If state index already in list, add probabilites
-                # successor_list = np.concatenate([successor_list, successor], axis=0)
-                if [successor_index[0], successor_index[1]] not in np.array(successor_list)[:, :2]:
-                    successor_list = np.concatenate([successor_list, successor], axis=0)
+                if (successor_index[0], successor_index[1]) not in successor_list:
+                    successor_list.update({(successor_index[0], successor_index[1]):
+                                               np.array([successor_probability, successor_reward])})
                 else:
                     # Get index of successor state id in list of successors
-                    index = np.where(np.array(successor_list)[:, :2] == [successor_index[0], successor_index[1]])
-                    index = [index[0], index[1]]
-                    # Add probabilities
-                    print(successor_list)
-                    print(index)
-                    print(successor_list[index[0]])
-                    successor_list[index[0]][index[1]][2] += successor_state[2]
+                    # Approximating Riemann sum
+                    successor_list[(successor_index[0], successor_index[1])][0] += successor_probability\
+                                                                                   *(dist/granularity)
         print("List of all successors: \n", successor_list)
         return np.array(successor_list)
 
