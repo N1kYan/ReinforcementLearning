@@ -5,11 +5,13 @@ import matplotlib.pyplot as plt
 from Regression import Regressor
 
 class DiscreteEnvironment:
-    def __init__(self, env, name, state_space_shape, action_space_shape):
+    def __init__(self, env, name, state_space_shape, action_space_shape, gaussian_granularity, gaussian_sigmas):
         self.env = env
         self.name = name
         self.regressorState = None
         self.regressorReward = None
+        self.gaussian_granularity = gaussian_granularity
+        self.gaussian_sigmas = gaussian_sigmas
 
         if name == 'EasyPendulum':
             self.state_space_shape = state_space_shape
@@ -38,12 +40,9 @@ class DiscreteEnvironment:
 
     # Maps discrete state to index for value function or policy lookup table
     def map_to_state(self, x):
-
         if len(x) != len(self.state_space_shape):
             print("Input shape not matching state space shape.")
             return -1
-
-        indices = []
 
         # Clamp to values on a circle... (2-pi periodic)
         # only for first dim of pendulum
@@ -52,6 +51,7 @@ class DiscreteEnvironment:
         elif x[1] < -self.amp[1]:
             x[1] = x[1] + 2 * self.amp[1]
 
+        indices = []
         for dim in range(len(x)):
             if self.name == 'LowerBorder':
                 for s in np.arange(0, len(self.state_space[dim]) - 1):
@@ -90,7 +90,7 @@ class DiscreteEnvironment:
     # x : Input vector, N dimensional
     # mean: Mean vector for N dimensions
     # sigma : NxN covariance matrix
-    def _gaussian(self, x, mean, sigma):
+    def _gaussian_cdf(self, x, mean, sigma):
         return multivariate_normal.pdf(x=x, mean=mean, cov=sigma)
 
     # Return all states inside the [-3sig,+3sig] interval from a (multivariate) gaussian
@@ -109,35 +109,35 @@ class DiscreteEnvironment:
         # Euklidean distance
         dist = np.linalg.norm(max_index - min_index, ord=2)
         # Granularity of 3 sigma intervall
-        granularity = 20
         # TODO: Modular for n dim states
         print("State: ", next_state)
         print("Discrete state: ", self.map_to_state(next_state))
         print("3 sigma: ", np.dot(3, sigmas))
         print("State - 3 sigma: {}, State + 3 sigma: {}".format(min_index, max_index))
         print()
-        # So far so good
-
-
-
-
-        for a in np.arange(min_index[0], max_index[0], step=1.0/granularity):
-            for b in np.arange(min_index[1], max_index[1], step=1.0/granularity):
-                # List holding state, index, prob, reward
+        for a in np.arange(min_index[0], max_index[0], step=1.0/self.gaussian_granularity):
+            for b in np.arange(min_index[1], max_index[1], step=1.0/self.gaussian_granularity):
                 successor_state = [a, b]
                 successor_index = self.map_to_state(successor_state)
-                successor_probability = self._gaussian(successor_state, mean=mean, sigma=sigmas)
-                successor_reward = self.regressorReward.predict(regression_input)[0]
+                successor_probability = self._gaussian_cdf(successor_state, mean=mean, sigma=sigmas)
+                successor_reward = self.regressorReward.predict(np.array(successor_state).reshape((1, -1)))[0]
 
-                # If state index already in list, add probabilites
+                # If state not already in list, add it to the list of successors
                 if (successor_index[0], successor_index[1]) not in successor_list:
                     successor_list.update({(successor_index[0], successor_index[1]):
                                                np.array([successor_probability, successor_reward])})
                 else:
                     # Get index of successor state id in list of successors
-                    # Approximating Riemann sum
+                    # Add probability to approximate Riemann sum
                     successor_list[(successor_index[0], successor_index[1])][0] += successor_probability\
-                                                                                   *(dist/granularity)
+                                                                                     *(dist/self.gaussian_granularity)
+        # TODO: The Riemann sum should actually be approximated much better, so the probs would not need normalization!!
+        # Normalize probabilities
+        sum = 0
+        for p in successor_list.values():
+            sum += p[0]
+        for p in successor_list.values():
+            p[0] /= sum
         print("List of all successors: \n", successor_list)
         return np.array(successor_list)
 

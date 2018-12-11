@@ -46,13 +46,13 @@ def main():
     env = gym.make('Pendulum-v2')
     disc_env = DiscreteEnvironment(env=env, name='EasyPendulum',
                                    state_space_shape=(8+1, 8+1),
-                                   action_space_shape=(8+1,))
+                                   action_space_shape=(8+1,), gaussian_granularity=20, gaussian_sigmas=[0.1, 0.1])
     state = env.reset()
-    disc_env.perform_regression(env=env, epochs=10000, save_flag=True)
+    disc_env.perform_regression(env=env, epochs=10000, save_flag=False)
 
     # Covariance matrix instead of sigma list??
-    disc_env.get_successors(state=state, action=[1.0], sigmas=[.1, .1])
-    # value_function, policy = value_iteration(env=disc_env, theta=1e-1, gamma=0.1)
+    # disc_env.get_successors(state=state, action=[1.0], sigmas=[.1, .1])
+    value_function, policy = value_iteration(env=disc_env, theta=1e-1, gamma=0.1)
 
 
 if __name__ == "__main__":
