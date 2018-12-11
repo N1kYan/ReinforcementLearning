@@ -107,7 +107,7 @@ class DiscreteEnvironment:
         max_index = next_state + np.dot(3, sigmas)
         min_index = next_state - np.dot(3, sigmas)
         # Euklidean distance
-        dist = np.linalg.norm(max_index - min_index)
+        dist = np.linalg.norm(max_index - min_index, ord=2)
         # Granularity of 3 sigma intervall
         granularity = 20
         # TODO: Modular for n dim states
@@ -145,4 +145,7 @@ class DiscreteEnvironment:
     # Returns a regressor for the state and one for the reward
     def perform_regression(self, env, epochs, save_flag):
         reg = Regressor()
-        self.regressorState, self.regressorReward = reg.perform_regression(env=env, epochs=epochs, save_flag=save_flag)
+        reg.perform_regression(env=env, epochs=epochs, save_flag=save_flag)
+        self.regressorState = reg.regressorState
+        self.regressorReward = reg.regressorReward
+

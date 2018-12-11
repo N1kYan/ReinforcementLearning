@@ -48,7 +48,7 @@ def main():
                                    state_space_shape=(8+1, 8+1),
                                    action_space_shape=(8+1,))
     state = env.reset()
-    disc_env.perform_regression(env=env, epochs=10000, save_flag=False)
+    disc_env.perform_regression(env=env, epochs=10000, save_flag=True)
 
     # Covariance matrix instead of sigma list??
     disc_env.get_successors(state=state, action=[1.0], sigmas=[.1, .1])

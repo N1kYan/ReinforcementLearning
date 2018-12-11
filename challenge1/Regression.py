@@ -10,7 +10,8 @@ import sys
 class Regressor:
 
     def __init__(self):
-        None
+        self.regressorReward = RandomForestRegressor(n_estimators=10, min_samples_split=2)
+        self.regressorState = RandomForestRegressor(n_estimators=20, min_samples_split=2)
 
     # Performs regression from given state and performed action
     # to successive state and observed reward
@@ -22,8 +23,8 @@ class Regressor:
             print()
             with open('./pickle/reg.pkl', 'rb') as pickle_file:
                 (rS, rR) = pickle.load(pickle_file)
-            regressorState = rS
-            regressorReward = rR
+            self.regressorState = rS
+            self.regressorReward = rR
         else:
             rtx = []
             rty = []
@@ -31,8 +32,6 @@ class Regressor:
             sty = []
             plotr = []
             plots = []
-            regressorReward = RandomForestRegressor(n_estimators=10, min_samples_split=2)
-            regressorState = RandomForestRegressor(n_estimators=50, min_samples_split=2)
             old_state = env.reset()
 
             print("Regression: 0% ... ", end='')
@@ -42,27 +41,29 @@ class Regressor:
                 action = env.action_space.sample()
                 next_state, reward, done, info = env.step(action)
 
-                rtx.append(np.append(old_state, action))
+                #rtx.append(np.append(old_state, action))
+                rtx.append(next_state)
                 rty.append(reward)
                 stx.append(np.append(old_state, action))
                 sty.append(next_state)
 
                 if i % 100 == 0:  # 50 works nicely
 
-                    regressorReward.fit(rtx, rty)
-                    fitrtx = regressorReward.predict(rtx)
+                    # Regression from next observed state to observed reward
+                    self.regressorReward.fit(rtx, rty)
+                    fitrtx = self.regressorReward.predict(rtx)
                     mse = mean_squared_error(rty, fitrtx)
                     plotr.append(mse)
 
-                    regressorState.fit(stx, sty)
-                    fitstx = regressorState.predict(stx)
+                    # Regression from state and action to next state
+                    self.regressorState.fit(stx, sty)
+                    fitstx = self.regressorState.predict(stx)
                     mse = mean_squared_error(sty, fitstx)
 
                     plots.append(mse)
 
                 old_state = np.copy(next_state)
 
-                # TODO: These prints somehow dont work anymore...
                 if i == int(epochs * 0.25):
                     print("25% ... ", end='')
                     sys.stdout.flush()
@@ -86,5 +87,4 @@ class Regressor:
 
             print("Saving regression file.")
             print()
-            save_object((regressorState, regressorReward), './pickle/reg.pkl')
-        return regressorState, regressorReward
+            save_object((self.regressorState, self.regressorReward), './pickle/reg.pkl')
