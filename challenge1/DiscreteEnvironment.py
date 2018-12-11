@@ -95,7 +95,7 @@ class DiscreteEnvironment:
 
     # Return all states inside the [-3sig,+3sig] interval from a (multivariate) gaussian
     # with mean set as the current state
-    def get_successors(self, state, action, sigmas):
+    def get_successors(self, state, action):
         # List of successors (dictionary)
         # holding index of discrete state as key
         # and list of [probability, reward] of this state as value
@@ -104,22 +104,22 @@ class DiscreteEnvironment:
         next_state = self.regressorState.predict(regression_input)[0]
         mean = np.copy(next_state)
 
-        max_index = next_state + np.dot(3, sigmas)
-        min_index = next_state - np.dot(3, sigmas)
+        max_index = next_state + np.dot(3, self.gaussian_sigmas)
+        min_index = next_state - np.dot(3, self.gaussian_sigmas)
         # Euklidean distance
         dist = np.linalg.norm(max_index - min_index, ord=2)
         # Granularity of 3 sigma intervall
         # TODO: Modular for n dim states
-        print("State: ", next_state)
-        print("Discrete state: ", self.map_to_state(next_state))
-        print("3 sigma: ", np.dot(3, sigmas))
-        print("State - 3 sigma: {}, State + 3 sigma: {}".format(min_index, max_index))
-        print()
+        #print("State: ", next_state)
+        #print("Discrete state: ", self.map_to_state(next_state))
+        #print("3 sigma: ", np.dot(3, self.gaussian_sigmas))
+        #print("State - 3 sigma: {}, State + 3 sigma: {}".format(min_index, max_index))
+        #print()
         for a in np.arange(min_index[0], max_index[0], step=1.0/self.gaussian_granularity):
             for b in np.arange(min_index[1], max_index[1], step=1.0/self.gaussian_granularity):
                 successor_state = [a, b]
                 successor_index = self.map_to_state(successor_state)
-                successor_probability = self._gaussian_cdf(successor_state, mean=mean, sigma=sigmas)
+                successor_probability = self._gaussian_cdf(successor_state, mean=mean, sigma=self.gaussian_sigmas)
                 successor_reward = self.regressorReward.predict(np.array(successor_state).reshape((1, -1)))[0]
 
                 # If state not already in list, add it to the list of successors
@@ -138,8 +138,8 @@ class DiscreteEnvironment:
             sum += p[0]
         for p in successor_list.values():
             p[0] /= sum
-        print("List of all successors: \n", successor_list)
-        return np.array(successor_list)
+        #print("List of all successors: \n", successor_list)
+        return successor_list
 
     # Creates regressor object and performs regression
     # Returns a regressor for the state and one for the reward

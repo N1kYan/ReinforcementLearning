@@ -41,6 +41,9 @@ class Regressor:
                 action = env.action_space.sample()
                 next_state, reward, done, info = env.step(action)
 
+                #old_state[0] += 2*np.pi
+                #next_state[0] += 2*np.pi
+
                 #rtx.append(np.append(old_state, action))
                 rtx.append(next_state)
                 rty.append(reward)
