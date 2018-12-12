@@ -38,21 +38,20 @@ def value_iteration(S, A, P, R, gamma, theta):
     PI = np.zeros(shape=S_shape[0]*[S_shape[1]])
 
     t = 1
-
+    states = np.stack(np.meshgrid(range(len(S[0][:])),range(len(S[1][:])))).T.reshape(-1,2)
     while True:
-        for s0 in range(len(S[0][:])):
-            for s1 in range(len(S[1][:])):
-                v = V[s0][s1]
-                Qsa = np.zeros(shape=A_shape[0]*[A_shape[1]])
-                for a in range(len(A[0][:])):
-                    next_state = reg.regressorState.predict(np.array([S[0][s0], S[1][s1], A[0][a]]).reshape(1, -1))[0]
-                    ns = get_index(space=S, x=next_state)
-                    ns0 = ns[0]
-                    ns1 = ns[1]
-                    Qsa[a] = P[s0][s1][a][ns0][ns1]*(R[ns0][ns1]+gamma*V[ns0][ns1])
-                max_Qsa = np.max(Qsa)
-                V[s0][s1] = max_Qsa
-                delta = np.abs(max_Qsa-v)
+        for s0,s1 in states:
+            v = V[s0][s1]
+            Qsa = np.zeros(shape=A_shape[0]*[A_shape[1]])
+            for a in range(len(A[0][:])):
+                next_state = reg.regressorState.predict(np.array([S[0][s0], S[1][s1], A[0][a]]).reshape(1, -1))[0]
+                ns = get_index(space=S, x=next_state)
+                ns0 = ns[0]
+                ns1 = ns[1]
+                Qsa[a] = P[s0][s1][a][ns0][ns1]*(R[ns0][ns1]+gamma*V[ns0][ns1])
+            max_Qsa = np.max(Qsa)
+            V[s0][s1] = max_Qsa
+            delta = np.abs(max_Qsa-v)
         # Reduce discount factor per timestep
         #gamma = gamma/t
         t += 1
@@ -67,19 +66,18 @@ def value_iteration(S, A, P, R, gamma, theta):
     # Define policy
     print("Defining Policy ...", end='')
     sys.stdout.flush()
-    for s0 in range(len(S[0][:])):
-        for s1 in range(len(S[1][:])):
-            Qsa = np.zeros(shape=A_shape[0] * [A_shape[1]])
-            for a in range(len(A[0][:])):
-                next_state = reg.regressorState.predict(np.array([S[0][s0], S[1][s1], A[0][a]]).reshape(1, -1))[0]
-                ns = get_index(space=S, x=next_state)
-                ns0 = ns[0]
-                ns1 = ns[1]
-                Qsa[a] = P[s0][s1][a][ns0][ns1] * (R[ns0][ns1] + gamma * V[ns0][ns1])
-            # Get action for argmax index
-            max_index = np.argmax(Qsa)
-            max_action = A[0][max_index]
-            PI[s0][s1] = max_action
+    for s0,s1 in states:
+        Qsa = np.zeros(shape=A_shape[0] * [A_shape[1]])
+        for a in range(len(A[0][:])):
+            next_state = reg.regressorState.predict(np.array([S[0][s0], S[1][s1], A[0][a]]).reshape(1, -1))[0]
+            ns = get_index(space=S, x=next_state)
+            ns0 = ns[0]
+            ns1 = ns[1]
+            Qsa[a] = P[s0][s1][a][ns0][ns1] * (R[ns0][ns1] + gamma * V[ns0][ns1])
+        # Get action for argmax index
+        max_index = np.argmax(Qsa)
+        max_action = A[0][max_index]
+        PI[s0][s1] = max_action
     print("done")
     return V, PI
 
@@ -99,25 +97,26 @@ def evaluate_discrete_space(S, A):
     print("Evaluating reward function ... ", end='')
     sys.stdout.flush()
     # TODO: more efficient way?
-    for s0 in range(R.shape[0]):
-        for s1 in range(R.shape[1]):
-            R[s0][s1] = reg.regressorReward.predict(np.array([S[0][s0], S[1][s1]]).reshape(1, -1))
+    states = np.stack(np.meshgrid(range(R.shape[0]),range(R.shape[1]))).T.reshape(-1,2)
+
+    for s0,s1 in states:
+        R[s0][s1] = reg.regressorReward.predict(np.array([S[0][s0], S[1][s1]]).reshape(1, -1))
     print("done\n")
 
     print("Evaluating state transition function ... ", end='')
     sys.stdout.flush()
     # TODO: more efficent way?
-    for s0 in range(P.shape[0]):
-        for s1 in range(P.shape[1]):
-            for a in range(P.shape[2]):
-                # Successor of state (s0, s1) for action a
-                # We use [0] because we only have one state
-                next_state = reg.regressorState.predict(np.array([S[0][s0], S[1][s1], A[0][a]]).reshape(1, -1))[0]
-                # Get discrete index of next state
-                ns = get_index(space=S, x=next_state)
-                ns0 = ns[0]
-                ns1 = ns[1]
-                P[s0][s1][a][ns0][ns1] = 1
+    states_action = np.stack(np.meshgrid(range(P.shape[0]),range(P.shape[1]), range(P.shape[2]))).T.reshape(-1,3)
+
+    for s0,s1,a in states_action:
+        # Successor of state (s0, s1) for action a
+        # We use [0] because we only have one state
+        next_state = reg.regressorState.predict(np.array([S[0][s0], S[1][s1], A[0][a]]).reshape(1, -1))[0]
+        # Get discrete index of next state
+        ns = get_index(space=S, x=next_state)
+        ns0 = ns[0]
+        ns1 = ns[1]
+        P[s0][s1][a][ns0][ns1] = 1
     print("done\n")
 
     return P, R
