@@ -1,109 +1,240 @@
 from __future__ import print_function
-import numpy as np
+import sys
 import gym
-import pickle
 import quanser_robots
-from DiscreteEnvironment import DiscreteEnvironment
-from Evaluation import *
+import numpy as np
+import matplotlib.pyplot as plt
+from Regression import Regressor
 from Utils import *
+from Evaluation import *
 
-# TODO: comments
+env = gym.make('Pendulum-v2')
+reg = Regressor()
 
 
-def value_iteration(env, theta, gamma, save_flag):
-    states = np.stack(np.meshgrid(env.state_space[0], env.state_space[1])).T.reshape(-1,2)
-
-    if not save_flag and open('./pickle/value_iteration.pkl'):
-        print()
-        print("Found value iteration file.")
-        print()
-        with open('./pickle/value_iteration.pkl', 'rb') as pickle_file:
-            (vf, p) = pickle.load(pickle_file)
-        return vf, p
-
-    else:
-        print("Value Iteration ... ")
-        # Initialize value function
-        value_function = np.zeros(env.state_space_shape)
-
-        # Iterate to converge to optimal value function
-        while True:
-            delta = 0
-            for s0, s1 in states:
-                index = env.map_to_state([s0, s1])
-                v = value_function[index[0], index[1]]
-                max_reward = None
-                for a in env.action_space[0]:
-                    # Sum up over all possible successors
-                    successors = env.get_successors(state=[s0, s1], action=[a])
-                    expected_reward = None
-                    for item in successors.items():
-                        prob = item[1][0]
-                        reward = item[1][1]
-                        succ_index = [item[0][0], item[0][1]]
-                        if expected_reward is None:
-                            expected_reward = prob*(reward + gamma*value_function[succ_index[0], succ_index[1]])
-                        else:
-                            expected_reward += prob*(reward + gamma*value_function[succ_index[0], succ_index[1]])
-                    if (max_reward is None) or expected_reward>max_reward:
-                        max_reward = expected_reward
-                value_function[index[0], index[1]] = max_reward
-                delta = max(delta, np.abs(v - max_reward))
-            print ("Delta =", delta, end='')
-            if delta < theta:
-                print(" < Theta =", theta)
+# Returns discrete index of x in space
+def get_index(space, x):
+    index = []
+    for i in range(len(x)):
+        for a in range(len(space[i][:])-1):
+            # TODO: this solution will not return anything for x = obs_space.high !!
+            if space[i][a] <= x[i] < space[i][a+1]:
+                index.append(a)
                 break
-            else:
-                print(" > Theta =", theta)
-
-        # Initialize policy
-        policy = np.zeros(env.state_space_shape)
-
-        print("Defining policy ... ")
-        # Iterate to converge to optimal policy
-        for s0, s1 in states:
-            max_reward = None
-            best_action = None
-            for a in env.action_space[0]:
-                successors = env.get_successors(state=[s0, s1], action=[a])
-                expected_reward = None
-                for item in successors.items():
-                    prob = item[1][0]
-                    reward = item[1][1]
-                    succ_index = [item[0][0], item[0][1]]
-                    if expected_reward is None:
-                        expected_reward = prob * (reward + gamma * value_function[succ_index[0], succ_index[1]])
-                    else:
-                        expected_reward += prob * (reward + gamma * value_function[succ_index[0], succ_index[1]])
-                if (max_reward is None) or expected_reward>max_reward:
-                    max_reward = expected_reward
-                    best_action = a
-            index = env.map_to_state([s0, s1])
-            policy[index[0], index[1]] = best_action
-        print("... done!")
-        print()
-        print("Saving value iteration file.")
-        print()
-        save_object((value_function, policy), './pickle/value_iteration.pkl')
-
-        return value_function, policy
+            elif x[i] == env.observation_space.high[i]:
+                # TODO: check if correct !!
+                index.append(len(space[i][:])-1)
+    return np.array(index)
 
 
-def main():
-    env = gym.make('Pendulum-v2')
-    disc_env = DiscreteEnvironment(env=env, name='EasyPendulum',
-                                   state_space_shape=(4+1, 8+1),
-                                   action_space_shape=(32+1,), gaussian_granularity=1, gaussian_sigmas=[0.3, 0.3])
+def value_iteration(S, A, P, R, gamma, theta):
+
+    print("Value iteration... ")
+
+    S_shape = np.shape(S)
+    A_shape = np.shape(A)
+
+    V = np.zeros(shape=S_shape[0]*[S_shape[1]])
+    PI = np.zeros(shape=S_shape[0]*[S_shape[1]])
+
+    t = 1
+
+    while True:
+        for s0 in range(len(S[0][:])):
+            for s1 in range(len(S[1][:])):
+                v = V[s0][s1]
+                Qsa = np.zeros(shape=A_shape[0]*[A_shape[1]])
+                for a in range(len(A[0][:])):
+                    next_state = reg.regressorState.predict(np.array([S[0][s0], S[1][s1], A[0][a]]).reshape(1, -1))[0]
+                    ns = get_index(space=S, x=next_state)
+                    ns0 = ns[0]
+                    ns1 = ns[1]
+                    Qsa[a] = P[s0][s1][a][ns0][ns1]*(R[ns0][ns1]+gamma*V[ns0][ns1])
+                max_Qsa = np.max(Qsa)
+                V[s0][s1] = max_Qsa
+                delta = np.abs(max_Qsa-v)
+        # Reduce discount factor per timestep
+        #gamma = gamma/t
+        t += 1
+        print("Delta =", delta, end='')
+        if(delta < theta):
+            print(" ... done")
+            break
+        else:
+            print(" < Theta =", theta)
+    print()
+
+    # Define policy
+    print("Defining Policy ...", end='')
+    sys.stdout.flush()
+    for s0 in range(len(S[0][:])):
+        for s1 in range(len(S[1][:])):
+            Qsa = np.zeros(shape=A_shape[0] * [A_shape[1]])
+            for a in range(len(A[0][:])):
+                next_state = reg.regressorState.predict(np.array([S[0][s0], S[1][s1], A[0][a]]).reshape(1, -1))[0]
+                ns = get_index(space=S, x=next_state)
+                ns0 = ns[0]
+                ns1 = ns[1]
+                Qsa[a] = P[s0][s1][a][ns0][ns1] * (R[ns0][ns1] + gamma * V[ns0][ns1])
+            # Get action for argmax index
+            max_index = np.argmax(Qsa)
+            max_action = A[0][max_index]
+            PI[s0][s1] = max_action
+    print("done")
+    return V, PI
+
+
+def evaluate_discrete_space(S, A):
+
+    S_shape = np.shape(S)
+    A_shape = np.shape(A)
+    P = np.zeros(shape=(S_shape[0] * [S_shape[1]] +
+                        A_shape[0] * [A_shape[1]] +
+                        S_shape[0] * [S_shape[1]]))
+    # R = np.zeros(shape=(S_shape[0] * [S_shape[1]] + A_shape[0] * [A_shape[1]]))
+
+    # This reward 'function' is only defined for the successor states
+    R = np.zeros(shape=(S_shape[0] * [S_shape[1]]))
+
+    print("Evaluating reward function ... ", end='')
+    sys.stdout.flush()
+    # TODO: more efficient way?
+    for s0 in range(R.shape[0]):
+        for s1 in range(R.shape[1]):
+            R[s0][s1] = reg.regressorReward.predict(np.array([S[0][s0], S[1][s1]]).reshape(1, -1))
+    print("done\n")
+
+    print("Evaluating state transition function ... ", end='')
+    sys.stdout.flush()
+    # TODO: more efficent way?
+    for s0 in range(P.shape[0]):
+        for s1 in range(P.shape[1]):
+            for a in range(P.shape[2]):
+                # Successor of state (s0, s1) for action a
+                # We use [0] because we only have one state
+                next_state = reg.regressorState.predict(np.array([S[0][s0], S[1][s1], A[0][a]]).reshape(1, -1))[0]
+                # Get discrete index of next state
+                ns = get_index(space=S, x=next_state)
+                ns0 = ns[0]
+                ns1 = ns[1]
+                P[s0][s1][a][ns0][ns1] = 1
+    print("done\n")
+
+    return P, R
+
+
+def build_discrete_space():
+
+    """
+        Creates discrete observation and action space
+    :return:
+    """
+
     state = env.reset()
-    disc_env.perform_regression(env=env, epochs=10000, save_flag=False)
+    observation_size = len(state)
+    observation_range = (env.observation_space.low, env.observation_space.high)
+    # TODO: Different bins for different dimensions
+    observation_bins = observation_size*[10]
+    S = []
+    for i in range(observation_size):
+        S.append(np.linspace(observation_range[0][i], observation_range[1][i], observation_bins[i]))
+    #print("Discrete Observation Space: ", S)
 
-    # Covariance matrix instead of sigma list??
-    # disc_env.get_successors(state=state, action=[1.0], sigmas=[.1, .1])
-    value_function, policy = value_iteration(env=disc_env, theta=1e-1, gamma=0.5, save_flag=False)
-    evaluate(disc_env=disc_env, episodes=100, policy=policy, render=False, sleep=0)
-    visualize(value_function, policy, state_space=disc_env.state_space)
+
+    action = env.action_space.sample()
+    action_size = len(action)
+    action_range = (env.action_space.low, env.action_space.high)
+    action_bins = action_size*[10]
+    A = []
+    for i in range(action_size):
+        A.append(np.linspace(action_range[0][i], action_range[1][i], action_bins[i]))
+    #print("Discrete Action Space: ", A)
 
 
+    return S, A
+
+
+def evaluate(S, episodes, policy, render, sleep, epsilon_greedy=None):
+
+    S_shape = np.shape(S)
+    state_distribution = np.zeros(shape=S_shape[0]*[S_shape[1]])
+
+    rewards_per_episode = []
+    print("Evaluating...", end='')
+    sys.stdout.flush()
+
+    for e in range(episodes):
+
+        state = env.reset()
+
+        cumulative_reward = [0]
+
+        for t in range(200):
+            # Render environment
+            if render:
+                env.render()
+                time.sleep(sleep)
+
+            # discretize state
+            index = get_index(S, state)
+            state_distribution[index[0]][index[1]] += 1
+
+            if epsilon_greedy is not None:
+                rand = np.random.rand()
+                if rand < epsilon_greedy:
+                    action = np.random.uniform(low=env.action_space.low, high=env.action_space.high)
+                else:
+                    action = np.array([policy[index[0], index[1]]])
+            else:
+                # Do step according to policy and get observation and reward
+                action = np.array([policy[index[0], index[1]]])
+
+            next_state, reward, done, info = env.step(action)
+            state = np.copy(next_state)
+
+            cumulative_reward.append(cumulative_reward[-1] + reward)
+
+            if done:
+                print("Episode {} finished after {} timesteps".format(e + 1, t + 1))
+                break
+
+        rewards_per_episode.append(cumulative_reward)
+
+    print("...done")
+
+    # TODO: Look at calculation of mean cumulative rewards
+    # Average reward over episodes
+    rewards = np.average(rewards_per_episode, axis=0)
+
+    env.close()
+
+    # Plot rewards per timestep averaged over episodes
+    plt.figure()
+    plt.plot(rewards, label='Cumulative reward per timestep, averaged over {} episodes'.format(episodes))
+    plt.legend()
+
+    plt.figure()
+    plt.imshow(state_distribution)
+    plt.colorbar()
+    plt.title("State Distribution")
+    plt.show()
+
+
+def main(make_plots):
+
+    reg.perform_regression(env=env, epochs=10000, save_flag=False)
+    S, A = build_discrete_space()
+    P, R = evaluate_discrete_space(S=S, A=A)
+    V, PI = value_iteration(S=S, A=A, P=P, R=R, gamma=0.9, theta=1e-2)
+    evaluate(S=S, episodes=100, policy=PI, render=False, sleep=0, epsilon_greedy=0.1)
+
+    if make_plots:
+        visualize(value_function=V, policy=PI)
+
+        plt.figure()
+        plt.imshow(R)
+        plt.title("Reward function")
+        plt.show()
 
 if __name__ == "__main__":
-    main()
+    main(make_plots=True)

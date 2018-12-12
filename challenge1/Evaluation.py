@@ -1,3 +1,5 @@
+from __future__ import print_function
+import sys
 import matplotlib.pyplot as plt
 import numpy as np
 import time
@@ -6,28 +8,30 @@ import time
     Evaluation stuff to see the predictions, discretizations and learned functions in action
 """
 
+#TODO: Plot a state distribution
+
 #def evaluate(env, episodes, map_to_state, policy, render):
-def evaluate(disc_env, episodes, policy, render, sleep):
+def evaluate(env, episodes, policy, render, sleep):
 
     rewards_per_episode = []
-
-    print("Evaluating...")
+    print("Evaluating...", end='')
+    sys.stdout.flush()
 
     for e in range(episodes):
 
-        # Discretize first state
-        #state = env.reset()
-        state = disc_env.env.reset()
-        #index = map_to_state(state)
-        index = disc_env.map_to_state(state)
+        state = env.reset()
 
         cumulative_reward = [0]
 
         for t in range(200):
             # Render environment
             if render:
-                disc_env.env.render()
-            time.sleep(sleep)
+                env.render()
+                time.sleep(sleep)
+
+            # discretize state
+
+
 
             # Do step according to policy and get observation and reward
             action = np.array([policy[index[0], index[1]]])
@@ -51,7 +55,7 @@ def evaluate(disc_env, episodes, policy, render, sleep):
     # Average reward over episodes
     rewards = np.average(rewards_per_episode, axis=0)
 
-    disc_env.env.close()
+    env.close()
 
     # Plot rewards per timestep averaged over episodes
     plt.figure()
