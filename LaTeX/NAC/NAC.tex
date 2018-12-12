@@ -51,8 +51,13 @@ grestore
 %
 % insert here the call for the packages your document requires
 %\usepackage{latexsym}
-% etc.
-%
+
+\usepackage{natbib} % delete before submission
+\bibliographystyle{plain} % delete before submission
+
+%\usepackage{hyperref}
+
+
 % please place your own definitions here and don't use \def but
 % \newcommand{}{}
 %
@@ -60,7 +65,6 @@ grestore
 % \journalname{myjournal}
 %
 \begin{document}
-
 \title{Natural Actor Critic
 %\thanks{Grants or other notes
 %about the article that should go on the front page should be
@@ -93,6 +97,40 @@ grestore
 
 \maketitle
 
+\newpage
+
+% -------------------- Paper ----------------------- %
+\section{Paper}
+Natural Actor Critic:
+\begin{itemize}
+	\item Main Version \cite{peters2005natural}.
+	\item 2nd Version: Natural Actor-Critic in Neurocomputing \cite{peters2008natural}.
+	\item 3rd version: RL of motor skills with policy gradients in NN \cite{peters2008reinforcement}.
+\end{itemize}
+
+\noindent Recommended by Jan:
+\begin{itemize}
+	\item Policy Evaluation with TD \cite{dann2014policy}.
+	\item Incremental NAC algorithms \cite{bhatnagar2008incremental}.
+	\item Jan said that a paper form C. Dann is very important. Did he mean Policy Evaluation with TD by Dann or did he mean a second paper?
+\end{itemize}
+
+\noindent Research:
+\begin{itemize}
+	\item Comparison of four natural gradient algorithms (co-author Sutton) \cite{bhatnagar2009natural}.
+\end{itemize}
+
+% -------------------- Mettings & Notes ----------------------- %
+\section{Meetings \& Notes}
+
+Meetings:
+\begin{itemize}
+	\item 12.12.18: Notes from Jan can be found in ``.\textbackslash Notes Jan 12.12.18''
+\end{itemize}
+
+
+% ---------------------------------------------------------------------------- %
+\newpage
 \begin{abstract}
 Insert your abstract here. Include keywords, PACS and mathematical
 subject classification numbers as needed.
@@ -152,33 +190,23 @@ number & number & number \\
 \end{tabular}
 \end{table}
 
-
+% -------------------- Acknowledgements ----------------------- %
 %\begin{acknowledgements}
 %If you'd like to thank anyone, place your comments here
 %and remove the percent signs.
 %\end{acknowledgements}
 
+
+
+% -------------------- References ----------------------- %
+% TODO: alle unten angegbenen Stile machen ganz komische Sachen
+% Wer weiß, wie wir das fixen, bitte machen und oben \usepackage{natbib}
+% und \bibliographystyle{plain} raus nehmen
 % BibTeX users please use one of
 %\bibliographystyle{spbasic}      % basic style, author-year citations
 %\bibliographystyle{spmpsci}      % mathematics and physical sciences
 %\bibliographystyle{spphys}       % APS-like style for physics
-%\bibliography{}   % name your BibTeX data base
-
-% Non-BibTeX users please use
-\begin{thebibliography}{}
-%
-% and use \bibitem to create references. Consult the Instructions
-% for authors for reference list style.
-%
-\bibitem{RefJ}
-% Format for Journal Reference
-Author, Article title, Journal, Volume, page numbers (year)
-% Format for books
-\bibitem{RefB}
-Author, Book title, page numbers. Publisher, place (year)
-% etc
-\end{thebibliography}
+\bibliography{NAC-bibliography.bib}   % name your BibTeX data base
 
 \end{document}
-% end of file template.tex
 

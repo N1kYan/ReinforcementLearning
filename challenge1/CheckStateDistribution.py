@@ -6,8 +6,8 @@ import quanser_robots
 # ---------
 # PARAMETERS
 EPISODES = 1000000
-STATE_SPACE_SIZE = (16 + 1, 16 + 1)
-ACTION_SPACE_SIZE = (16 + 1)
+STATE_SPACE_SIZE = (30 + 1, 30 + 1)
+ACTION_SPACE_SIZE = (30 + 1)
 
 # ---------
 env = gym.make("Pendulum-v2")
