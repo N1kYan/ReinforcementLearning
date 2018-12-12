@@ -11,6 +11,7 @@ from Utils import *
 
 
 def value_iteration(env, theta, gamma, save_flag):
+    states = np.stack(np.meshgrid(env.state_space[0], env.state_space[1])).T.reshape(-1,2)
 
     if not save_flag and open('./pickle/value_iteration.pkl'):
         print()
@@ -28,27 +29,26 @@ def value_iteration(env, theta, gamma, save_flag):
         # Iterate to converge to optimal value function
         while True:
             delta = 0
-            for s0 in env.state_space[0]:
-                for s1 in env.state_space[1]:
-                    index = env.map_to_state([s0, s1])
-                    v = value_function[index[0], index[1]]
-                    max_reward = None
-                    for a in env.action_space[0]:
-                        # Sum up over all possible successors
-                        successors = env.get_successors(state=[s0, s1], action=[a])
-                        expected_reward = None
-                        for item in successors.items():
-                            prob = item[1][0]
-                            reward = item[1][1]
-                            succ_index = [item[0][0], item[0][1]]
-                            if expected_reward is None:
-                                expected_reward = prob*(reward + gamma*value_function[succ_index[0], succ_index[1]])
-                            else:
-                                expected_reward += prob*(reward + gamma*value_function[succ_index[0], succ_index[1]])
-                        if (max_reward is None) or expected_reward>max_reward:
-                            max_reward = expected_reward
-                    value_function[index[0], index[1]] = max_reward
-                    delta = max(delta, np.abs(v - max_reward))
+            for s0, s1 in states:
+                index = env.map_to_state([s0, s1])
+                v = value_function[index[0], index[1]]
+                max_reward = None
+                for a in env.action_space[0]:
+                    # Sum up over all possible successors
+                    successors = env.get_successors(state=[s0, s1], action=[a])
+                    expected_reward = None
+                    for item in successors.items():
+                        prob = item[1][0]
+                        reward = item[1][1]
+                        succ_index = [item[0][0], item[0][1]]
+                        if expected_reward is None:
+                            expected_reward = prob*(reward + gamma*value_function[succ_index[0], succ_index[1]])
+                        else:
+                            expected_reward += prob*(reward + gamma*value_function[succ_index[0], succ_index[1]])
+                    if (max_reward is None) or expected_reward>max_reward:
+                        max_reward = expected_reward
+                value_function[index[0], index[1]] = max_reward
+                delta = max(delta, np.abs(v - max_reward))
             print ("Delta =", delta, end='')
             if delta < theta:
                 print(" < Theta =", theta)
@@ -61,26 +61,25 @@ def value_iteration(env, theta, gamma, save_flag):
 
         print("Defining policy ... ")
         # Iterate to converge to optimal policy
-        for s0 in env.state_space[0]:
-            for s1 in env.state_space[1]:
-                max_reward = None
-                best_action = None
-                for a in env.action_space[0]:
-                    successors = env.get_successors(state=[s0, s1], action=[a])
-                    expected_reward = None
-                    for item in successors.items():
-                        prob = item[1][0]
-                        reward = item[1][1]
-                        succ_index = [item[0][0], item[0][1]]
-                        if expected_reward is None:
-                            expected_reward = prob * (reward + gamma * value_function[succ_index[0], succ_index[1]])
-                        else:
-                            expected_reward += prob * (reward + gamma * value_function[succ_index[0], succ_index[1]])
-                    if (max_reward is None) or expected_reward>max_reward:
-                        max_reward = expected_reward
-                        best_action = a
-                index = env.map_to_state([s0, s1])
-                policy[index[0], index[1]] = best_action
+        for s0, s1 in states:
+            max_reward = None
+            best_action = None
+            for a in env.action_space[0]:
+                successors = env.get_successors(state=[s0, s1], action=[a])
+                expected_reward = None
+                for item in successors.items():
+                    prob = item[1][0]
+                    reward = item[1][1]
+                    succ_index = [item[0][0], item[0][1]]
+                    if expected_reward is None:
+                        expected_reward = prob * (reward + gamma * value_function[succ_index[0], succ_index[1]])
+                    else:
+                        expected_reward += prob * (reward + gamma * value_function[succ_index[0], succ_index[1]])
+                if (max_reward is None) or expected_reward>max_reward:
+                    max_reward = expected_reward
+                    best_action = a
+            index = env.map_to_state([s0, s1])
+            policy[index[0], index[1]] = best_action
         print("... done!")
         print()
         print("Saving value iteration file.")
