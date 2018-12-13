@@ -15,15 +15,15 @@ reg = Regressor()
 # Returns discrete index of x in space
 def get_index(space, x):
     index = []
-    for i in range(len(x)):
-        for a in range(len(space[i][:])-1):
+    for dim in range(len(x)):
+        for ind in range(len(space[dim][:])-1):
             # TODO: this solution will not return anything for x = obs_space.high !!
-            if space[i][a] <= x[i] < space[i][a+1]:
-                index.append(a)
+            if space[dim][ind] <= x[dim] < space[dim][ind+1]:
+                index.append(ind)
                 break
-            elif x[i] == env.observation_space.high[i]:
+            elif x[dim] == env.observation_space.high[dim]:
                 # TODO: check if correct !!
-                index.append(len(space[i][:])-1)
+                index.append(len(space[dim][:])-2)
     return np.array(index)
 
 
@@ -31,19 +31,20 @@ def value_iteration(S, A, P, R, gamma, theta):
 
     print("Value iteration... ")
 
-    S_shape = np.shape(S)
-    A_shape = np.shape(A)
-
-    V = np.zeros(shape=S_shape[0]*[S_shape[1]])
-    PI = np.zeros(shape=S_shape[0]*[S_shape[1]])
+    # Initialize value function with bad values
+    V = np.zeros(shape=np.shape(S)[0]*[np.shape(S)[1]-1])
+    V.fill(-20)
+    # Fill policy with neutral action (mid of action space)
+    PI = np.zeros(shape=np.shape(S)[0]*[np.shape(S)[1]-1])
+    PI.fill(A[0][int(len(A[0][:])/2)])
 
     t = 1
-    states = np.stack(np.meshgrid(range(len(S[0][:])),range(len(S[1][:])))).T.reshape(-1,2)
+    states = np.stack(np.meshgrid(range(len(S[0][:])-1),range(len(S[1][:])-1))).T.reshape(-1, 2)
     while True:
-        for s0,s1 in states:
+        for s0, s1 in states:
             v = V[s0][s1]
-            Qsa = np.zeros(shape=A_shape[0]*[A_shape[1]])
-            for a in range(len(A[0][:])):
+            Qsa = np.zeros(shape=np.shape(A)[0]*[np.shape(A)[1]-1])
+            for a in range(len(A[0][:])-1):
                 next_state = reg.regressorState.predict(np.array([S[0][s0], S[1][s1], A[0][a]]).reshape(1, -1))[0]
                 ns = get_index(space=S, x=next_state)
                 ns0 = ns[0]
@@ -51,24 +52,24 @@ def value_iteration(S, A, P, R, gamma, theta):
                 Qsa[a] = P[s0][s1][a][ns0][ns1]*(R[ns0][ns1]+gamma*V[ns0][ns1])
             max_Qsa = np.max(Qsa)
             V[s0][s1] = max_Qsa
-            delta = np.abs(max_Qsa-v)
+            delta = np.abs(v-max_Qsa)
         # Reduce discount factor per timestep
         #gamma = gamma/t
         t += 1
         print("Delta =", delta, end='')
-        if(delta < theta):
+        if delta < theta:
             print(" ... done")
             break
         else:
-            print(" < Theta =", theta)
+            print(" > Theta =", theta)
     print()
 
     # Define policy
     print("Defining Policy ...", end='')
     sys.stdout.flush()
-    for s0,s1 in states:
-        Qsa = np.zeros(shape=A_shape[0] * [A_shape[1]])
-        for a in range(len(A[0][:])):
+    for s0, s1 in states:
+        Qsa = np.zeros(shape=np.shape(A)[0] * [np.shape(A)[1]-1])
+        for a in range(len(A[0][:])-1):
             next_state = reg.regressorState.predict(np.array([S[0][s0], S[1][s1], A[0][a]]).reshape(1, -1))[0]
             ns = get_index(space=S, x=next_state)
             ns0 = ns[0]
@@ -83,32 +84,34 @@ def value_iteration(S, A, P, R, gamma, theta):
 
 
 def evaluate_discrete_space(S, A):
+    print(np.shape(S)[1])
 
-    S_shape = np.shape(S)
-    A_shape = np.shape(A)
-    P = np.zeros(shape=(S_shape[0] * [S_shape[1]] +
-                        A_shape[0] * [A_shape[1]] +
-                        S_shape[0] * [S_shape[1]]))
+    P = np.zeros(shape=(np.shape(S)[0] * [np.shape(S)[1]-1] +
+                        np.shape(A)[0] * [np.shape(A)[1]-1] +
+                        np.shape(S)[0] * [np.shape(S)[1]-1]))
+    print(P.shape)
     # R = np.zeros(shape=(S_shape[0] * [S_shape[1]] + A_shape[0] * [A_shape[1]]))
 
     # This reward 'function' is only defined for the successor states
-    R = np.zeros(shape=(S_shape[0] * [S_shape[1]]))
+    R = np.zeros(shape=(np.shape(S)[0] * [np.shape(S)[1]-1]))
 
+    # This part is defining the value function by predicting the reward of every discrete
+    # state action pair
+    # TODO: more efficient way?
     print("Evaluating reward function ... ", end='')
     sys.stdout.flush()
-    # TODO: more efficient way?
     states = np.stack(np.meshgrid(range(R.shape[0]),range(R.shape[1]))).T.reshape(-1,2)
-
-    for s0,s1 in states:
+    for s0, s1 in states:
         R[s0][s1] = reg.regressorReward.predict(np.array([S[0][s0], S[1][s1]]).reshape(1, -1))
     print("done\n")
 
+    # This part is defining the state transition prob. by predicting the resulting state
+    # for every state action pair
+    # TODO: more efficent way?
     print("Evaluating state transition function ... ", end='')
     sys.stdout.flush()
-    # TODO: more efficent way?
     states_action = np.stack(np.meshgrid(range(P.shape[0]),range(P.shape[1]), range(P.shape[2]))).T.reshape(-1,3)
-
-    for s0,s1,a in states_action:
+    for s0, s1, a in states_action:
         # Successor of state (s0, s1) for action a
         # We use [0] because we only have one state
         next_state = reg.regressorState.predict(np.array([S[0][s0], S[1][s1], A[0][a]]).reshape(1, -1))[0]
@@ -116,7 +119,31 @@ def evaluate_discrete_space(S, A):
         ns = get_index(space=S, x=next_state)
         ns0 = ns[0]
         ns1 = ns[1]
-        P[s0][s1][a][ns0][ns1] = 1
+
+        main_p = 1.0
+
+        P[s0][s1][a][ns0][ns1] = main_p
+
+        """
+        P[s0][s1][a][np.clip(ns0 - 1, a_min=0, a_max=S_shape[1] - 2)][
+            np.clip(ns1 - 1, a_min=0, a_max=S_shape[1] - 2)] = (1.0 - main_p)/8.0
+        P[s0][s1][a][np.clip(ns0 - 1, a_min=0, a_max=S_shape[1] - 2)][
+            np.clip(ns1, a_min=0, a_max=S_shape[1] - 2)] = (1.0 - main_p)/8.0
+        P[s0][s1][a][np.clip(ns0 - 1, a_min=0, a_max=S_shape[1] - 2)][
+            np.clip(ns1 + 1, a_min=0, a_max=S_shape[1] - 2)] = (1.0 - main_p)/8.0
+
+        P[s0][s1][a][np.clip(ns0, a_min=0, a_max=S_shape[1] - 2)][
+            np.clip(ns1 - 1, a_min=0, a_max=S_shape[1] - 2)] = (1.0 - main_p)/8.0
+        P[s0][s1][a][np.clip(ns0, a_min=0, a_max=S_shape[1] - 2)][
+            np.clip(ns1 + 1, a_min=0, a_max=S_shape[1] - 2)] = (1.0 - main_p)/8.0
+
+        P[s0][s1][a][np.clip(ns0 + 1, a_min=0, a_max=S_shape[1] - 2)][
+            np.clip(ns1 + 1, a_min=0, a_max=S_shape[1] - 2)] = (1.0 - main_p)/8.0
+        P[s0][s1][a][np.clip(ns0 + 1, a_min=0, a_max=S_shape[1] - 2)][
+            np.clip(ns1, a_min=0, a_max=S_shape[1] - 2)] = (1.0 - main_p)/8.0
+        P[s0][s1][a][np.clip(ns0 + 1, a_min=0, a_max=S_shape[1] - 2)][
+            np.clip(ns1 + 1, a_min=0, a_max=S_shape[1] - 2)] = (1.0 - main_p)/8.0
+        """
     print("done\n")
 
     return P, R
@@ -133,33 +160,30 @@ def build_discrete_space():
     observation_size = len(state)
     observation_range = (env.observation_space.low, env.observation_space.high)
     # TODO: Different bins for different dimensions
-    observation_bins = observation_size*[10]
+    observation_bins = observation_size*[20]
     S = []
     for i in range(observation_size):
         S.append(np.linspace(observation_range[0][i], observation_range[1][i], observation_bins[i]))
     #print("Discrete Observation Space: ", S)
 
-
     action = env.action_space.sample()
     action_size = len(action)
     action_range = (env.action_space.low, env.action_space.high)
-    action_bins = action_size*[10]
+    action_bins = action_size*[20]
     A = []
     for i in range(action_size):
         A.append(np.linspace(action_range[0][i], action_range[1][i], action_bins[i]))
     #print("Discrete Action Space: ", A)
-
 
     return S, A
 
 
 def evaluate(S, episodes, policy, render, sleep, epsilon_greedy=None):
 
-    S_shape = np.shape(S)
-    state_distribution = np.zeros(shape=S_shape[0]*[S_shape[1]])
+    state_distribution = np.zeros(shape=np.shape(S)[0]*[np.shape(S)[1]-1])
 
     rewards_per_episode = []
-    print("Evaluating...", end='')
+    print("Evaluating...")
     sys.stdout.flush()
 
     for e in range(episodes):
@@ -211,12 +235,9 @@ def evaluate(S, episodes, policy, render, sleep, epsilon_greedy=None):
     plt.figure()
     plt.plot(rewards, label='Cumulative reward per timestep, averaged over {} episodes'.format(episodes))
     plt.legend()
-
-    plt.figure()
-    plt.imshow(state_distribution)
-    plt.colorbar()
-    plt.title("State Distribution")
     plt.show()
+
+    return state_distribution
 
 
 def main(make_plots):
@@ -224,16 +245,12 @@ def main(make_plots):
     reg.perform_regression(env=env, epochs=10000, save_flag=False)
     S, A = build_discrete_space()
     P, R = evaluate_discrete_space(S=S, A=A)
-    V, PI = value_iteration(S=S, A=A, P=P, R=R, gamma=0.9, theta=1e-2)
-    evaluate(S=S, episodes=100, policy=PI, render=False, sleep=0, epsilon_greedy=0.1)
+    V, PI = value_iteration(S=S, A=A, P=P, R=R, gamma=0.8, theta=1e-2)
+    state_distribution = evaluate(S=S, episodes=10, policy=PI, render=False, sleep=0, epsilon_greedy=0.01)
 
     if make_plots:
-        visualize(value_function=V, policy=PI)
+        visualize(value_function=V, policy=PI, R=R, state_distribution=state_distribution, state_space=S)
 
-        plt.figure()
-        plt.imshow(R)
-        plt.title("Reward function")
-        plt.show()
 
 if __name__ == "__main__":
     main(make_plots=True)
