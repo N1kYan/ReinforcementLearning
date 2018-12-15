@@ -1,6 +1,7 @@
 import gym
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
 import keras.backend as K
 from quanser_robots import GentlyTerminating
 from quanser_robots.double_pendulum.examples import metronom
@@ -109,7 +110,6 @@ def main():
     # env = gym.make("DoublePendulum-v0')
     env = gym.make('CartPole-v0')
 
-    # TODO: Session
     # Create tensorflow session and set Keras session
     sess = tf.Session()
     K.set_session(sess)
@@ -121,6 +121,8 @@ def main():
 
     #nac_with_lstd(env=env, sess=sess, act=actor, crit=critic, epochs=1000, phi=...,
     #              delta=0.1, alpha=0.1, beta=0.1, epsilon=1e-2)
+
+    sess.close()
 
 
 if __name__ == "__main__":
