@@ -18,7 +18,6 @@ def get_index(space, x):
     index = []
     for dim in range(len(x)):
         for ind in range(len(space[dim][:])-1):
-            # TODO: this solution will not return anything for x = obs_space.high !!
             if space[dim][ind] <= x[dim] < space[dim][ind+1]:
                 index.append(ind)
                 break
@@ -122,39 +121,24 @@ def evaluate_discrete_space(S, A, gaussian_sigmas):
         ns0 = ns[0]
         ns1 = ns[1]
 
-        # main_p = 1.0
-        # P[s0][s1][a][ns0][ns1] = main_p
+        #main_p = 1.0
+        #P[s0][s1][a][ns0][ns1] = main_p
 
         successor_indices = np.stack(np.meshgrid(range(P.shape[3]), range(P.shape[4]))).T.reshape(-1, 2)
 
         cov = np.eye(2, 2)
         cov[0][0] = gaussian_sigmas[0]
+        cov[0][1] = 0
+        cov[0][1] = 0
         cov[1][1] = gaussian_sigmas[1]
 
+        max_index0 = np.shape(P)[0]
+
         for i0, i1 in successor_indices:
-            P[s0][s1][a][i0][i1] = multivariate_normal.pdf(x=np.array([i0, i1]), mean=np.array([ns0, ns1]), cov=cov)
-
-
-        """
-        P[s0][s1][a][np.clip(ns0 - 1, a_min=0, a_max=S_shape[1] - 2)][
-            np.clip(ns1 - 1, a_min=0, a_max=S_shape[1] - 2)] = (1.0 - main_p)/8.0
-        P[s0][s1][a][np.clip(ns0 - 1, a_min=0, a_max=S_shape[1] - 2)][
-            np.clip(ns1, a_min=0, a_max=S_shape[1] - 2)] = (1.0 - main_p)/8.0
-        P[s0][s1][a][np.clip(ns0 - 1, a_min=0, a_max=S_shape[1] - 2)][
-            np.clip(ns1 + 1, a_min=0, a_max=S_shape[1] - 2)] = (1.0 - main_p)/8.0
-
-        P[s0][s1][a][np.clip(ns0, a_min=0, a_max=S_shape[1] - 2)][
-            np.clip(ns1 - 1, a_min=0, a_max=S_shape[1] - 2)] = (1.0 - main_p)/8.0
-        P[s0][s1][a][np.clip(ns0, a_min=0, a_max=S_shape[1] - 2)][
-            np.clip(ns1 + 1, a_min=0, a_max=S_shape[1] - 2)] = (1.0 - main_p)/8.0
-
-        P[s0][s1][a][np.clip(ns0 + 1, a_min=0, a_max=S_shape[1] - 2)][
-            np.clip(ns1 + 1, a_min=0, a_max=S_shape[1] - 2)] = (1.0 - main_p)/8.0
-        P[s0][s1][a][np.clip(ns0 + 1, a_min=0, a_max=S_shape[1] - 2)][
-            np.clip(ns1, a_min=0, a_max=S_shape[1] - 2)] = (1.0 - main_p)/8.0
-        P[s0][s1][a][np.clip(ns0 + 1, a_min=0, a_max=S_shape[1] - 2)][
-            np.clip(ns1 + 1, a_min=0, a_max=S_shape[1] - 2)] = (1.0 - main_p)/8.0
-        """
+            P[s0][s1][a][i0][i1] = 0.5 * (multivariate_normal.pdf(x=np.array([i0, i1]),
+                                                           mean=np.array([ns0, ns1]), cov=cov)
+                                          + multivariate_normal.pdf(x=np.array([i0, i1]),
+                                                            mean=np.array([max_index0+ns0, ns1]), cov=cov))
     print("done\n")
 
     return P, R
@@ -171,7 +155,7 @@ def build_discrete_space():
     observation_size = len(state)
     observation_range = (env.observation_space.low, env.observation_space.high)
     # TODO: Different bins for different dimensions
-    observation_bins = observation_size*[40]
+    observation_bins = observation_size*[20]
     S = []
     for i in range(observation_size):
         S.append(np.linspace(observation_range[0][i], observation_range[1][i], observation_bins[i]))
@@ -180,7 +164,7 @@ def build_discrete_space():
     action = env.action_space.sample()
     action_size = len(action)
     action_range = (env.action_space.low, env.action_space.high)
-    action_bins = action_size*[20]
+    action_bins = action_size*[10]
     A = []
     for i in range(action_size):
         A.append(np.linspace(action_range[0][i], action_range[1][i], action_bins[i]))
@@ -255,13 +239,16 @@ def main(make_plots):
 
     reg.perform_regression(env=env, epochs=10000, save_flag=False)
     S, A = build_discrete_space()
-    P, R = evaluate_discrete_space(S=S, A=A, gaussian_sigmas=np.array([10, 10]))
+    P, R = evaluate_discrete_space(S=S, A=A, gaussian_sigmas=np.array([1, 1]))
 
     plt.figure()
     plt.imshow(P[1][1][1][:][:])
+    plt.title("State transition probability for S:1|1 A:1")
+    plt.colorbar()
+    plt.grid()
 
-    V, PI = value_iteration(S=S, A=A, P=P, R=R, gamma=0.8, theta=1e-4)
-    state_distribution = evaluate(S=S, episodes=10, policy=PI, render=True, sleep=0, epsilon_greedy=0.01)
+    V, PI = value_iteration(S=S, A=A, P=P, R=R, gamma=0.95, theta=1e-5)
+    state_distribution = evaluate(S=S, episodes=10, policy=PI, render=False, sleep=0, epsilon_greedy=0.01)
 
     if make_plots:
         visualize(value_function=V, policy=PI, R=R, state_distribution=state_distribution, state_space=S)
