@@ -3,18 +3,18 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+from Utils import *
 
 """
     Evaluation stuff to see the predictions, discretizations and learned functions in action
 """
 
-#TODO: Plot a state distribution
+def evaluate(env, S, episodes, policy, render, sleep, epsilon_greedy=None):
 
-#def evaluate(env, episodes, map_to_state, policy, render):
-def evaluate(env, episodes, policy, render, sleep):
+    state_distribution = np.zeros(shape=np.shape(S)[0]*[np.shape(S)[1]-1])
 
     rewards_per_episode = []
-    print("Evaluating...", end='')
+    print("Evaluating...")
     sys.stdout.flush()
 
     for e in range(episodes):
@@ -30,18 +30,23 @@ def evaluate(env, episodes, policy, render, sleep):
                 time.sleep(sleep)
 
             # discretize state
+            index = get_observation_index(env, S, state)
+            state_distribution[index[0]][index[1]] += 1
 
+            if epsilon_greedy is not None:
+                rand = np.random.rand()
+                if rand < epsilon_greedy:
+                    action = np.random.uniform(low=env.action_space.low, high=env.action_space.high)
+                else:
+                    action = np.array([policy[index[0], index[1]]])
+            else:
+                # Do step according to policy and get observation and reward
+                action = np.array([policy[index[0], index[1]]])
 
-
-            # Do step according to policy and get observation and reward
-            action = np.array([policy[index[0], index[1]]])
-
-            state, reward, done, info = disc_env.env.step(action)
+            next_state, reward, done, info = env.step(action)
+            state = np.copy(next_state)
 
             cumulative_reward.append(cumulative_reward[-1] + reward)
-
-            # Discretize observed state
-            index = disc_env.map_to_state(state)
 
             if done:
                 print("Episode {} finished after {} timesteps".format(e + 1, t + 1))
@@ -62,3 +67,5 @@ def evaluate(env, episodes, policy, render, sleep):
     plt.plot(rewards, label='Cumulative reward per timestep, averaged over {} episodes'.format(episodes))
     plt.legend()
     plt.show()
+
+    return state_distribution

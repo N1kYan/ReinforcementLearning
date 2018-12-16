@@ -5,64 +5,98 @@ import gym
 import quanser_robots
 from Regression import Regressor
 from Evaluation import *
-from DiscreteEnvironment import DiscreteEnvironment
 from Utils import *
+
+
+env = gym.make('Pendulum-v2')
+reg = Regressor()
+
 
 # TODO: comments...
 
-def __policy_evaluation(env, policy, theta, gamma):
-    value_function = np.zeros(env.state_space_size)
+def __policy_evaluation(S, A, P, R, PI, V, theta, gamma):
+    print("Policy Evaluation ... ")
     while True:
         delta = 0
-        for s in range(env.state_space_size):
-            expected_reward = 0
-            for a, prob_a in enumerate(policy[s]):
-                for prob_s, next_state, reward, _ in env.P[s][a]:
-                    expected_reward += prob_a * prob_s * (reward + gamma * value_function[next_state])
-            delta = max(delta, np.abs(expected_reward - value_function[s]))
-            value_function[s] = expected_reward
+        states = np.stack(np.meshgrid(range(len(S[0][:]) - 1), range(len(S[1][:]) - 1))).T.reshape(-1, 2)
+        for s0, s1 in states:
+            v = V[s0][s1]
+            a = PI[s0][s1]
+            # get index of action
+            a = get_action_index(env=env, action_s=A, a=np.array([a]))
+            expected_reward = sum(map(sum, (P[s0][s1][a][0][:][:] * (R[:][:] + gamma * V[:][:]))))
+            V[s0][s1] = expected_reward
+            delta = max(delta, np.abs(v-expected_reward))
+        print("Delta =", delta, end='')
         if delta < theta:
+            print(" ... done!")
             break
-    return np.array(value_function)
+        else:
+            print(" > Theta =", theta)
+    return V
 
 
-def __policy_improvement(env, value_function, policy, gamma):
-    for s in range(env.state_space_size):
-        Q_sa = np.zeros(env.action_space_size)
-        for a in range(env.action_space_size):
-            for prob_s, next_state, reward, _ in env.P[s][a]:
-                Q_sa[a] += prob_s * (reward + gamma * value_function[next_state])
-        best_action = np.argmax(Q_sa)
-        policy[s] = np.eye(env.action_space_size)[best_action]
-    return policy
+def __policy_improvement(S, A, P, R, PI, V, gamma):
+    print("Policy Improvement ... ",end='')
+    sys.stdout.flush()
+    states = np.stack(np.meshgrid(range(len(S[0][:])-1),range(len(S[1][:])-1))).T.reshape(-1, 2)
+    policy_stable = True
+    for s0, s1 in states:
+        b = PI[s0][s1]
+        Qsa = np.zeros(shape=np.shape(A)[0] * [np.shape(A)[1] - 1])
+        for a in range(len(A[0][:]) - 1):
+            Qsa[a] = sum(map(sum, (P[s0][s1][a][0][:][:] * (R[:][:] + gamma * V[:][:]))))
+        # Get action for argmax index
+        max_index = np.argmax(Qsa)
+        max_action = A[0][max_index]
+        PI[s0][s1] = max_action
+        if b != max_action:
+            policy_stable = False
+    if policy_stable:
+        print("policy stable!")
+    else:
+        print("policy NOT stable!")
+    return PI, policy_stable
 
 
-def policy_iteration(env, epochs, theta, gamma):
-    # Initialize random policy
-    policy = np.ones([env.state_space_size, env.action_space_size]) / env.action_space_size
-    for i in range(epochs):
-        value_function = __policy_evaluation(env, policy=policy, gamma=gamma, theta=theta)
-        old_policy = np.copy(policy)
-        new_policy = __policy_improvement(env, value_function, old_policy, gamma=gamma)
-        if np.all(policy == new_policy):
-            print ("policy stable.")
-            break
-        policy = np.copy(new_policy)
-    return value_function, policy
+def policy_iteration(S, A, P, R, theta, gamma):
 
+    print("Policy Iteration ... ")
 
-def main():
-    env = gym.make('Pendulum-v2')
-    reg = Regressor()
-    # Please use tuples for state and action space sizes
+    # Initialize value function and policy
+    V = np.zeros(shape=np.shape(S)[0] * [np.shape(S)[1] - 1])
+    PI = np.zeros(shape=np.shape(S)[0] * [np.shape(S)[1] - 1])
+
+    policy_stable = False
+    while not policy_stable:
+        V = __policy_evaluation(S, A, P, R, PI, V, theta, gamma)
+        PI, policy_stable = __policy_improvement(S, A, P, R, PI, V, gamma)
+
+    print("done!")
+
+    return V, PI
+
+def main(make_plots):
     #disc_env = DiscreteEnvironment(env=env, name='LowerBorder', state_space_size=(32+1, 16+1),
     #                              action_space_size=(16+1,))
-    disc_env = DiscreteEnvironment(env=env, name='EasyPendulum', state_space_size=(16+1, 16+1),
-                                   action_space_size=(16+1,))
-    #regressorState, regressorReward = reg.perform_regression(epochs=10000, env=env, save_flag=False)
-    value_function, policy = policy_iteration(env=disc_env, epochs=100, theta=1e-1, gamma=0.6)
-    evaluate(env=env, episodes=100, disc = disc_env, policy=policy, render=False)
-    visualize(policy=policy, value_function=value_function, state_space=disc_env.state_space)
+    # Start time
+    start = time.time()
+
+    S, A = build_discrete_space(env=env)
+    P, R = reg.sample(env=env, S=S, A=A, gaussian_sigmas=np.array([1, 1]), epochs=10000, save_flag=False)
+    print("P: ",np.shape(P))
+    # P, R = evaluate_discrete_space(S=S, A=A, gaussian_sigmas=np.array([1, 1]))
+    V, PI = policy_iteration(S=S, A=A, P=P, R=R, gamma=0.95, theta=1e-15)
+
+    # End time
+    end = time.time()
+    print("\nTime elapsed: {} seconds \n".format(np.round(end - start, decimals=2)))
+
+    state_distribution = evaluate(env=env, S=S, episodes=10, policy=PI, render=False, sleep=0, epsilon_greedy=0.0)
+
+    if make_plots:
+        visualize(value_function=V, policy=PI, R=R, state_distribution=state_distribution, state_space=S)
+
 
 if __name__ == "__main__":
-    main()
+    main(make_plots=True)

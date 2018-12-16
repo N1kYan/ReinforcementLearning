@@ -1,5 +1,6 @@
 from __future__ import print_function
 import sys
+import time
 import gym
 import quanser_robots
 import numpy as np
@@ -13,20 +14,6 @@ env = gym.make('Pendulum-v2')
 reg = Regressor()
 
 
-# Returns discrete index of x in space
-def get_index(space, x):
-    index = []
-    for dim in range(len(x)):
-        for ind in range(len(space[dim][:])-1):
-            if space[dim][ind] <= x[dim] < space[dim][ind+1]:
-                index.append(ind)
-                break
-            elif x[dim] == env.observation_space.high[dim]:
-                # TODO: check if correct !!
-                index.append(len(space[dim][:])-2)
-    return np.array(index)
-
-
 def value_iteration(S, A, P, R, gamma, theta):
 
     print("Value iteration... ")
@@ -34,13 +21,11 @@ def value_iteration(S, A, P, R, gamma, theta):
     # Initialize value function with bad values
     V = np.zeros(shape=np.shape(S)[0]*[np.shape(S)[1]-1])
     V.fill(-20)
-    goal = get_index(S, [0, 0])
+    goal = get_observation_index(env=env, observation_s=S, x=[0, 0])
     V[goal[0]][goal[1]] = 0
     # Fill policy with neutral action (mid of action space)
     PI = np.zeros(shape=np.shape(S)[0]*[np.shape(S)[1]-1])
     PI.fill(A[0][int(len(A[0][:])/2)])
-    print(A[0][int(len(A[0][:])/2)])
-
     t = 1
     states = np.stack(np.meshgrid(range(len(S[0][:])-1),range(len(S[1][:])-1))).T.reshape(-1, 2)
     while True:
@@ -48,11 +33,14 @@ def value_iteration(S, A, P, R, gamma, theta):
             v = V[s0][s1]
             Qsa = np.zeros(shape=np.shape(A)[0]*[np.shape(A)[1]-1])
             for a in range(len(A[0][:])-1):
+                """
                 next_state = reg.regressorState.predict(np.array([S[0][s0], S[1][s1], A[0][a]]).reshape(1, -1))[0]
-                ns = get_index(space=S, x=next_state)
+                ns = get_index(env=env, space=S, x=next_state)
                 ns0 = ns[0]
                 ns1 = ns[1]
                 Qsa[a] = P[s0][s1][a][ns0][ns1]*(R[ns0][ns1]+gamma*V[ns0][ns1])
+                """
+                Qsa[a] = sum(map(sum, (P[s0][s1][a][:][:] * (R[:][:] + gamma * V[:][:]))))
             max_Qsa = np.max(Qsa)
             V[s0][s1] = max_Qsa
             delta = np.abs(v-max_Qsa)
@@ -73,11 +61,14 @@ def value_iteration(S, A, P, R, gamma, theta):
     for s0, s1 in states:
         Qsa = np.zeros(shape=np.shape(A)[0] * [np.shape(A)[1]-1])
         for a in range(len(A[0][:])-1):
+            """
             next_state = reg.regressorState.predict(np.array([S[0][s0], S[1][s1], A[0][a]]).reshape(1, -1))[0]
-            ns = get_index(space=S, x=next_state)
+            ns = get_observation_index(env=env, observation_s=S, x=next_state)
             ns0 = ns[0]
             ns1 = ns[1]
             Qsa[a] = P[s0][s1][a][ns0][ns1] * (R[ns0][ns1] + gamma * V[ns0][ns1])
+            """
+            Qsa[a] = sum(map(sum, (P[s0][s1][a][:][:] * (R[:][:] + gamma * V[:][:]))))
         # Get action for argmax index
         max_index = np.argmax(Qsa)
         max_action = A[0][max_index]
@@ -117,7 +108,7 @@ def evaluate_discrete_space(S, A, gaussian_sigmas):
         # We use [0] because we only have one state
         next_state = reg.regressorState.predict(np.array([S[0][s0], S[1][s1], A[0][a]]).reshape(1, -1))[0]
         # Get discrete index of next state
-        ns = get_index(space=S, x=next_state)
+        ns = get_observation_index(env=env, observation_s=S, x=next_state)
         ns0 = ns[0]
         ns1 = ns[1]
 
@@ -143,112 +134,21 @@ def evaluate_discrete_space(S, A, gaussian_sigmas):
 
     return P, R
 
-
-def build_discrete_space():
-
-    """
-        Creates discrete observation and action space
-    :return:
-    """
-
-    state = env.reset()
-    observation_size = len(state)
-    observation_range = (env.observation_space.low, env.observation_space.high)
-    # TODO: Different bins for different dimensions
-    observation_bins = observation_size*[20]
-    S = []
-    for i in range(observation_size):
-        S.append(np.linspace(observation_range[0][i], observation_range[1][i], observation_bins[i]))
-    #print("Discrete Observation Space: ", S)
-
-    action = env.action_space.sample()
-    action_size = len(action)
-    action_range = (env.action_space.low, env.action_space.high)
-    action_bins = action_size*[10]
-    A = []
-    for i in range(action_size):
-        A.append(np.linspace(action_range[0][i], action_range[1][i], action_bins[i]))
-    #print("Discrete Action Space: ", A)
-
-    return S, A
-
-
-def evaluate(S, episodes, policy, render, sleep, epsilon_greedy=None):
-
-    state_distribution = np.zeros(shape=np.shape(S)[0]*[np.shape(S)[1]-1])
-
-    rewards_per_episode = []
-    print("Evaluating...")
-    sys.stdout.flush()
-
-    for e in range(episodes):
-
-        state = env.reset()
-
-        cumulative_reward = [0]
-
-        for t in range(200):
-            # Render environment
-            if render:
-                env.render()
-                time.sleep(sleep)
-
-            # discretize state
-            index = get_index(S, state)
-            state_distribution[index[0]][index[1]] += 1
-
-            if epsilon_greedy is not None:
-                rand = np.random.rand()
-                if rand < epsilon_greedy:
-                    action = np.random.uniform(low=env.action_space.low, high=env.action_space.high)
-                else:
-                    action = np.array([policy[index[0], index[1]]])
-            else:
-                # Do step according to policy and get observation and reward
-                action = np.array([policy[index[0], index[1]]])
-
-            next_state, reward, done, info = env.step(action)
-            state = np.copy(next_state)
-
-            cumulative_reward.append(cumulative_reward[-1] + reward)
-
-            if done:
-                print("Episode {} finished after {} timesteps".format(e + 1, t + 1))
-                break
-
-        rewards_per_episode.append(cumulative_reward)
-
-    print("...done")
-
-    # TODO: Look at calculation of mean cumulative rewards
-    # Average reward over episodes
-    rewards = np.average(rewards_per_episode, axis=0)
-
-    env.close()
-
-    # Plot rewards per timestep averaged over episodes
-    plt.figure()
-    plt.plot(rewards, label='Cumulative reward per timestep, averaged over {} episodes'.format(episodes))
-    plt.legend()
-    plt.show()
-
-    return state_distribution
-
-
 def main(make_plots):
 
-    reg.perform_regression(env=env, epochs=10000, save_flag=False)
-    S, A = build_discrete_space()
-    P, R = evaluate_discrete_space(S=S, A=A, gaussian_sigmas=np.array([1, 1]))
+    # Start time
+    start = time.time()
 
-    plt.figure()
-    plt.imshow(P[1][1][1][:][:])
-    plt.title("State transition probability for S:1|1 A:1")
-    plt.colorbar()
-    plt.grid()
+    S, A = build_discrete_space(env=env)
+    P, R = reg.sample(env=env, S=S, A=A, gaussian_sigmas=np.array([1, 1]), epochs=10000, save_flag=True)
+    #P, R = evaluate_discrete_space(S=S, A=A, gaussian_sigmas=np.array([1, 1]))
+    V, PI = value_iteration(S=S, A=A, P=P, R=R, gamma=0.75, theta=1e-15)
 
-    V, PI = value_iteration(S=S, A=A, P=P, R=R, gamma=0.95, theta=1e-5)
-    state_distribution = evaluate(S=S, episodes=10, policy=PI, render=False, sleep=0, epsilon_greedy=0.01)
+    # End time
+    end = time.time()
+    print("\nTime elapsed: {} seconds \n".format(np.round(end-start, decimals=2)))
+
+    state_distribution = evaluate(env=env, S=S, episodes=10, policy=PI, render=True, sleep=0, epsilon_greedy=0.0)
 
     if make_plots:
         visualize(value_function=V, policy=PI, R=R, state_distribution=state_distribution, state_space=S)
