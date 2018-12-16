@@ -12,8 +12,10 @@ class Regressor:
 
     def __init__(self):
         self.regressorReward = RandomForestRegressor(n_estimators=10, min_samples_split=2)
-        self.regressorState = RandomForestRegressor(n_estimators=20, min_samples_split=2)
+        self.regressorState = RandomForestRegressor(n_estimators=20, min_samples_split=2) # currently not used
+		# Transition probabilites
         self.P = None
+		# Reward function
         self.R = None
 
     # Performs regression from given state and performed action

@@ -56,7 +56,6 @@ def evaluate(env, S, episodes, policy, render, sleep, epsilon_greedy=None):
 
     print("...done")
 
-    # TODO: Look at calculation of mean cumulative rewards
     # Average reward over episodes
     rewards = np.average(rewards_per_episode, axis=0)
 

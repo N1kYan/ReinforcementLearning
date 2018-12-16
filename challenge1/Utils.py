@@ -50,7 +50,6 @@ def get_observation_index(env, observation_s, x):
                 index.append(ind)
                 break
             elif x[dim] == env.observation_space.high[dim]:
-                # TODO: check if correct !!
                 index.append(len(observation_s[dim][:]) - 2)
     return np.array(index)
 
@@ -62,7 +61,6 @@ def get_action_index(env, action_s, a):
                 index.append(ind)
                 break
             elif a[dim] == env.action_space.high[dim]:
-                # TODO: check if correct !!
                 index.append(len(action_s[dim][:]) - 2)
     return np.array(index)
 

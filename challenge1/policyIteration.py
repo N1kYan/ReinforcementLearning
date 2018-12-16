@@ -12,8 +12,6 @@ env = gym.make('Pendulum-v2')
 reg = Regressor()
 
 
-# TODO: comments...
-
 def __policy_evaluation(S, A, P, R, PI, V, theta, gamma):
     print("Policy Evaluation ... ")
     while True:
@@ -76,22 +74,23 @@ def policy_iteration(S, A, P, R, theta, gamma):
 
     return V, PI
 
-def main(make_plots):
-    #disc_env = DiscreteEnvironment(env=env, name='LowerBorder', state_space_size=(32+1, 16+1),
-    #                              action_space_size=(16+1,))
+def main(make_plots):                     action_space_size=(16+1,))
     # Start time
     start = time.time()
-
+	
+	# Build discrete spaces
     S, A = build_discrete_space(env=env)
-    P, R = reg.sample(env=env, S=S, A=A, gaussian_sigmas=np.array([1, 1]), epochs=10000, save_flag=False)
-    print("P: ",np.shape(P))
-    # P, R = evaluate_discrete_space(S=S, A=A, gaussian_sigmas=np.array([1, 1]))
+	# Sample and estimate reward and transition function
+	# Use save_flag=False to load a saved sample file
+    P, R = reg.sample(env=env, S=S, A=A, gaussian_sigmas=np.array([1, 1]), epochs=10000, save_flag=True)
+	# Do policy iteration
     V, PI = policy_iteration(S=S, A=A, P=P, R=R, gamma=0.95, theta=1e-15)
 
     # End time
     end = time.time()
     print("\nTime elapsed: {} seconds \n".format(np.round(end - start, decimals=2)))
 
+	# Evaluate policy from policy iteration
     state_distribution = evaluate(env=env, S=S, episodes=10, policy=PI, render=False, sleep=0, epsilon_greedy=0.0)
 
     if make_plots:

@@ -76,7 +76,7 @@ def value_iteration(S, A, P, R, gamma, theta):
     print("done")
     return V, PI
 
-
+"""
 def evaluate_discrete_space(S, A, gaussian_sigmas):
 
     P = np.zeros(shape=(np.shape(S)[0] * [np.shape(S)[1]-1] +
@@ -133,21 +133,27 @@ def evaluate_discrete_space(S, A, gaussian_sigmas):
     print("done\n")
 
     return P, R
+"""
 
 def main(make_plots):
 
     # Start time
     start = time.time()
 
+	# Define discrete spaces
     S, A = build_discrete_space(env=env)
+	# Sample
+	# Use save_flag=False to load from sample file
     P, R = reg.sample(env=env, S=S, A=A, gaussian_sigmas=np.array([1, 1]), epochs=10000, save_flag=True)
     #P, R = evaluate_discrete_space(S=S, A=A, gaussian_sigmas=np.array([1, 1]))
+	# Do value iteration
     V, PI = value_iteration(S=S, A=A, P=P, R=R, gamma=0.75, theta=1e-15)
 
     # End time
     end = time.time()
     print("\nTime elapsed: {} seconds \n".format(np.round(end-start, decimals=2)))
 
+	# Evaluate policy from value iteration
     state_distribution = evaluate(env=env, S=S, episodes=10, policy=PI, render=True, sleep=0, epsilon_greedy=0.0)
 
     if make_plots:
