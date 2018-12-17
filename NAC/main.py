@@ -3,8 +3,9 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 import keras.backend as K
-from quanser_robots import GentlyTerminating
-from quanser_robots.double_pendulum.examples import metronom
+import quanser_robots
+#from quanser_robots import GentlyTerminating
+#from quanser_robots.double_pendulum.examples import metronom
 
 from NaturalActorCritic import *
 from ActorCritc import *
@@ -32,17 +33,19 @@ def _critic_evaluation():
 def _actor_update():
     None
 
-def episodic_nac(env, sess, epochs, act, crit, alpha, gamma):
+
+def episodic_nac(env, sess, updates, epochs, act, crit, alpha, gamma):
     # Parameters of actor network
     # theta = act.trainable_weights
     # Gradient of actor network
     # grad = act.weight
 
-    for u in range(env.action_space.n):
+    for u in range(updates):
         for e in range(epochs):
             state = env.reset().reshape((1, 4))
             t = 0
             while True:
+                t += 1
                 #TODO: Sotfmax?
                 action = np.argmax(act.predict(state)[0])
                 next_state, reward, done, infos = env.step(action)
@@ -50,7 +53,8 @@ def episodic_nac(env, sess, epochs, act, crit, alpha, gamma):
                 if done:
                     print("Epoch {} done after {} timesteps".format(e, t))
                     break
-                t += 1
+
+
 
 def nac_with_lstd(env, sess, act, crit, epochs, phi, delta, alpha, beta, epsilon):
     # Draw initial state and reshape for network input
@@ -117,7 +121,7 @@ def main():
     # Get the actor and critic model of our algorithm
     actor, critic = initialize(env=env, sess=sess)
 
-    episodic_nac(env=env, sess=sess, epochs=100, act=actor, crit=critic, alpha=0.5, gamma=0.8)
+    episodic_nac(env=env, sess=sess, updates=1, epochs=100, act=actor, crit=critic, alpha=0.5, gamma=0.8)
 
     #nac_with_lstd(env=env, sess=sess, act=actor, crit=critic, epochs=1000, phi=...,
     #              delta=0.1, alpha=0.1, beta=0.1, epsilon=1e-2)
