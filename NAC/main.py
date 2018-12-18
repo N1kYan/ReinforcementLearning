@@ -92,9 +92,9 @@ def initialize(env, sess):
     :return: actor model, critic model
     """
     actor = ActorNetwork(env=env, sess=sess)
-    actor_model = actor.create_actor_model()[1]
+    _, actor_model = actor.create_actor_model()
     critic = CriticNetwork(env=env, sess=sess)
-    critic_model = critic.create_critic_model()[1]
+    _, _, critic_model = critic.create_critic_model()
     return actor_model, critic_model
 
 
@@ -113,8 +113,6 @@ def main():
     """
     # env = gym.make("DoublePendulum-v0')
     env = gym.make('CartPole-v0')
-
-    # Create tensorflow session and set Keras session
     sess = tf.Session()
     K.set_session(sess)
 
