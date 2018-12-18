@@ -4,6 +4,7 @@ import tensorflow as tf
 from tensorflow import keras
 import keras.backend as K
 import quanser_robots
+import sys
 #from quanser_robots import GentlyTerminating
 #from quanser_robots.double_pendulum.examples import metronom
 
@@ -11,48 +12,75 @@ from NaturalActorCritic import *
 from ActorCritc import *
 from Networks import *
 
+from collections import deque
 
-def evaluate(env, ctrl):
+
+# What is ctrl ???
+def evaluate(env, ctrl, episodes):
     obs = env.reset()
 
-    while True:
-        env.render()
-        if ctrl is None:
-            act = env.action_space.sample()
-        else:
-            act = np.array(ctrl(obs))
-        obs, rwd, done, info = env.step(act)
+    for e in range(episodes):
+        while True:
+            env.render()
+            if ctrl is None:
+                action = env.action_space.sample()
+            else:
+                action = np.array(ctrl(obs))
+            obs, rwd, done, info = env.step(action)
+
+            if done:
+                break
 
 
 # TODO
-def _critic_evaluation():
-    None
+def _critic_evaluation(memory):
+    for sample in memory:
+        cur_state, action, reward, new_state, done = sample
+        if not done:
+            target_action = self.target_actor_model.predict(new_state)
+            future_reward = self.target_critic_model.predict(
+                [new_state, target_action])[0][0]
+            reward += self.gamma * future_reward
+        self.critic_model.fit([cur_state, action], reward, verbose=0)
 
 
 # TODO
 def _actor_update():
-    None
+    pass
 
 
-def episodic_nac(env, sess, updates, epochs, act, crit, alpha, gamma):
+def episodic_nac(env, sess, updates, epochs, actor, critic, alpha, gamma):
     # Parameters of actor network
     # theta = act.trainable_weights
     # Gradient of actor network
     # grad = act.weight
 
     for u in range(updates):
+        memory = deque()
+
         for e in range(epochs):
-            state = env.reset().reshape((1, 4))
+            state = env.reset()
+            state = state.reshape((1, 4))
+
+
             t = 0
             while True:
                 t += 1
                 #TODO: Sotfmax?
-                action = np.argmax(act.predict(state)[0])
-                next_state, reward, done, infos = env.step(action)
+                action = np.argmax(actor.predict(state)[0])
+                next_state, reward, done, _ = env.step(action)
+
+                # Save all the states of the episode
+                memory.append([state, action, reward, next_state, done])
+
                 state = np.copy(next_state).reshape((1, 4))
+
                 if done:
                     print("Epoch {} done after {} timesteps".format(e, t))
                     break
+
+        _critic_evaluation()
+        _actor_update()
 
 
 
@@ -119,12 +147,12 @@ def main():
     # Get the actor and critic model of our algorithm
     actor, critic = initialize(env=env, sess=sess)
 
-    episodic_nac(env=env, sess=sess, updates=1, epochs=100, act=actor, crit=critic, alpha=0.5, gamma=0.8)
+    episodic_nac(env=env, sess=sess, updates=1, epochs=100, actor=actor, critic=critic, alpha=0.5, gamma=0.8)
 
     #nac_with_lstd(env=env, sess=sess, act=actor, crit=critic, epochs=1000, phi=...,
     #              delta=0.1, alpha=0.1, beta=0.1, epsilon=1e-2)
 
-    sess.close()
+    # sess.close()
 
 
 if __name__ == "__main__":
