@@ -6,9 +6,9 @@ import quanser_robots
 import random
 from collections import deque
 
-from DDPG.ActorNetwork import Actor
-from DDPG.CriticNetwork import Critic
-from DDPG.ReplayBuffer import ReplayBuffer
+from ActorNetwork import Actor
+from CriticNetwork import Critic
+from ReplayBuffer import ReplayBuffer
 from keras import backend as K
 
 
