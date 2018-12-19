@@ -36,12 +36,12 @@ def ddpg(env):
         state = env.reset()
 
         for step in range(step_size):
-            if random.random()>epsilon:
+            if random.random() > epsilon:
                 #exploitation = use knowledge
                 action = actor.nn.predict(state.reshape(1,state.shape[0]))
             else:
                 #exploration = use random sample of the action space
-                action = np.random.uniform(env.action_space.low, env.action_space.high, size=(1,action_space))
+                action = np.random.uniform(env.action_space.low, env.action_space.high, size=(1, action_space))
 
             #take the action and add it to the memory
             state_follows, reward, done, info = env.step(action)
@@ -52,6 +52,8 @@ def ddpg(env):
                 print("Replay buffer smaller than batch size")
                 continue
             states, actions, rewards, next_states, times = replay.random_batch(batch_size)
+
+            # TODO: Actor and critic updates
 
 if __name__ == "__main__":
     environment = gym.make('Qube-v0')

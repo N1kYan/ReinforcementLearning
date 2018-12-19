@@ -14,9 +14,9 @@ class ReplayBuffer(object):
 
     def random_batch(self, batch_size):
         element_number = len(self.ReplayBuffer)
-        if element_number > batch_size:
+        if element_number > batch_size:  # if batch_size > element_number?
             batch_size = element_number
-        expectations = random.sample(self.ReplayBuffer, k=element_number)
+        expectations = random.sample(self.ReplayBuffer, k=element_number)  # k=batch_size?
         states = list(zip(*expectations))[0]
         actions = list(zip(*expectations))[1]
         rewards = list(zip(*expectations))[2]

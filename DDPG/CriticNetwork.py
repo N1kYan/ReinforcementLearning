@@ -4,7 +4,6 @@ from keras.models import Model
 import tensorflow as tf
 
 
-
 class Critic(object):
     def __init__(self, state_size, action_size, learningrate, hidden_neurons, session):
         self.learning = learningrate
@@ -19,15 +18,13 @@ class Critic(object):
         self.critic_gradient = tf.gradients(self.nn.output, self.action_input)
         self.tensor_session.run(tf.initialize_all_variables())
 
-
-
     def create_network(self):
         state_input = Input(self.state_space)
         action_input = Input(self.action_space)
         s1 = Dense(self.hidden, activation='relu')(state_input)
         a1 = Dense(self.hidden, activation='relu')(action_input)
 
-        merge = Add()(state_input, action_input) #bring both inputs together could also work with merge()
+        merge = Add()(state_input, action_input)  # bring both inputs together could also work with merge()  # s1, a1?
         m1 = Dense(self.hidden, activation='relu')(merge)
 
         output = Dense(1, activation='relu')(m1)
@@ -41,5 +38,5 @@ class Critic(object):
         self.tensor_session.run(self.critic_gradient, feed_dict={self.state_input:state, self.action_input:action})
 
     def train_target(self):
-        #hard update: critic weights will be the target weights
+        # hard update: critic weights will be the target weights
         self.target_nn.set_weights(self.weights)
