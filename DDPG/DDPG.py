@@ -24,8 +24,8 @@ def ddpg(env):
     tensor = tf.Session()
     K.set_session(tensor)
 
-    actor = Actor(state_space, action_space, learning_rate, tensor)
-    critic = Critic(state_space, action_space, learning_rate, tensor)
+    actor = Actor(state_space, action_space, learning_rate, tensor, session=tensor)
+    critic = Critic(state_space, action_space, learning_rate, tensor, session=tensor)
     replay = ReplayBuffer(buffer_size)
 
     episodes = 200
@@ -38,14 +38,14 @@ def ddpg(env):
         for step in range(step_size):
             if random.random() > epsilon:
                 #exploitation = use knowledge
-                action = actor.nn.predict(state.reshape(1,state.shape[0]))
+                action = actor.nn.predict(state.reshape(1, state.shape[0]))
             else:
                 #exploration = use random sample of the action space
                 action = np.random.uniform(env.action_space.low, env.action_space.high, size=(1, action_space))
 
             #take the action and add it to the memory
             state_follows, reward, done, info = env.step(action)
-            replay.add_observation(state, action, reward, state_follows)
+            replay.add_observation(state, action, reward, state_follows)  # what is time?
 
             #batch update
             if replay.size < batch_size:
