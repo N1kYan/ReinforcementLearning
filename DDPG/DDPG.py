@@ -36,6 +36,7 @@ def ddpg(env):
         state = env.reset()
 
         for step in range(step_size):
+            loss = 0
             if random.random() > epsilon:
                 #exploitation = use knowledge
                 action = actor.nn.predict(state.reshape(1, state.shape[0]))
@@ -45,13 +46,18 @@ def ddpg(env):
 
             #take the action and add it to the memory
             state_follows, reward, done, info = env.step(action)
-            replay.add_observation(state, action, reward, state_follows)  # what is time?
+            replay.add_observation(state, action, reward, state_follows, done)  # what is time? -> changed to dones
 
             #batch update
-            if replay.size < batch_size:
+            '''if len(replay.ReplayBuffer) < batch_size:
                 print("Replay buffer smaller than batch size")
-                continue
-            states, actions, rewards, next_states, times = replay.random_batch(batch_size)
+                continue'''
+            states, actions, rewards, next_states, dones = replay.random_batch(batch_size)
+
+            state = state_follows
+
+            #q = r+gamma*next_q if not done else q = r
+            target_q = critic.nn.predict([next_states, actor.nn.predict(next_states)])
 
             # TODO: Actor and critic updates
 
