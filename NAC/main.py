@@ -15,8 +15,14 @@ from Networks import *
 from collections import deque
 
 
-# What is ctrl ???
 def evaluate(env, ctrl, episodes):
+    """
+
+    :param env:
+    :param ctrl: method that returns the action we use next
+    :param episodes:
+    :return:
+    """
     obs = env.reset()
 
     for e in range(episodes):

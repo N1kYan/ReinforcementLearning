@@ -9,14 +9,11 @@ from keras.optimizers import Adam
 from keras.activations import softmax
 
 """
-    This file stores all the network we use to create our NAC algorithm.
+    This file stores all the networks we use to create our NAC algorithm.
     Mainly this is the actor network and the critic network.
 """
 
 class ActorNetwork:
-    """
-
-    """
     def __init__(self, env, sess):
         """
         Initialize Actor Network
