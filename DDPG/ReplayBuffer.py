@@ -23,4 +23,5 @@ class ReplayBuffer(object):
         rewards = list(zip(*expectations))[2]
         next_states = list(zip(*expectations))[3]
         dones = list(zip(*expectations))[4]
+        #return states, actions, rewards, next_states, dones
         return np.array(states), np.array(actions), np.array(rewards), np.array(next_states), np.array(dones)

@@ -1,4 +1,4 @@
-from keras.layers import Dense, Input, Activation, Add, Multiply
+from keras.layers import Dense, Input, Activation, Add, Multiply, Lambda
 from keras.optimizers import Adam
 from keras.models import Model
 import tensorflow as tf
@@ -11,6 +11,7 @@ class Critic(object):
         self.action_space = action_size[0]
         self.hidden = hidden_neurons
         self.tensor_session = session
+
 
         self.state_input, self.action_input, self.nn, self.weights = self.create_network()
         self.target_state_input, self.target_action_input, self.target_nn, self.target_weights = self.create_network()
@@ -28,6 +29,7 @@ class Critic(object):
         m1 = Dense(self.hidden, activation='relu')(merge)
 
         output = Dense(1, activation='relu')(m1)
+        output = Lambda(lambda x: x*2)(output)
 
         nn = Model(input= [state_input, action_input], output=output)
         adam_optimizer = Adam(self.learning)

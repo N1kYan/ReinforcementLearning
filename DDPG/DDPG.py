@@ -15,23 +15,24 @@ from keras import backend as K
 def ddpg(env):
     action_space = env.action_space.shape
     state_space = env.observation_space.shape
+
     hidden_layer = 100
 
     buffer_size = 5000
-    batch_size = 32
-    learning_rate = 0.001
+    batch_size = 1000
+    learning_rate = 0.01
 
     tensor = tf.Session()
     K.set_session(tensor)
 
-    actor = Actor(state_space, action_space, learning_rate, hidden_layer, tensor)
+    actor = Actor(state_space, action_space, learning_rate, hidden_layer, tensor, env.action_space.high, env.action_space.low)
     critic = Critic(state_space, action_space, learning_rate, hidden_layer, tensor)
     replay = ReplayBuffer(buffer_size)
 
-    episodes = 100
+    episodes = 10
     gamma = 0.99
     step_size = 200
-    epsilon = 0.1
+    epsilon = 0.05
 
     for epi in range(episodes):
         state = env.reset()
@@ -59,6 +60,7 @@ def ddpg(env):
 
             # Take the action and add it to the replay buffer
             state_follows, reward, done, info = env.step(action)
+            state_follows = np.concatenate(state_follows)
             replay.add_observation(state, action, reward, state_follows, [done])  # what is time? -> changed to dones
 
             # Batch update
@@ -69,9 +71,9 @@ def ddpg(env):
 
             states, actions, rewards, next_states, dones = replay.random_batch(batch_size)
             actions = np.concatenate(actions)
-            # q = r+gamma*next_q if not done else q = r
+            #q = r+gamma*next_q if not done else q = r
 
-            target_q = critic.nn.predict([next_states, actor.nn.predict(next_states)])
+            target_q = critic.target_nn.predict([next_states, actor.nn_target.predict(next_states)])
             q = rewards[:]
 
             q[np.where(dones == False)] += (gamma * target_q[np.where(dones == False)])
@@ -93,5 +95,7 @@ def ddpg(env):
 
 
 if __name__ == "__main__":
-    environment = gym.make('Qube-v0')
+
+    environment = gym.make('Pendulum-v0')
+    #environment = gym.make('Qube-v0')
     ddpg(environment)
