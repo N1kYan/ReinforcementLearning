@@ -48,14 +48,14 @@ def ddpg(env):
 
             # Epsilon greedy policy for action selection
             if random.random() > epsilon:
-                # exploitation = use knowledge
-                # action = actor.nn.predict(state)
-                action = actor.nn.predict(state.reshape(1, state.shape[0])).reshape(-1)
+                #exploitation = use knowledge
+                #action = actor.nn.predict(state)
+                action = actor.nn.predict(state.reshape(1, state.shape[0]))
 
             else:
                 # exploration = use random sample of the action space
-                # action = np.random.uniform(env.action_space.low, env.action_space.high, size=(1, action_space[0]))
-                action = env.action_space.sample()
+                action = np.random.uniform(env.action_space.low, env.action_space.high, size=(1, action_space[0]))
+                #action = env.action_space.sample()
 
             # Take the action and add it to the replay buffer
             state_follows, reward, done, info = env.step(action)
@@ -74,8 +74,7 @@ def ddpg(env):
             target_q = critic.nn.predict([next_states, actor.nn.predict(next_states)])
             q = rewards[:]
 
-            q[np.where(dones is False)] += (gamma * target_q[np.where(dones is False)])
-
+            q[np.where(dones == False)] += (gamma * target_q[np.where(dones == False)])
             # TODO: Actor and critic updates
             loss += critic.nn.train_on_batch([states, actions], q)
             pred_action = actor.nn.predict(states)
