@@ -33,43 +33,49 @@ def ddpg(env):
     step_size = 200
     epsilon = 0.1
 
-    step = 0
-
     for epi in range(episodes):
         state = env.reset()
 
         total_reward = 0
 
         for step in range(step_size):
+
+            # Only render last episode to check learning
             if epi == episodes-1:
                 env.render()
+
             loss = 0
+
+            # Epsilon greedy policy for action selection
             if random.random() > epsilon:
-                #exploitation = use knowledge
-                #action = actor.nn.predict(state)
-                action = actor.nn.predict(state.reshape(1, state.shape[0]))
+                # exploitation = use knowledge
+                # action = actor.nn.predict(state)
+                action = actor.nn.predict(state.reshape(1, state.shape[0])).reshape(-1)
 
             else:
-                #exploration = use random sample of the action space
-                action = np.random.uniform(env.action_space.low, env.action_space.high, size=(1, action_space[0]))
+                # exploration = use random sample of the action space
+                # action = np.random.uniform(env.action_space.low, env.action_space.high, size=(1, action_space[0]))
+                action = env.action_space.sample()
 
-            #take the action and add it to the memory
+            # Take the action and add it to the replay buffer
             state_follows, reward, done, info = env.step(action)
             replay.add_observation(state, action, reward, state_follows, [done])  # what is time? -> changed to dones
 
-            #batch update
+            # Batch update
             if len(replay.ReplayBuffer) < 2:
                 print("Replay buffer smaller than batch size")
                 state = state_follows
                 continue
+
             states, actions, rewards, next_states, dones = replay.random_batch(batch_size)
             actions = np.concatenate(actions)
-            #q = r+gamma*next_q if not done else q = r
+            # q = r+gamma*next_q if not done else q = r
 
             target_q = critic.nn.predict([next_states, actor.nn.predict(next_states)])
             q = rewards[:]
 
-            q[np.where(dones==False)] += (gamma * target_q[np.where(dones==False)])
+            q[np.where(dones is False)] += (gamma * target_q[np.where(dones is False)])
+
             # TODO: Actor and critic updates
             loss += critic.nn.train_on_batch([states, actions], q)
             pred_action = actor.nn.predict(states)
@@ -81,7 +87,7 @@ def ddpg(env):
             state = state_follows
             total_reward += reward
 
-            step +=1
+            step += 1
             if done:
                 break
         print("Episode", epi, "Step", step, "Action", action, "Reward", total_reward, "Loss", loss, "Epsilon", epsilon)
