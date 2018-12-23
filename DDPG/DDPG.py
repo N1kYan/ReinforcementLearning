@@ -16,11 +16,11 @@ def ddpg(env):
     action_space = env.action_space.shape
     state_space = env.observation_space.shape
 
-    hidden_layer = 100
+    hidden_layer = 10
 
-    buffer_size = 5000
-    batch_size = 1000
-    learning_rate = 0.01
+    buffer_size = 1000
+    batch_size = 500
+    learning_rate = 0.001
 
     tensor = tf.Session()
     K.set_session(tensor)
@@ -29,15 +29,18 @@ def ddpg(env):
     critic = Critic(state_space, action_space, learning_rate, hidden_layer, tensor)
     replay = ReplayBuffer(buffer_size)
 
-    episodes = 10
-    gamma = 0.99
+    episodes = 50
+    gamma = 0.95
     step_size = 200
     epsilon = 0.05
+    epsilon_decay = 0.995
 
     for epi in range(episodes):
         state = env.reset()
 
         total_reward = 0
+
+        decaying_epsilon = 0.99
 
         for step in range(step_size):
 
@@ -48,11 +51,10 @@ def ddpg(env):
             loss = 0
 
             # Epsilon greedy policy for action selection
-            if random.random() > epsilon:
+            if random.random() > decaying_epsilon>epsilon:
                 # Exploitation = use knowledge
                 # action = actor.nn.predict(state)
                 action = actor.nn.predict(state.reshape(1, state.shape[0]))
-                print(action)
 
             else:
                 # Exploration = use random sample of the action space
@@ -90,8 +92,8 @@ def ddpg(env):
             actor.train(states, gradients)
 
             # Update target networks weights
-            actor.train_target(tau=0.5)
-            critic.train_target(tau=0.5)
+            actor.train_target(tau=0.25)
+            critic.train_target(tau=0.25)
 
             state = state_follows
             total_reward += reward
@@ -100,6 +102,7 @@ def ddpg(env):
             if done:
                 break
         print("Episode", epi, "Step", step, "Action", action, "Reward", total_reward, "Loss", loss, "Epsilon", epsilon)
+        decaying_epsilon *= epsilon_decay
 
 
 if __name__ == "__main__":
