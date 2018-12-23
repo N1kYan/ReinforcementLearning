@@ -73,17 +73,24 @@ def ddpg(env):
             actions = np.concatenate(actions)
             #q = r+gamma*next_q if not done else q = r
 
+            # Q-function target estimation from actor target network
             target_q = critic.target_nn.predict([next_states, actor.nn_target.predict(next_states)])
             q = rewards[:]
-
+            # yi = ri + gamma * Q-target
             q[np.where(dones == False)] += (gamma * target_q[np.where(dones == False)])
+
             # TODO: Actor and critic updates
+            # Update critic network weights
             loss += critic.nn.train_on_batch([states, actions], q)
+
+            # Update actor network weights
             pred_action = actor.nn.predict(states)
             gradients = critic.train(states, pred_action)
-            actor.train(states, gradients)
-            actor.train_target()
-            critic.train_target()
+            actor.train(states, gradients)  # What about the gradient ?
+
+            # Update target networks weights
+            actor.train_target(tau=0.5)
+            critic.train_target(tau=0.5)
 
             state = state_follows
             total_reward += reward

@@ -52,9 +52,10 @@ class Actor(object):
     def train(self, net_input, action_gradients):
         self.tensor_session.run(self.optimizing, feed_dict={self.input: net_input, self.merge_grad:action_gradients})
 
-    def train_target(self):
-        weights = self.nn.get_weights()
+    def train_target(self, tau):
+        # weights = self.nn.get_weights()
         # hard target update, all target weights are the current actor model weights
-        self.nn_target.set_weights(weights)
+        new_weights = tau * self.nn.get_weights() + (1 - tau) * self.target_nn.get_weights()
+        self.nn_target.set_weights(new_weights)
 
 
