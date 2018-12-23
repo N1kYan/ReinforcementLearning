@@ -49,14 +49,15 @@ def ddpg(env):
 
             # Epsilon greedy policy for action selection
             if random.random() > epsilon:
-                #exploitation = use knowledge
-                #action = actor.nn.predict(state)
+                # Exploitation = use knowledge
+                # action = actor.nn.predict(state)
                 action = actor.nn.predict(state.reshape(1, state.shape[0]))
+                print(action)
 
             else:
-                # exploration = use random sample of the action space
+                # Exploration = use random sample of the action space
                 action = np.random.uniform(env.action_space.low, env.action_space.high, size=(1, action_space[0]))
-                #action = env.action_space.sample()
+                # action = env.action_space.sample()
 
             # Take the action and add it to the replay buffer
             state_follows, reward, done, info = env.step(action)
@@ -64,7 +65,7 @@ def ddpg(env):
             replay.add_observation(state, action, reward, state_follows, [done])  # what is time? -> changed to dones
 
             # Batch update
-            if len(replay.ReplayBuffer) < 2:
+            if len(replay.ReplayBuffer) < 2:  # < batch_size?
                 print("Replay buffer smaller than batch size")
                 state = state_follows
                 continue
@@ -84,9 +85,9 @@ def ddpg(env):
             loss += critic.nn.train_on_batch([states, actions], q)
 
             # Update actor network weights
-            pred_action = actor.nn.predict(states)
-            gradients = critic.train(states, pred_action)
-            actor.train(states, gradients)  # What about the gradient ?
+            pred_actions = actor.nn.predict(states)  # We also need the actor gradient w.r.t. its parameters
+            gradients = critic.train(states, pred_actions)  # Does this give us the gradient w.r.t. the actions?
+            actor.train(states, gradients)
 
             # Update target networks weights
             actor.train_target(tau=0.5)

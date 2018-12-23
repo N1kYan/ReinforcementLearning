@@ -38,7 +38,7 @@ class Actor(object):
 
     def create_network(self):
         net_input = Input(shape=self.state_space)
-        h1 = Dense(self.hidden, activation='relu')(net_input)
+        h1 = Dense(units=self.hidden, activation='relu')(net_input)
         #output = Dense(units=self.action_space, activation=self.activateHighLow)(h1)
         output = Dense(units=self.action_space, activation='tanh')(h1)
         #change to variable output (not hard coded)
@@ -50,7 +50,7 @@ class Actor(object):
         return net_input, nn, nn.trainable_weights
 
     def train(self, net_input, action_gradients):
-        self.tensor_session.run(self.optimizing, feed_dict={self.input: net_input, self.merge_grad:action_gradients})
+        self.tensor_session.run(self.optimizing, feed_dict={self.input: net_input, self.merge_grad: action_gradients})
 
     def train_target(self, tau):
         # Hard target update, all target weights are the current actor model weights
