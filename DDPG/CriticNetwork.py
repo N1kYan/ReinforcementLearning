@@ -42,5 +42,7 @@ class Critic(object):
 
     def train_target(self, tau):
         # hard update: critic weights will be the target weights
-        new_weights = tau * self.nn.get_weights() + (1 - tau) * self.target_nn.get_weights()
+        new_weights = self.nn.get_weights()
+        # TODO: Weighted update
+        # new_weights = tau * self.nn.get_weights() + (1 - tau) * self.target_nn.get_weights()
         self.target_nn.set_weights(new_weights)
