@@ -18,8 +18,8 @@ def ddpg(env):
 
     hidden_layer = 100
 
-    buffer_size = 1000
-    batch_size = 500
+    buffer_size = 100
+    batch_size = 20
     learning_rate = 0.001
 
     tensor = tf.Session()
@@ -31,18 +31,18 @@ def ddpg(env):
 
     episodes = 50
     gamma = 0.95
-    step_size = 200
+    episode_steps = 200
     epsilon = 0.05
-    epsilon_decay = 0.9995
+    epsilon_decay = 0.9995  # Multiplicator for 'decaying_epsilon'
 
     for epi in range(episodes):
         state = env.reset()
 
         total_reward = 0
 
-        decaying_epsilon = 0.99
+        decaying_epsilon = 0.7
 
-        for step in range(step_size):
+        for step in range(episode_steps):
 
             # Only render last episode to check learning
             if epi == episodes-1:
@@ -64,7 +64,7 @@ def ddpg(env):
             # Take the action and add it to the replay buffer
             state_follows, reward, done, info = env.step(action)
             state_follows = np.concatenate(state_follows)
-            replay.add_observation(state, action, reward, state_follows, [done])  # what is time? -> changed to dones
+            replay.add_observation(state, action, reward, state_follows, [done])
 
             # Batch update
             if len(replay.ReplayBuffer) < 2:  # < batch_size?
