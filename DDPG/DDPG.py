@@ -16,7 +16,7 @@ def ddpg(env):
     action_space = env.action_space.shape
     state_space = env.observation_space.shape
 
-    hidden_layer = 10
+    hidden_layer = 100
 
     buffer_size = 1000
     batch_size = 500
@@ -33,7 +33,7 @@ def ddpg(env):
     gamma = 0.95
     step_size = 200
     epsilon = 0.05
-    epsilon_decay = 0.995
+    epsilon_decay = 0.9995
 
     for epi in range(episodes):
         state = env.reset()
@@ -51,7 +51,7 @@ def ddpg(env):
             loss = 0
 
             # Epsilon greedy policy for action selection
-            if random.random() > decaying_epsilon>epsilon:
+            if random.random() > decaying_epsilon:
                 # Exploitation = use knowledge
                 # action = actor.nn.predict(state)
                 action = actor.nn.predict(state.reshape(1, state.shape[0]))

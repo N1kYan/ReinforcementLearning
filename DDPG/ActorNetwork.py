@@ -40,9 +40,10 @@ class Actor(object):
         net_input = Input(shape=self.state_space)
         h1 = Dense(units=self.hidden, activation='relu')(net_input)
         #output = Dense(units=self.action_space, activation=self.activateHighLow)(h1)
-        output = Dense(units=self.action_space, activation='tanh')(h1)
+        h2 = Dense(units=self.hidden, activation='relu')(h1)
+        output = Dense(units=self.action_space, activation='tanh')(h2)
         #change to variable output (not hard coded)
-        output = Lambda(lambda x: x*2)(output)
+        output = Lambda(lambda x: x*2)(output)  # Why?
 
         nn = Model(input=net_input, output=output)
         adam_optimizer = Adam(self.learning)

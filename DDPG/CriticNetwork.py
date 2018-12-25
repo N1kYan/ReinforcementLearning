@@ -26,9 +26,10 @@ class Critic(object):
 
         merge = Add()([state_input, action_input])  # bring both inputs together could also work with merge()  # s1, a1?
         m1 = Dense(self.hidden, activation='relu')(merge)
+        h1 = Dense(self.hidden, activation='relu')(m1)
 
-        output = Dense(1, activation='relu')(m1)
-        output = Lambda(lambda x: x*2)(output)
+        output = Dense(1, activation='relu')(h1)
+        output = Lambda(lambda x: x*2)(output)  # Why?
 
         nn = Model(input=[state_input, action_input], output=output)
         adam_optimizer = Adam(self.learning)
