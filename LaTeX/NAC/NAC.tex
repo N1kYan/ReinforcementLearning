@@ -140,6 +140,15 @@ subject classification numbers as needed.
 \end{abstract}
 
 \section{Introduction}
+\begin{itemize}
+\item Steepest ascent direction of performance object with respect to any metric $M(\theta)$: $M(\theta)^{-1}\nabla_{\theta}J(\mu_{\theta})$
+\item The natural gradient ist the steepest ascent direction with respect to the Fisher information metric $M_{\pi}(\theta)=E_{s\sim\rho^{\pi},a\sim\pi_{\theta}}[\nabla_{\theta}log\pi_{\theta}(a|s)^{T}\nabla_{\theta}log\pi_{\theta}(a|s)]$
+\item For deterministic policies: $M_{\mu}(\theta)=E_{s\sim\rho^{\mu}}[\nabla_{\theta}\mu_{\theta}(s)\nabla_{\theta}\mu_{\theta}(s)^{T}w]$
+\begin{itemize}
+\item Limiting case of the Fisher information metric: policy variance reduced to zero
+\end{itemize}
+\item Combining DPG theorem with compatible function approximation gives $\nabla_{\theta}J(\mu_{\theta})=E_{s\sim\rho^{\mu}}[\nabla_{\theta}\mu_{\theta}(s)\nabla_{\theta}\mu_{\theta}(s)^{T}w]$ so steepest ascent direction reduces to $M_{\mu}(\theta)^{-1}\nabla_{\theta}J_{\beta}(\mu_{\theta})=w$
+\end{itemize}
 \label{intro}
 Your text comes here. Separate text sections with
 \section{Section title}
