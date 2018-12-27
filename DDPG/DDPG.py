@@ -74,6 +74,7 @@ def ddpg(env):
 
             states, actions, rewards, next_states, dones = replay.random_batch(batch_size)
             actions = np.concatenate(actions)
+
             #q = r+gamma*next_q if not done else q = r
 
             # Q-function target estimation from actor target network

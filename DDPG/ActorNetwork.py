@@ -43,7 +43,7 @@ class Actor(object):
         h2 = Dense(units=self.hidden, activation='relu')(h1)
         output = Dense(units=self.action_space, activation='tanh')(h2)
         #change to variable output (not hard coded)
-        output = Lambda(lambda x: x*2)(output)  # Why?
+        output = Lambda(lambda x: x*2)(output)  # Why? -> otherwise the output is between -1, 1 because of the tanh
 
         nn = Model(input=net_input, output=output)
         adam_optimizer = Adam(self.learning)
