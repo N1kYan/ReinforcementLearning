@@ -1,20 +1,23 @@
+from __future__ import print_function
+import sys
 import gym
 import quanser_robots
 import numpy as np
 import matplotlib.pyplot as plt
-
-env = gym.make("CartpoleStabShort-v0")
-
-
-# Basis function
-kleinvieh = [
-    lambda s, a: s*np.log(a),
-    lambda s, a: np.log(s)*a,
-]
+from scipy.optimize import minimize_scalar
 
 
 def pi(s, w):
-    return argmax a kleinvieh(s, a)*w
+    def policy_a(a):
+        su = 0
+        for (mist, w_dash) in zip(kleinvieh, w):
+            dash = mist(s, a) * w_dash
+            su += dash
+        return su
+    # return max((policy_a(a) for a in A))
+    return np.array([A[np.argmax([policy_a(a) for a in A])]])
+    # return np.array(max((policy_a(a) for a in A)))
+
 
 def lstdq(D, phi, gamma, w):
     k = len(phi)
@@ -25,7 +28,7 @@ def lstdq(D, phi, gamma, w):
         phis_dash = np.array([p(s_dash, pi(s_dash, w)) for p in phi])
         A_tilde += phis*(phis-gamma*phis_dash).T
         b_tilde += phis*r
-    return np.linalg.inv(A_tilde)*b_tilde
+    return np.matmul(np.linalg.inv(A_tilde), b_tilde)
 
 
 def lspi(D, phi, gamma, epsilon, w_0):
@@ -33,7 +36,9 @@ def lspi(D, phi, gamma, epsilon, w_0):
     while True:
         w = w_dash
         w_dash = lstdq(D, phi, gamma, w)
-        if np.linalg.norm(x=(w-w_dash), ord=2) < epsilon:
+        diff = np.linalg.norm(x=(w-w_dash), ord=2)
+        print("Diff:", diff)
+        if diff < epsilon:
             break
     return w
 
@@ -51,36 +56,69 @@ def sample(epochs):
     return D
 
 
-def evaluate(policy, episodes):
-    cumulative_rewards = []
+def evaluate(w_star, episodes):
+    plt.figure()
+    plt.title("Cumulative reward per episode")
     for e in range(episodes):
         state = env.reset()
-        cumulative_reward = []
+        rewards = []
+        cumulative_reward = [0]
         while True:
-            action = policy(state)
+            env.render()
+            action = pi(state, w_star)
+            # print(action)
             next_state, reward, done, info = env.step(action)
-            cumulative_reward.append(reward)
+            rewards.append(reward)
+            cumulative_reward.append(reward+cumulative_reward[-1])
             if done:
                 break
             state = np.copy(next_state)
-        cumulative_rewards.append(cumulative_reward)
+        plt.plot(cumulative_reward)
     # Average cumulative rewards over episodes
-    cumulative_rewards = np.average(cumulative_rewards, axis=1)
-    plt.figure()
-    plt.plot(cumulative_rewards, label='cumulative reward averaged over episodes')
-    plt.legend()
     plt.show()
 
 
 def main():
+    print("Sampling...", end='')
+    sys.stdout.flush()
     D = sample(epochs=10000)
-    w_0 = [1, 1]
-    gamma = 0.5
-    epsilon = 1e-2
+    print("done")
+    # w_0 = np.ones(shape=(len(kleinvieh), 1))
+    w_0 = np.zeros(shape=(len(kleinvieh), 1))
+    gamma = 0.95
+    epsilon = 1e-6
+    print("Learning...")
     w_star = lspi(D, kleinvieh, epsilon, gamma, w_0)
-    policy_star = w_star * kleinvieh
-    evaluate(policy_star, episodes=100)
+    print("...done")
+    print("Evaluating...", end='')
+    sys.stdout.flush()
+    evaluate(w_star, episodes=10)
+    print("done")
 
 
+# Define gym environment
+env = gym.make("CartpoleStabShort-v0")
+# Set discrete action space
+A = np.linspace(start=env.action_space.low, stop=env.action_space.high, num=25)  # 49
+print(env.action_space.sample())
+print("Discrete Action Space: ", A)
+# Define basis functions
+"""
+kleinvieh = [
+    lambda s, a: s[0] * a,
+    lambda s, a: s[1] * a,
+    lambda s, a: s[2] * a,
+    lambda s, a: s[3] * a,
+    lambda s, a: s[4] * a,
+]
+"""
+kleinvieh = [
+    lambda s, a: s[0]*s[1]*s[2]*s[3]*s[4]*a,
+    lambda s, a: s[0]*a**2,
+    lambda s, a: s[1]*a**2,
+    lambda s, a: s[2]*a**2,
+    lambda s, a: s[3]*a**2,
+    lambda s, a: s[4]*a**2,
+]
 if __name__ == '__main__':
     main()
