@@ -38,7 +38,7 @@ FloatTensor = torch.FloatTensor
 LongTensor = torch.LongTensor
 
 
-EPISODES = 200
+EPISODES = 100
 BATCH_SIZE = 64
 GAMMA = 0.9
 HIDDEN_LAYER_NEURONS = 100
@@ -108,9 +108,9 @@ for epi in range(EPISODES):
         if memory.size_mem() > BATCH_SIZE:
             states, actions, rewards, next_states = memory.random_batch(BATCH_SIZE)
 
-            states = torch.from_numpy(states).type(FloatTensor)
+            #states = torch.from_numpy(states).type(FloatTensor)
 
-            next_states = torch.from_numpy(next_states).type(FloatTensor)
+            #next_states = torch.from_numpy(next_states).type(FloatTensor)
 
             #find the index to the given action
             actions = env.action_space.contains(actions)
