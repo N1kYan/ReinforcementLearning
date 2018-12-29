@@ -63,14 +63,18 @@ def evaluate(w_star, episodes):
         state = env.reset()
         rewards = []
         cumulative_reward = [0]
+        time_step = 0
         while True:
+            time_step += 1
             env.render()
             action = pi(state, w_star)
-            # print(action)
+            #print(action)
             next_state, reward, done, info = env.step(action)
             rewards.append(reward)
             cumulative_reward.append(reward+cumulative_reward[-1])
             if done:
+                print("Episode {} terminated after {} timesteps with a total cumulative reward of {}".
+                      format(e, time_step, cumulative_reward[-1]))
                 break
             state = np.copy(next_state)
         plt.plot(cumulative_reward)
@@ -83,10 +87,11 @@ def main():
     sys.stdout.flush()
     D = sample(epochs=10000)
     print("done")
-    # w_0 = np.ones(shape=(len(kleinvieh), 1))
-    w_0 = np.zeros(shape=(len(kleinvieh), 1))
-    gamma = 0.95
-    epsilon = 1e-6
+    w_0 = np.ones(shape=(len(kleinvieh), 1))
+    # w_0.fill(10)
+    # w_0 = np.zeros(shape=(len(kleinvieh), 1))
+    gamma = 0.5
+    epsilon = 1e-10
     print("Learning...")
     w_star = lspi(D, kleinvieh, epsilon, gamma, w_0)
     print("...done")
@@ -99,26 +104,24 @@ def main():
 # Define gym environment
 env = gym.make("CartpoleStabShort-v0")
 # Set discrete action space
-A = np.linspace(start=env.action_space.low, stop=env.action_space.high, num=25)  # 49
-print(env.action_space.sample())
+A = np.linspace(start=env.action_space.low, stop=env.action_space.high, num=7)  # 13, 25, 49
 print("Discrete Action Space: ", A)
 # Define basis functions
-"""
+
 kleinvieh = [
-    lambda s, a: s[0] * a,
-    lambda s, a: s[1] * a,
-    lambda s, a: s[2] * a,
-    lambda s, a: s[3] * a,
-    lambda s, a: s[4] * a,
+    # lambda s, a: s[0]*s[1]*s[2]*s[3]*s[4]*a,
+    # lambda s, a: 1,
+    lambda s, a: np.sin(s[0]) * a,
+    lambda s, a: np.sin(s[1]) * a,
+    lambda s, a: np.sin(s[2]) * a,
+    lambda s, a: np.sin(s[3]) * a,
+    lambda s, a: np.sin(s[4]) * a,
+    lambda s, a: np.exp(s[0]) * a,
+    lambda s, a: np.exp(s[1]) * a,
+    lambda s, a: np.exp(s[2]) * a,
+    lambda s, a: np.exp(s[3]) * a,
+    lambda s, a: np.exp(s[4]) * a,
 ]
-"""
-kleinvieh = [
-    lambda s, a: s[0]*s[1]*s[2]*s[3]*s[4]*a,
-    lambda s, a: s[0]*a**2,
-    lambda s, a: s[1]*a**2,
-    lambda s, a: s[2]*a**2,
-    lambda s, a: s[3]*a**2,
-    lambda s, a: s[4]*a**2,
-]
+
 if __name__ == '__main__':
     main()
