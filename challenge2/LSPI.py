@@ -91,7 +91,7 @@ def evaluate(w_star, episodes, plot):
             env.render()
             action = pi(state, w_star)
             chosen_actions.append(action)
-            print(action)
+            # print(action)
             next_state, reward, done, info = env.step(action)
             rewards.append(reward)
             cumulative_reward.append(reward+cumulative_reward[-1])
@@ -123,9 +123,9 @@ def main():
        w_0[i] = np.random.rand()**3
     # w_0.fill(20)
     # w_0 = np.zeros(shape=(len(kleinvieh), 1))
-    gamma = 0.2
+    gamma = 0.95  # 0.2
     # epsilon = 1e-2
-    epsilon = 1
+    epsilon = 1  # should be reduced to perform better but results in super slow convergence
     print("Learning...")
     w_star = lspi(D=D, phi=kleinvieh, gamma=gamma, epsilon=epsilon, w_0=w_0)
     print("w*:", w_star)
@@ -151,13 +151,16 @@ kleinvieh = [
     lambda s, a: np.sin(s[0])**2 * a,
     lambda s, a: np.sin(s[1])**2 * a,
     lambda s, a: np.sin(s[2])**2 * a,
-    lambda s, a: np.sin(s[3])**2 * a,
-    lambda s, a: np.sin(s[4])**2 * a,
-    lambda s, a: np.exp(s[0]) * a,
-    lambda s, a: np.exp(s[1]) * a,
+    # lambda s, a: np.sin(s[3])**2 * a,
+    # lambda s, a: np.sin(s[4])**2 * a,
+    # lambda s, a: np.exp(s[0]) * a,
+    # lambda s, a: np.exp(s[1]) * a,
     lambda s, a: np.exp(s[2]) * a,
-    lambda s, a: np.exp(s[3]) * a,
-    lambda s, a: np.exp(s[4]) * a,
+    # lambda s, a: np.exp(s[3]) * a,
+    # lambda s, a: np.exp(s[4]) * a,
+
+
+    
     # lambda s, a: np.cos(s[0])**2 * a,
     # lambda s, a: np.cos(s[1])**2 * a,
     # lambda s, a: np.cos(s[2])**2 * a,
