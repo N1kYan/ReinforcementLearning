@@ -160,7 +160,7 @@ kleinvieh = [
     # lambda s, a: np.exp(s[4]) * a,
 
 
-    
+
     # lambda s, a: np.cos(s[0])**2 * a,
     # lambda s, a: np.cos(s[1])**2 * a,
     # lambda s, a: np.cos(s[2])**2 * a,
