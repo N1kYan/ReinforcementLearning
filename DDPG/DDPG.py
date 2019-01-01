@@ -16,11 +16,11 @@ def ddpg(env):
     action_space = env.action_space.shape
     state_space = env.observation_space.shape
 
-    hidden_layer = 100
+    hidden_layer = 50
 
-    buffer_size = 100
-    batch_size = 20
-    learning_rate = 0.001
+    buffer_size = 50000
+    batch_size = 1000
+    learning_rate = 0.1
 
     tensor = tf.Session()
     K.set_session(tensor)
@@ -29,18 +29,18 @@ def ddpg(env):
     critic = Critic(state_space, action_space, learning_rate, hidden_layer, tensor)
     replay = ReplayBuffer(buffer_size)
 
-    episodes = 50
-    gamma = 0.95
+    episodes = 100
+    gamma = 0.1
     episode_steps = 200
     epsilon = 0.05
-    epsilon_decay = 0.9995  # Multiplicator for 'decaying_epsilon'
+    epsilon_decay = 0.995  # Multiplicator for 'decaying_epsilon'
 
     for epi in range(episodes):
         state = env.reset()
 
         total_reward = 0
 
-        decaying_epsilon = 0.7
+        decaying_epsilon = 0.2
 
         for step in range(episode_steps):
 

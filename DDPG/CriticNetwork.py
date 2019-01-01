@@ -21,15 +21,15 @@ class Critic(object):
     def create_network(self):
         state_input = Input(shape=(self.state_space,))
         action_input = Input(shape=(self.action_space,))
-        s1 = Dense(self.hidden, activation='relu')(state_input)
-        a1 = Dense(self.hidden, activation='relu')(action_input)
+        s1 = Dense(self.hidden, activation='elu')(state_input)
+        a1 = Dense(self.hidden, activation='elu')(action_input)
 
         merge = Add()([state_input, action_input])  # bring both inputs together could also work with merge()  # s1, a1?
-        m1 = Dense(self.hidden, activation='relu')(merge)
-        h1 = Dense(self.hidden, activation='relu')(m1)
+        m1 = Dense(self.hidden, activation='elu')(merge)
+        # h1 = Dense(self.hidden, activation='relu')(m1)
 
-        output = Dense(1, activation='relu')(h1)
-        output = Lambda(lambda x: x*2)(output)  # Why?
+        output = Dense(1, activation='elu')(m1)
+        # output = Lambda(lambda x: x*2)(output)  # Why?
 
         nn = Model(input=[state_input, action_input], output=output)
         adam_optimizer = Adam(self.learning)

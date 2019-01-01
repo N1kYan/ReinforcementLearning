@@ -38,10 +38,10 @@ class Actor(object):
 
     def create_network(self):
         net_input = Input(shape=self.state_space)
-        h1 = Dense(units=self.hidden, activation='relu')(net_input)
+        h1 = Dense(units=self.hidden, activation='elu')(net_input)
         #output = Dense(units=self.action_space, activation=self.activateHighLow)(h1)
-        h2 = Dense(units=self.hidden, activation='relu')(h1)
-        output = Dense(units=self.action_space, activation='tanh')(h2)
+        # h2 = Dense(units=self.hidden, activation='relu')(h1)
+        output = Dense(units=self.action_space, activation='tanh')(h1)
         #change to variable output (not hard coded)
         output = Lambda(lambda x: x*2)(output)  # Why? -> otherwise the output is between -1, 1 because of the tanh
 

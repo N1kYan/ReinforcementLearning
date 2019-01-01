@@ -20,11 +20,11 @@ action_size = len(env.action_space.sample())
 lr = 0.01
 policy_gradient_lr = 0.01
 hidden_neurons = state_size*10
-replay_buffer_size = 200
-N = 50  # Batch size
+replay_buffer_size = 5000
+N = 1000  # Batch size
 episodes = 10
 gamma = 0.85
-tau = 0.5
+tau = 0.01
 
 print("\nEnvironment {}".format(env.spec))
 print("{} dimensional observation space".format(state_size))
