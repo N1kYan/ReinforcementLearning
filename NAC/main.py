@@ -8,128 +8,69 @@ import sys
 #from quanser_robots import GentlyTerminating
 #from quanser_robots.double_pendulum.examples import metronom
 
-from NaturalActorCritic import *
-from ActorCritc import *
-from Networks import *
-
-from collections import deque
-
-
-def evaluate(env, ctrl, episodes):
-    """
-
-    :param env:
-    :param ctrl: method that returns the action we use next
-    :param episodes:
-    :return:
-    """
-    obs = env.reset()
-
-    for e in range(episodes):
-        while True:
-            env.render()
-            if ctrl is None:
-                action = env.action_space.sample()
-            else:
-                action = np.array(ctrl(obs))
-            obs, rwd, done, info = env.step(action)
-
-            if done:
-                break
-
 
 # TODO
-def _critic_evaluation(memory):
-    for sample in memory:
-        cur_state, action, reward, new_state, done = sample
-        if not done:
-            target_action = self.target_actor_model.predict(new_state)
-            future_reward = self.target_critic_model.predict(
-                [new_state, target_action])[0][0]
-            reward += self.gamma * future_reward
-        self.critic_model.fit([cur_state, action], reward, verbose=0)
-
-
-# TODO
-def _actor_update():
+def pi(state, theta):
     pass
 
 
-def episodic_nac(env, sess, updates, epochs, actor, critic, alpha, gamma):
-    # Parameters of actor network
-    # theta = act.trainable_weights
-    # Gradient of actor network
-    # grad = act.weight
-
-    for u in range(updates):
-        memory = deque()
-
-        for e in range(epochs):
-            state = env.reset()
-            state = state.reshape((1, 4))
+# TODO
+def pi_gradient(state, theta):
+    pass
 
 
-            t = 0
-            while True:
-                t += 1
-                #TODO: Sotfmax?
-                action = np.argmax(actor.predict(state)[0])
-                next_state, reward, done, _ = env.step(action)
-
-                # Save all the states of the episode
-                memory.append([state, action, reward, next_state, done])
-
-                state = np.copy(next_state).reshape((1, 4))
-
-                if done:
-                    print("Epoch {} done after {} timesteps".format(e, t))
-                    break
-
-        _critic_evaluation()
-        _actor_update()
-
-
-
-def nac_with_lstd(env, sess, act, crit, epochs, phi, delta, alpha, beta, epsilon):
-    # Draw initial state and reshape for network input
-    # state = draw_inital_state()
+def nac_with_lstd(env, epochs, phis, theta_initial, w_initial, alpha, beta, gamma, delta, epsilon):
+    # Draw initial state
     state = env.reset()
-    state = np.asarray(state).reshape((1, 4))
+
     # Initialize parameters
-    A = 0
-    b = 0
-    z = 0
+    A = np.zeros(shape=(0, 0))
+    b = np.zeros(shape=(0, 0))
+    z = np.zeros(shape=(0, 0))
+    w = np.copy(w_initial)
+    theta = np.copy(theta_initial)
 
     for t in range(epochs):
         env.render()
-        # Draw action from actor network
-        print("Current state: {} Shape: {}".format(state, np.shape(state)))
-        # Predict gives LIST of output VECTOR so we have to take [0][0] from it
-        action = np.argmax(act.predict(state)[0])
-        # TODO: actor network only outputting discrete values? Or values suiting the env.action_space
-        print("Chosen action: ", action)
-        print()
-        # Perform action and observe next state and reward
-        next_state, reward, done, info = env.step(int(action))
-        state = np.copy(next_state).reshape((1, 4))
+        # Draw action from parameterized policy
+        action = pi(state, theta)
+        next_state, reward, done, info = env.step(action)
+        """
+            Critic evaluation
+            
+        """
+        e = 0
+        while True:
+            e += 1
+            # Update basis functions
+            phis_tilde = np.array([phis(next_state, w).T, np.zeros(shape=np.shape(phis(next_state, w))).T]).T
+            phis_hat = np.array([phis(state, w).T, pi_gradient(state, theta).T]).T
+            # Update statistics
+            z = delta * z + phis_hat
+            A = A + np.matmul(z, (phis - gamma * phis_tilde).T)
+            b = b + z * reward
+            # Observe critic parameters
+            critic_params = np.matmul(np.linalg.inv(A), b)
+            v = critic_params.T[0].T
+            w_new = critic_params.T[1].T
+            # Check for convergence
+            if np.linalg.norm((w_new - w)) < epsilon:
+                print("LSTD-Q finished after {} timesteps".format(e))
+                break
+        """
+            Actor update
+            
+        """
+        # Update policy parameters
+        theta = theta + alpha * w_new
+        # Forget sufficient statistics
+        z = beta * z
+        A = beta * A
+        b = beta * b
 
         if done:
-            print("Epoch finished after {} timesteps".format(t))
+            print("Epoch finished after {} timesteps\n".format(t))
             break
-
-
-def initialize(env, sess):
-    """
-    Return the actor and the critic model of our NAC algorithm.
-    :param env: the environment (e.g. DoublePendulum, CartPole, etc.)
-    :param sess: the current tensorflow session
-    :return: actor model, critic model
-    """
-    actor = ActorNetwork(env=env, sess=sess)
-    _, actor_model = actor.create_actor_model()
-    critic = CriticNetwork(env=env, sess=sess)
-    _, _, critic_model = critic.create_critic_model()
-    return actor_model, critic_model
 
 
 def main():
@@ -146,17 +87,22 @@ def main():
 
     """
     # env = gym.make("DoublePendulum-v0')
+
+    """
+        The CartPole-v0 environment:
+    """
     env = gym.make('CartPole-v0')
-    sess = tf.Session()
-    K.set_session(sess)
 
-    # Get the actor and critic model of our algorithm
-    actor, critic = initialize(env=env, sess=sess)
+    # episodic_nac(env=env, sess=sess, updates=1, epochs=100, actor=actor, critic=critic, alpha=0.5, gamma=0.8)
 
-    episodic_nac(env=env, sess=sess, updates=1, epochs=100, actor=actor, critic=critic, alpha=0.5, gamma=0.8)
+    phis = ...
 
-    #nac_with_lstd(env=env, sess=sess, act=actor, crit=critic, epochs=1000, phi=...,
-    #              delta=0.1, alpha=0.1, beta=0.1, epsilon=1e-2)
+    w_initial = np.ones(shape=(len(phis), 1))
+
+    theta_initial = ...
+
+    nac_with_lstd(env=env, epochs=1000, phis=phis, theta_initial=..., w_initial=w_initial,
+                  alpha=0.1, beta=0.0, gamma=0.5, delta=1.0, epsilon=1e-2)
 
     # sess.close()
 
