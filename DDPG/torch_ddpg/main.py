@@ -4,7 +4,7 @@ import numpy as np
 from collections import deque
 import matplotlib.pyplot as plt
 
-from ddpg_agent import Agent
+from torch_ddpg.ddpg_agent import Agent
 
 env = gym.make('Pendulum-v0')
 env_observation_size = len(env.reset())
@@ -39,10 +39,10 @@ def training(epochs=1000, max_steps=300, epoch_checkpoint=100):
         env.close()
         scores_deque.append(cumulative_reward)
         e_cumulative_rewards.append(cumulative_reward)
-        print('\rEpisode {}\tAverage Score:{:.2f}'.
+        print('\rEpisode {}\tAverage Reward:{:.2f}'.
               format(e, np.mean(scores_deque)), end="")
         if e % epoch_checkpoint == 0:
-            print('\rEpisode {}\tAverage Score: {:.2f}'.format(e, np.mean(scores_deque)))
+            print('\rEpisode {}\tAverage Reward: {:.2f}'.format(e, np.mean(scores_deque)))
 
     return e_cumulative_rewards
 

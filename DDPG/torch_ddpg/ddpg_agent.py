@@ -4,9 +4,9 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
-from neural_networks import Actor, Critic
-from ActionNoise import OUNoise
-from ReplayBuffer import ReplayBuffer
+from torch_ddpg.neural_networks import Actor, Critic
+from torch_ddpg.ActionNoise import OUNoise
+from torch_ddpg.ReplayBuffer import ReplayBuffer
 
 
 BUFFER_SIZE = int(1e5)  # replay buffer size
