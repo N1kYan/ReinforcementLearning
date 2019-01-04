@@ -21,28 +21,25 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 class Agent:
-    """Interacts with and learns from the environment."""
-    
     def __init__(self, state_size, action_size, action_bounds, random_seed):
-        """Initialize an Agent object.
-        
-        Params
-        ======
-            state_size (int): dimension of each state
-            action_size (int): dimension of each action
-            random_seed (int): random seed
+        """
+        Initializes an DDPG Agent object.
+        :param state_size: amount of dimensions of the environment's states
+        :param action_size: amount of dimensions of the environment's actions
+        :param action_bounds: Tuple(s) of bounds (low, high) for the action space
+        :param random_seed: random seed for repeatability
         """
         self.state_size = state_size
         self.action_size = action_size
         self.action_bounds = action_bounds
         self.seed = random.seed(random_seed)
 
-        # Actor Network (w/ Target Network)
+        # Actor Network and Actor Target Network
         self.actor_local = Actor(state_size, action_size, random_seed).to(device)
         self.actor_target = Actor(state_size, action_size, random_seed).to(device)
         self.actor_optimizer = optim.Adam(self.actor_local.parameters(), lr=LR_ACTOR)
 
-        # Critic Network (w/ Target Network)
+        # Critic Network and Critic Target Network
         self.critic_local = Critic(state_size, action_size, random_seed).to(device)
         self.critic_target = Critic(state_size, action_size, random_seed).to(device)
         self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr=LR_CRITIC, weight_decay=WEIGHT_DECAY)
@@ -54,8 +51,18 @@ class Agent:
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, random_seed)
     
     def step(self, state, action, reward, next_state, done):
-        """Save experience in replay memory, and use random sample from buffer to learn."""
-        # Save experience / reward
+        """
+        Saves one step of experience (s, a, r, s', done) in the replay buffer.
+        Then samples a random mini-batch from the replay buffer and learns from that sample.
+        Only samples from the replay buffer, if it's size is bigger than the mini-batch size.
+        :param state: current state of observation
+        :param action: current action, chosen by the actor network
+        :param reward: observed reward after performing action
+        :param next_state: observed next state after performing action
+        :param done: observed 'done' flag, inducing finished episodes
+        :return: None
+        """
+        # Add experience to replay buffer
         self.memory.add(state, action, reward, next_state, done)
 
         # Learn, if enough samples are available in memory
@@ -69,7 +76,7 @@ class Agent:
         self.actor_local.eval()
         with torch.no_grad():
             # action = self.actor_local(state).cpu().data.numpy()
-            action = self.actor_local(state).cpu().data.numpy()*2
+            action = self.actor_local(state).cpu().data.numpy()*2  # TODO: Make this modular for all envs; *2 works for pendulum
         self.actor_local.train()
         if add_noise:
             action += self.noise.sample()
@@ -77,8 +84,13 @@ class Agent:
         return np.clip(action, self.action_bounds[0], self.action_bounds[1])
 
     def reset(self):
+        """
+        Resets the noise generator for the action exploration.
+        :return: None
+        """
         self.noise.reset()
 
+    # TODO: understand how gradients are calculated and used
     def learn(self, experiences, gamma):
         """Update policy and value parameters using given batch of experience tuples.
         Q_targets = r + γ * critic_target(next_state, actor_target(next_state))
@@ -121,14 +133,13 @@ class Agent:
         self.soft_update(self.actor_local, self.actor_target, TAU)                     
 
     def soft_update(self, local_model, target_model, tau):
-        """Soft update model parameters.
+        """
+        Updates the target networks parameters, according to:
         θ_target = τ*θ_local + (1 - τ)*θ_target
-
-        Params
-        ======
-            local_model: PyTorch model (weights will be copied from)
-            target_model: PyTorch model (weights will be copied to)
-            tau (float): interpolation parameter 
+        :param local_model: PyTorch model for actor/critic network
+        :param target_model: PyTorch model for actor/critic target network
+        :param tau: interpolation parameter
+        :return: None
         """
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)

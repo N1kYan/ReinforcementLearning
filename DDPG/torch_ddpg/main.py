@@ -6,7 +6,14 @@ import matplotlib.pyplot as plt
 
 from torch_ddpg.ddpg_agent import Agent
 
-env = gym.make('Pendulum-v0')
+env = gym.make('Qube-v0')
+print(env.spec)
+print("State Space Shape: {}\nLow: {}\nHigh: {}".format(np.shape(env.reset()),
+                                                        env.observation_space.low,
+                                                        env.observation_space.high))
+print("Action Space Shape: {}\nLow: {}\nHigh: {}".format(np.shape(env.action_space.sample()),
+                                                         env.action_space.low,
+                                                         env.action_space.high))
 env_observation_size = len(env.reset())
 env_action_size = len(env.action_space.sample())
 env_action_low = env.action_space.low

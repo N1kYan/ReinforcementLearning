@@ -7,14 +7,15 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")  # TODO:
 
 
 class ReplayBuffer:
-    """Fixed-size buffer to store experience tuples."""
+    """Fixed-size buffer to store experience tuples and sample random mini-batches from it."""
 
     def __init__(self, action_size, buffer_size, batch_size, seed):
-        """Initialize a ReplayBuffer object.
-        Params
-        ======
-            buffer_size (int): maximum size of buffer
-            batch_size (int): size of each training batch
+        """
+        Initializes ReplayBuffer object.
+        :param action_size: TODO
+        :param buffer_size: Size of the replay buffer; Maximal amount of stored samples
+        :param batch_size: Size of the sampled mini-batches
+        :param seed:
         """
         self.action_size = action_size
         self.memory = deque(maxlen=buffer_size)  # internal memory (deque)  # TODO: Does it pop older samples?
@@ -23,12 +24,23 @@ class ReplayBuffer:
         self.seed = random.seed(seed)
 
     def add(self, state, action, reward, next_state, done):
-        """Add a new experience to memory."""
+        """
+        Adds experience (s, a, r, s', done) to replay buffer.
+        :param state: current state of observation
+        :param action: current action, chosen by the actor network
+        :param reward: observed reward after performing action
+        :param next_state: observed next state after performing action
+        :param done: observed 'done' flag, inducing finished episodes
+        :return: None
+        """
         e = self.experience(state, action, reward, next_state, done)
         self.memory.append(e)
 
     def sample(self):
-        """Randomly sample a batch of experiences from memory."""
+        """
+        Samples random mini-batch of size 'batch_size' from the replay buffer.
+        :return: Mini-batch of randomly sampled experiences
+        """
         experiences = random.sample(self.memory, k=self.batch_size)
 
         states = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None])).float().to(device)
@@ -42,5 +54,8 @@ class ReplayBuffer:
         return (states, actions, rewards, next_states, dones)
 
     def __len__(self):
-        """Return the current size of internal memory."""
+        """
+        Returns the current size of the replay buffer.
+        :return: The amound of stored experiences in the replay buffer.
+        """
         return len(self.memory)
