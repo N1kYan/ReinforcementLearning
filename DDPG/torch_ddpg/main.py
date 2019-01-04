@@ -20,35 +20,33 @@ agent = Agent(state_size=env_observation_size, action_size=env_action_size,
               action_bounds=(env_action_low, env_action_high), random_seed=random_seed)
 
 
-def training(n_episodes=1000, max_t=300, print_every=100):
-    scores_deque = deque(maxlen=print_every)
-    scores = []
-    for e in range(1, n_episodes+1):
+def training(epochs=1000, max_steps=300, epoch_checkpoint=100):
+    scores_deque = deque(maxlen=epoch_checkpoint)
+    e_cumulative_rewards = []
+    for e in range(1, epochs + 1):
         state = env.reset()
         agent.reset()
-        score = 0
-        for t in range(max_t):
-            if e % print_every == 0:
+        cumulative_reward = 0
+        for t in range(max_steps):
+            if e % epoch_checkpoint == 0:
                 env.render()
             action = agent.act(state)
             # print(action)
             next_state, reward, done, _ = env.step(action)
             agent.step(state, action, reward, next_state, done)
             state = next_state
-            score += reward
+            cumulative_reward += reward
             if done:
                 break
         env.close()
-        scores_deque.append(score)
-        scores.append(score)
+        scores_deque.append(cumulative_reward)
+        e_cumulative_rewards.append(cumulative_reward)
         print('\rEpisode {}\tAverage Score:{:.2f}'.
               format(e, np.mean(scores_deque)), end="")
-        torch.save(agent.actor_local.state_dict(), 'checkpoint_actor.pth')
-        torch.save(agent.critic_local.state_dict(), 'checkpoint_critic.pth')
-        if e % print_every == 0:
+        if e % epoch_checkpoint == 0:
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(e, np.mean(scores_deque)))
 
-    return scores
+    return e_cumulative_rewards
 
 
 scores = training()
