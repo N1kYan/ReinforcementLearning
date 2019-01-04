@@ -4,9 +4,9 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
-from .neural_networks import Actor, Critic  # TODO: Why . ??
-from .ActionNoise import OUNoise
-from .ReplayBuffer import ReplayBuffer
+from neural_networks import Actor, Critic
+from ActionNoise import OUNoise
+from ReplayBuffer import ReplayBuffer
 
 
 BUFFER_SIZE = int(1e5)  # replay buffer size
