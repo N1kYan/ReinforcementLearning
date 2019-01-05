@@ -8,7 +8,7 @@ class OUNoise:
         Ornstein Uhlenbeck noise for action exploration.
 
     """
-    def __init__(self, size, seed, mu=0., theta=0.15, sigma=0.2):
+    def __init__(self, size, seed, mu=0., theta=0.15, sigma=1.2):
         """
         Initializes the parameters and the noise process.
         :param size: TODO

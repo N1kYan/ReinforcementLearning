@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from torch_ddpg.ddpg_agent import Agent
 
 env = gym.make('Qube-v0')
+# env = gym.make('Pendulum-v0')
 print(env.spec)
 print("State Space Shape: {}\nLow: {}\nHigh: {}".format(np.shape(env.reset()),
                                                         env.observation_space.low,
@@ -18,14 +19,22 @@ env_observation_size = len(env.reset())
 env_action_size = len(env.action_space.sample())
 env_action_low = env.action_space.low
 env_action_high = env.action_space.high
-random_seed = 123
+random_seed = 3
 env.seed(random_seed)
 
 agent = Agent(state_size=env_observation_size, action_size=env_action_size,
               action_bounds=(env_action_low, env_action_high), random_seed=random_seed)
 
 
-def training(epochs=1000, max_steps=1000, epoch_checkpoint=100):
+def training(epochs=10000, max_steps=1000, epoch_checkpoint=500):
+    """
+    Runs the training process on the gym environment.
+    :param epochs: Number of epochs for training
+    :param max_steps: Maximum time-steps for each training epoch;
+     Does end epochs for environments, which epochs are not time limited
+    :param epoch_checkpoint: Checkpoint for printing the learning progress and rendering the environment
+    :return: List of cumulative rewards for the episodes
+    """
     scores_deque = deque(maxlen=epoch_checkpoint)
     e_cumulative_rewards = []
     for e in range(1, epochs + 1):
@@ -40,6 +49,7 @@ def training(epochs=1000, max_steps=1000, epoch_checkpoint=100):
             action = agent.act(state)
             # print(action)
             next_state, reward, done, _ = env.step(action)
+            reward = reward*1000  # Qube-v0 rewards are VERY small
             agent.step(state, action, reward, next_state, done)
             state = next_state
             cumulative_reward += reward
