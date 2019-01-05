@@ -15,7 +15,7 @@ GAMMA = 0.99            # discount factor
 TAU = 1e-3              # for soft update of target parameters
 LR_ACTOR = 1e-4         # learning rate of the actor
 LR_CRITIC = 1e-3        # learning rate of the critic
-WEIGHT_DECAY = 0        # L2 weight decay
+WEIGHT_DECAY = 0       # L2 weight decay
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -76,7 +76,7 @@ class Agent:
         self.actor_local.eval()
         with torch.no_grad():
             # action = self.actor_local(state).cpu().data.numpy()
-            action = self.actor_local(state).cpu().data.numpy()*2  # TODO: Make this modular for all envs; *2 works for pendulum
+            action = self.actor_local(state).cpu().data.numpy()*5  # TODO: Make this modular for all envs; *2 works for pendulum
         self.actor_local.train()
         if add_noise:
             action += self.noise.sample()

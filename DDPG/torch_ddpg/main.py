@@ -25,14 +25,16 @@ agent = Agent(state_size=env_observation_size, action_size=env_action_size,
               action_bounds=(env_action_low, env_action_high), random_seed=random_seed)
 
 
-def training(epochs=1000, max_steps=300, epoch_checkpoint=100):
+def training(epochs=1000, max_steps=1000, epoch_checkpoint=100):
     scores_deque = deque(maxlen=epoch_checkpoint)
     e_cumulative_rewards = []
     for e in range(1, epochs + 1):
         state = env.reset()
         agent.reset()
         cumulative_reward = 0
-        for t in range(max_steps):
+        t = 0
+        for t_i in range(max_steps):
+            t += 1
             if e % epoch_checkpoint == 0:
                 env.render()
             action = agent.act(state)
@@ -46,10 +48,10 @@ def training(epochs=1000, max_steps=300, epoch_checkpoint=100):
         env.close()
         scores_deque.append(cumulative_reward)
         e_cumulative_rewards.append(cumulative_reward)
-        print('\rEpisode {}\tAverage Reward:{:.2f}'.
-              format(e, np.mean(scores_deque)), end="")
+        print('\rEpisode {}\tAverage Reward: {:.2f}\tSteps: {}'.
+              format(e, np.mean(scores_deque), t), end="")
         if e % epoch_checkpoint == 0:
-            print('\rEpisode {}\tAverage Reward: {:.2f}'.format(e, np.mean(scores_deque)))
+            print('\rEpisode {}\tAverage Reward: {:.2f}\tSteps: {}'.format(e, np.mean(scores_deque), t))
 
     return e_cumulative_rewards
 

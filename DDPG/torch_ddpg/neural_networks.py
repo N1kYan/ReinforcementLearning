@@ -5,22 +5,26 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 def hidden_init(layer):
+    """
+    TODO
+    :param layer: layer of nn
+    :return:
+    """
     fan_in = layer.weight.data.size()[0]
     lim = 1. / np.sqrt(fan_in)
     return (-lim, lim)
 
 class Actor(nn.Module):
-    """Actor (Policy) Model."""
+    """Actor model, approximating the discrete policy π(s)->a"""
 
     def __init__(self, state_size, action_size, seed, fc1_units=400, fc2_units=300):
-        """Initialize parameters and build model.
-        Params
-        ======
-            state_size (int): Dimension of each state
-            action_size (int): Dimension of each action
-            seed (int): Random seed
-            fc1_units (int): Number of nodes in first hidden layer
-            fc2_units (int): Number of nodes in second hidden layer
+        """
+        Initializes the network's parameters and build it's model.
+        :param state_size: The dimension of a state of the environment
+        :param action_size: The dimension of an action of the environment
+        :param seed: random seed
+        :param fc1_units: amount of nodes of first hidden layer
+        :param fc2_units: amount of nodes of second hidden layer
         """
         super(Actor, self).__init__()
         self.seed = torch.manual_seed(seed)
@@ -30,29 +34,38 @@ class Actor(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
+        """
+        Resetting the network's parameters (weights).
+        :return: None
+        """
         self.fc1.weight.data.uniform_(*hidden_init(self.fc1))
         self.fc2.weight.data.uniform_(*hidden_init(self.fc2))
         self.fc3.weight.data.uniform_(-3e-3, 3e-3)
 
     def forward(self, state):
-        """Build an actor (policy) network that maps states -> actions."""
+        """
+        Forward pass through the actor network.
+        Mapping states to actions.
+        :param state: State input coming from the environment.
+        :return: Action from approximate policy from actor network
+        """
         x = F.relu(self.fc1(state))
         x = F.relu(self.fc2(x))
         return F.tanh(self.fc3(x))
 
 
 class Critic(nn.Module):
-    """Critic (Value) Model."""
+    """Critic model, approximating the value function Q(s,a)."""
 
     def __init__(self, state_size, action_size, seed, fcs1_units=400, fc2_units=300):
-        """Initialize parameters and build model.
-        Params
-        ======
-            state_size (int): Dimension of each state
-            action_size (int): Dimension of each action
-            seed (int): Random seed
-            fcs1_units (int): Number of nodes in the first hidden layer
-            fc2_units (int): Number of nodes in the second hidden layer
+        """
+        Initializes the critic network's parameters and builds it's model.
+        The model merges state input and action input after the first hidden layer.
+        :param state_size: Dimension of a state of the environment.
+        :param action_size: Dimension of an action of the environment.
+        :param seed: random seed
+        :param fcs1_units: Amount of nodes of first hidden layer
+        :param fc2_units: Amount of nodes of second hidden layer
         """
         super(Critic, self).__init__()
         self.seed = torch.manual_seed(seed)
@@ -62,12 +75,22 @@ class Critic(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
+        """
+        Resetting the network's parameters (weights).
+        :return: None
+        """
         self.fcs1.weight.data.uniform_(*hidden_init(self.fcs1))
         self.fc2.weight.data.uniform_(*hidden_init(self.fc2))
         self.fc3.weight.data.uniform_(-3e-3, 3e-3)
 
     def forward(self, state, action):
-        """Build a critic (value) network that maps (state, action) pairs -> Q-values."""
+        """
+        Forward pass through the critic network.
+        Mapping state action pairs to q-values.
+        :param state: State input coming from the environment
+        :param action: Action input coming from the policy / actor network
+        :return: Approximate Value function Q(s,a)
+        """
         xs = F.relu(self.fcs1(state))
         x = torch.cat((xs, action), dim=1)
         x = F.relu(self.fc2(x))
