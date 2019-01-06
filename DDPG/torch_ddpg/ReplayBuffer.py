@@ -3,7 +3,7 @@ import random
 from collections import namedtuple, deque
 import torch
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")  # TODO: ?
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 class ReplayBuffer:

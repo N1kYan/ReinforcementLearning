@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
-from torch_ddpg.neural_networks import Actor, Critic
+from torch_ddpg.NeuralNetworks import Actor, Critic
 from torch_ddpg.ActionNoise import OUNoise
 from torch_ddpg.ReplayBuffer import ReplayBuffer
 
@@ -71,16 +71,23 @@ class Agent:
             self.learn(experiences, GAMMA)
 
     def act(self, state, add_noise=True):
-        """Returns actions for given state as per current policy."""
+        """
+        Outputs action from actor network / curent policy given a state.
+        :param state: Current state of the environment
+        :param add_noise: Boolean for adding noise or not
+        :return: The output action from the actor network
+        """
         state = torch.from_numpy(state).float().to(device)
         self.actor_local.eval()
         with torch.no_grad():
-            # action = self.actor_local(state).cpu().data.numpy()
-            action = self.actor_local(state).cpu().data.numpy()*5  # TODO: Make this modular for all envs; *2 works for pendulum
+            # TODO: make this modular for all environments
+            # action = self.actor_local(state).cpu().data.numpy()*2  # For Pendulum-v0
+            action = self.actor_local(state).cpu().data.numpy()*5  # For Qube-v0
+
         self.actor_local.train()
         if add_noise:
             action += self.noise.sample()
-        # return np.clip(action, -1, 1)  # TODO: This should be clipped to action bounds instead
+        # Clip actions to action bounds (low, high)
         return np.clip(action, self.action_bounds[0], self.action_bounds[1])
 
     def reset(self):
@@ -90,18 +97,16 @@ class Agent:
         """
         self.noise.reset()
 
-    # TODO: understand how gradients are calculated and used
     def learn(self, experiences, gamma):
-        """Update policy and value parameters using given batch of experience tuples.
-        Q_targets = r + γ * critic_target(next_state, actor_target(next_state))
-        where:
-            actor_target(state) -> action
-            critic_target(state, action) -> Q-value
+        """
+        Updates the actor(policy) and critic(value function) networks' parameters
+        given a radnom mini-batch of experience samples from the replay buffer.
 
-        Params
-        ======
-            experiences (Tuple[torch.Tensor]): tuple of (s, a, r, s', done) tuples 
-            gamma (float): discount factor
+            Q_targets = r + γ * critic_target(next_state, actor_target(next_state))
+
+        :param experiences: Mini-batch of random samples for the replay buffer
+        :param gamma: Discount factor
+        :return: None
         """
         states, actions, rewards, next_states, dones = experiences
 
