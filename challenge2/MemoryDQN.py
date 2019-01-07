@@ -26,7 +26,6 @@ class MemoryDQN(object):
         next_states = list(zip(*expectations))[3]
         return torch.from_numpy(np.array(states)).type(torch.FloatTensor), np.array(actions), np.array(rewards),\
                torch.from_numpy(np.array(next_states)).type(torch.FloatTensor)
-        #return Variable(torch.cat(states)), Variable(torch.cat(actions)), Variable(torch.cat(rewards)), Variable(torch.cat(next_states))
 
     def size_mem(self):
         return len(self.ReplayBuffer)
