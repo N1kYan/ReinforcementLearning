@@ -70,8 +70,8 @@ def training(epochs=10000, max_steps=500, epoch_checkpoint=500):
             # Print cumulative reward per episode averaged over #epoch_checkpoint episodes
             print('\rEpisode {}\tAverage Reward: {:.2f}\tSteps: {}'.format(e, np.mean(scores_deque), t))
 
-    time_learning_elapsed = (time.clock() - time_learning_start) * 1000.0 # ms
-    print("Learning the weights took {:.3f} ms.".format(time_learning_elapsed))
+    time_learning_elapsed = (time.clock() - time_learning_start)
+    print("Learning the weights took {} secs.".format(time_learning_elapsed))
 
     return e_cumulative_rewards
 
