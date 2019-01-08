@@ -4,10 +4,19 @@ import numpy as np
 from collections import deque
 import matplotlib.pyplot as plt
 import time
-
+import sys
 from torch_ddpg.DDPGAgent import Agent
 
-env = gym.make('Qube-v0')
+
+# TODO: OU Noise verstehen
+# TODO: Tabelle machen mit Parametern
+# TODO: Plot von Bell_error & Regression_error (Yannik Frisch)
+# TODO: Replay Buffer füllen lassen
+# TODO: List mit Parametern die wichtig sind
+# TODO: Alle Parameter werden in der Main gesetzt
+# TODO: Batch normalization (zum Schluss)
+
+# env = gym.make('Qube-v0')
 env = gym.make('Pendulum-v0')
 print(env.spec)
 print("State Space Shape: {}\nLow: {}\nHigh: {}".format(np.shape(env.reset()),
@@ -27,7 +36,7 @@ agent = Agent(state_size=env_observation_size, action_size=env_action_size,
               action_bounds=(env_action_low, env_action_high), random_seed=random_seed)
 
 
-def training(epochs=500, max_steps=500, epoch_checkpoint=500):
+def training(epochs=1000, max_steps=500, epoch_checkpoint=500):
     """
     Runs the training process on the gym environment.
     :param epochs: Number of epochs for training
@@ -38,7 +47,7 @@ def training(epochs=500, max_steps=500, epoch_checkpoint=500):
     """
 
     # Measure the time we need to learn
-    time_learning_start = time.clock()
+    time_start = time.time()
 
     scores_deque = deque(maxlen=epoch_checkpoint)
     e_cumulative_rewards = []
@@ -64,14 +73,14 @@ def training(epochs=500, max_steps=500, epoch_checkpoint=500):
         env.close()
         scores_deque.append(cumulative_reward)
         e_cumulative_rewards.append(cumulative_reward)
-        print('\rEpisode {}\tAverage Reward: {}\tSteps: {}'.
-              format(e, np.mean(scores_deque), t), end="")
+        print('\rEpisode {}\tAverage Reward: {}\tSteps: {}\t({:.2f} min elapsed)'.
+              format(e, np.mean(scores_deque), t, (time.time() - time_start)/60), end="")
         if e % epoch_checkpoint == 0:
             # Print cumulative reward per episode averaged over #epoch_checkpoint episodes
             print('\rEpisode {}\tAverage Reward: {:.2f}\tSteps: {}'.format(e, np.mean(scores_deque), t))
 
-    time_learning_elapsed = (time.clock() - time_learning_start)
-    print("Learning the weights took {} secs.".format(time_learning_elapsed))
+    print("Learning weights took {}:{:.2f} min.".format((time.time() - time_start) / 60 ))
+
 
     return e_cumulative_rewards
 
