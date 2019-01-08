@@ -8,7 +8,7 @@ import time
 from torch_ddpg.DDPGAgent import Agent
 
 env = gym.make('Qube-v0')
-# env = gym.make('Pendulum-v0')
+env = gym.make('Pendulum-v0')
 print(env.spec)
 print("State Space Shape: {}\nLow: {}\nHigh: {}".format(np.shape(env.reset()),
                                                         env.observation_space.low,
@@ -27,7 +27,7 @@ agent = Agent(state_size=env_observation_size, action_size=env_action_size,
               action_bounds=(env_action_low, env_action_high), random_seed=random_seed)
 
 
-def training(epochs=10000, max_steps=500, epoch_checkpoint=500):
+def training(epochs=500, max_steps=500, epoch_checkpoint=500):
     """
     Runs the training process on the gym environment.
     :param epochs: Number of epochs for training

@@ -80,9 +80,11 @@ class Agent:
         state = torch.from_numpy(state).float().to(device)
         self.actor_local.eval()
         with torch.no_grad():
-            # TODO: make this modular for all environments
-            # action = self.actor_local(state).cpu().data.numpy()*2  # For Pendulum-v0
-            action = self.actor_local(state).cpu().data.numpy()*5  # For Qube-v0
+
+            # Activation function tanh returns [-1, 1] so we multiply by
+            # the highest possible action to map it to our action space.
+            action = self.actor_local(state).cpu().data.numpy()\
+                     * self.action_bounds[1]
 
         self.actor_local.train()
         if add_noise:
