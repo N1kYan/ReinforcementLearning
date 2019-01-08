@@ -19,7 +19,7 @@ def hidden_init(layer):
 class Actor(nn.Module):
     """Actor model, approximating the discrete policy π(s)->a"""
 
-    def __init__(self, state_size, action_size, seed, fc1_units=400, fc2_units=300):
+    def __init__(self, state_size, action_size, seed, fc1_units=100, fc2_units=300):
         """
         Initializes the network's parameters and build it's model.
         :param state_size: The dimension of a state of the environment
@@ -51,7 +51,6 @@ class Actor(nn.Module):
 
         self.fc1.weight.data.uniform_(*hidden_init(self.fc1))
         self.fc2.weight.data.uniform_(-3e-3, 3e-3)
-
 
     def forward(self, state):
         """
@@ -92,7 +91,6 @@ class Critic(nn.Module):
         self.fc1 = nn.Linear(state_size + action_size, fcs1_units)
         self.fc2 = nn.Linear(fcs1_units, 1)
         self.reset_parameters()
-
 
     def reset_parameters(self):
         """
