@@ -26,7 +26,7 @@ agent = Agent(state_size=env_observation_size, action_size=env_action_size,
               action_bounds=(env_action_low, env_action_high), random_seed=random_seed)
 
 
-def training(epochs=5000, max_steps=1000, epoch_checkpoint=500):
+def training(epochs=10000, max_steps=500, epoch_checkpoint=500):
     """
     Runs the training process on the gym environment.
     :param epochs: Number of epochs for training
@@ -51,7 +51,8 @@ def training(epochs=5000, max_steps=1000, epoch_checkpoint=500):
             action = agent.act(state)
             # print(action)
             next_state, reward, done, _ = env.step(action)
-            reward = reward*1000  # Qube-v0 rewards are VERY small; only for debugging
+            # print(reward)
+            # reward = reward*1000  # Qube-v0 rewards are VERY small; only for debugging
             agent.step(state, action, reward, next_state, done)
             state = next_state
             cumulative_reward += reward
@@ -60,7 +61,7 @@ def training(epochs=5000, max_steps=1000, epoch_checkpoint=500):
         env.close()
         scores_deque.append(cumulative_reward)
         e_cumulative_rewards.append(cumulative_reward)
-        print('\rEpisode {}\tAverage Reward: {:.2f}\tSteps: {}'.
+        print('\rEpisode {}\tAverage Reward: {}\tSteps: {}'.
               format(e, np.mean(scores_deque), t), end="")
         if e % epoch_checkpoint == 0:
             # Print cumulative reward per episode averaged over #epoch_checkpoint episodes
