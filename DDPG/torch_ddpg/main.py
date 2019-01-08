@@ -3,6 +3,7 @@ import quanser_robots
 import numpy as np
 from collections import deque
 import matplotlib.pyplot as plt
+import time
 
 from torch_ddpg.DDPGAgent import Agent
 
@@ -36,7 +37,9 @@ def training(epochs=5000, max_steps=1000, epoch_checkpoint=500):
     :return: List of cumulative rewards for the episodes
     """
 
-    # TODO: Print time needed to run learning
+    # Measure the time we need to learn
+    time_learning_start = time.clock()
+
     scores_deque = deque(maxlen=epoch_checkpoint)
     e_cumulative_rewards = []
     for e in range(1, epochs + 1):
@@ -65,6 +68,9 @@ def training(epochs=5000, max_steps=1000, epoch_checkpoint=500):
         if e % epoch_checkpoint == 0:
             # Print cumulative reward per episode averaged over #epoch_checkpoint episodes
             print('\rEpisode {}\tAverage Reward: {:.2f}\tSteps: {}'.format(e, np.mean(scores_deque), t))
+
+    time_learning_elapsed = (time.clock() - time_learning_start) * 1000.0 # ms
+    print("Learning the weights took {:.3f} ms.".format(time_learning_elapsed))
 
     return e_cumulative_rewards
 
