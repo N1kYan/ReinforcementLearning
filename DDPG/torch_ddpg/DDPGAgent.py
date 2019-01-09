@@ -112,7 +112,7 @@ class Agent:
         """
         states, actions, rewards, next_states, dones = experiences
 
-        # ---------------------------- update critic ---------------------------- #
+        # ---------------------------- update critic ------------------------ #
         # Get predicted next-state actions and Q values from target models
         actions_next = self.actor_target(next_states)
         Q_targets_next = self.critic_target(next_states, actions_next)
@@ -121,21 +121,23 @@ class Agent:
         # Compute critic loss
         Q_expected = self.critic_local(states, actions)
         critic_loss = F.mse_loss(Q_expected, Q_targets)
+
         # Minimize the loss
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
         self.critic_optimizer.step()
 
-        # ---------------------------- update actor ---------------------------- #
+        # ---------------------------- update actor ------------------------- #
         # Compute actor loss
         actions_pred = self.actor_local(states)
         actor_loss = -self.critic_local(states, actions_pred).mean()
+
         # Minimize the loss
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
         self.actor_optimizer.step()
 
-        # ----------------------- update target networks ----------------------- #
+        # --------------------- update target networks ---------------------- #
         self.soft_update(self.critic_local, self.critic_target, TAU)
         self.soft_update(self.actor_local, self.actor_target, TAU)                     
 
@@ -148,5 +150,7 @@ class Agent:
         :param tau: interpolation parameter
         :return: None
         """
-        for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
-            target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
+        for target_param, local_param in zip(target_model.parameters(),
+                                             local_model.parameters()):
+            target_param.data.copy_(tau*local_param.data + (1.0-tau)
+                                    * target_param.data)

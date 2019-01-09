@@ -13,6 +13,7 @@ from torch_ddpg.DDPGAgent import Agent
 # TODO: Replay Buffer füllen lassen
 # TODO: Alle Parameter werden in der Main gesetzt
 # TODO: Batch normalization (zum Schluss)
+# TODO: Importance Sampling (Alex)
 # TODO: Forumeintrag anschauen und einarbeiten
 
 # TODO: Challenge 2 anschauen (Yannik & Alex)
