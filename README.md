@@ -21,3 +21,40 @@ Repo for the RL course at TU Darmstadt.
 The Challenges are practical RL assignments during the semester. The environments use the [gym](https://gym.openai.com/) library by OpenAI and can be found in the following [GitLab Repository](https://git.ias.informatik.tu-darmstadt.de/quanser/clients) of [Quanser Robots](https://www.quanser.com/products/).
 
 1. Dynamic Programming (using the [Pendulum](https://gym.openai.com/envs/Pendulum-v0/))
+2. LSPI & DQN (using CartPole)
+
+
+
+## TODO
+
+###### Challenge 2:
+
+* [ ] Target Netz hinzufügen (Tabea)
+
+* [ ] Anschauen (Yannik)
+* [ ] Anschauen (Alex)
+
+
+
+###### DDPG:
+
+* [ ] Weights speichern (Yannik)
+
+* [ ] Evaluierungsfunktion (Yannik)
+
+* [ ] Plots Samuele (Yannik)
+
+* [ ] DDPGAgent + Main zusammenfügen & schön machen (Tabea)
+
+
+###### NAC:
+
+* [ ] Erste Implementation (Tensorflow?) (Alex)
+
+
+
+###### Paper:
+
+* [ ] Anfangen DDPG zu beschreiben (Tabea)
+* [ ] Anfangen NAC zu beschreiben (Alex)
+* [ ] Anfangen Fruruta Pendulum zu beschreiben (Yannik)

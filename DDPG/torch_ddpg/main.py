@@ -16,10 +16,6 @@ from torch_ddpg.DDPGAgent import Agent
 # TODO: Importance Sampling (Alex)
 # TODO: Forumeintrag anschauen und einarbeiten
 
-# TODO: Challenge 2 anschauen (Yannik & Alex)
-# TODO: NAC implementieren (Yannik & Alex)
-
-
 # env = gym.make('Qube-v0')
 # env = gym.make('Pendulum-v0')
 env = gym.make('BallBalancerSim-v0')
