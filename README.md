@@ -30,9 +30,10 @@ The Challenges are practical RL assignments during the semester. The environment
 ###### Challenge 2:
 
 * [ ] Target Netz hinzufügen (Tabea)
-
 * [ ] Anschauen (Yannik)
 * [ ] Anschauen (Alex)
+* [ ] Evaluation mit Seeds LSPI (Yannik)
+* [ ] Evaluation mit Seeds DQN (Tabea)
 
 
 
@@ -45,6 +46,18 @@ The Challenges are practical RL assignments during the semester. The environment
 * [ ] Plots Samuele (Yannik)
 
 * [ ] DDPGAgent + Main zusammenfügen & schön machen (Tabea)
+
+
+```
+# TODO: Noise Source
+# TODO: Plot von Bell_error & Regression_error (Yannik Frisch)
+# TODO: Replay Buffer füllen lassen
+# TODO: Alle Parameter werden in der Main gesetzt
+# TODO: Batch normalization (zum Schluss)
+# TODO: Importance Sampling (Alex)
+# TODO: Forumeintrag anschauen und einarbeiten
+```
+
 
 
 ###### NAC:
