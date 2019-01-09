@@ -59,6 +59,8 @@ env.action_space =ActionDisc(env.action_space.high, env.action_space.low, ACTION
 #creates the replay buffer and the neural network
 memory = MemoryDQN(10000)
 model = DQN(HIDDEN_LAYER_NEURONS, ACTION_SPACE, env.observation_space.shape[0])
+#target = DQN(HIDDEN_LAYER_NEURONS, ACTION_SPACE, env.observation_space.shape[0])
+#print(model.parameters)
 
 optimizer = optim.Adam(model.parameters(), LEARNING_RATE)
 
@@ -67,10 +69,14 @@ cum_reward = []
 
 
 def select_action(state_pred):
-
+    #global steps_done
     sample = random.random()
-    #exploitation
-    if sample > EPSILON:
+    '''eps_threshold = EPS_END + (EPS_START - EPS_END) * \
+        math.exp(-1. * steps_done / EPS_DECAY)
+    steps_done += 1
+    eps_threshold = 0.2'''
+    eps_threshold = EPSILON
+    if sample > eps_threshold:
         with torch.no_grad():
             #change predicted states to torch tensor
             state_pred = torch.from_numpy(state_pred).type(FloatTensor).unsqueeze(0)
@@ -90,6 +96,7 @@ for epi in range(EPISODES):
     cum_reward.append(0)
     state = env.reset()
     step = 0
+    steps_done = 0
     loss = 100
 
     while True:
