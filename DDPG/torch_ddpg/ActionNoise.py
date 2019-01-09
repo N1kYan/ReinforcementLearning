@@ -11,7 +11,6 @@ class OUNoise:
         Process X converges to 'mean reversion level' mu by time.
         The 'mean-reversion-speed' theta induces the 'attraction' of mu on X.
         The diffusion sigma controls the randomness of the process.
-
     """
     def __init__(self, size, seed, mu=0., theta=0.15, sigma=1.6):
         """

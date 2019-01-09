@@ -8,6 +8,7 @@ import sys
 from torch_ddpg.DDPGAgent import Agent
 
 
+# TODO: Noise Source
 # TODO: Plot von Bell_error & Regression_error (Yannik Frisch)
 # TODO: Replay Buffer füllen lassen
 # TODO: Alle Parameter werden in der Main gesetzt
