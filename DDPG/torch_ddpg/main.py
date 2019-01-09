@@ -31,13 +31,15 @@ env_action_size = len(env.action_space.sample())
 env_action_low = env.action_space.low
 env_action_high = env.action_space.high
 random_seed = 3
+update_frequency = 1
+
 env.seed(random_seed)
 
 agent = Agent(state_size=env_observation_size, action_size=env_action_size,
               action_bounds=(env_action_low, env_action_high), random_seed=random_seed)
 
 
-def training(epochs=1500, max_steps=500, epoch_checkpoint=250):
+def training(epochs=2000, max_steps=500, epoch_checkpoint=250):
     """
     Runs the training process on the gym environment.
     :param epochs: Number of epochs for training
@@ -49,6 +51,8 @@ def training(epochs=1500, max_steps=500, epoch_checkpoint=250):
 
     # Measure the time we need to learn
     time_start = time.time()
+
+    critic_loss = []
 
     scores_deque = deque(maxlen=epoch_checkpoint)
     e_cumulative_rewards = []
@@ -66,7 +70,13 @@ def training(epochs=1500, max_steps=500, epoch_checkpoint=250):
             next_state, reward, done, _ = env.step(action)
             # print(reward)
             # reward = reward*1000  # Qube-v0 rewards are VERY small; only for debugging
-            agent.step(state, action, reward, next_state, done)
+            if (t_i % update_frequency) == 0:
+                perform_update = True
+            else:
+                perform_update = False
+            critic_l = agent.step(state, action, reward, next_state, done, perform_update)
+            if critic_l is not None:
+                critic_loss.append(critic_l.item())
             state = next_state
             cumulative_reward += reward
             if done:
@@ -83,7 +93,6 @@ def training(epochs=1500, max_steps=500, epoch_checkpoint=250):
 
     print("Learning weights took {:.2f} min.".format((time.time() - time_start) / 60 ))
     print("Final average cumulative reward", np.mean(e_cumulative_rewards))
-
 
     return e_cumulative_rewards
 
