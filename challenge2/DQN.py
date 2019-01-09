@@ -50,7 +50,7 @@ LEARNING_RATE = 0.001
 ACTION_SPACE = 49
 
 EPSILON = 0.05
-env = gym.make("CartpoleStabShort-v0")
+env = gym.make("CartpoleSwingShort-v0")
 #env = gym.make("Pendulum-v0")
 
 #define a new discrete action space

@@ -16,6 +16,19 @@ from torch_ddpg.DDPGAgent import Agent
 # TODO: Importance Sampling (Alex)
 # TODO: Forumeintrag anschauen und einarbeiten
 
+
+
+BUFFER_SIZE = int(1e6)  # replay buffer size #100000
+BATCH_SIZE = 1024       # minibatch size #128
+GAMMA = 0.99            # discount factor #0.99
+TAU = 0.01                 # for soft update of target parameters #1e-3
+LR_ACTOR = 1e-5         # learning rate of the actor #1e-5
+LR_CRITIC = 1e-4        # learning rate of the critic #1e-4
+WEIGHT_DECAY = 0        # L2 weight decay #0
+
+
+
+
 # env = gym.make('Qube-v0')
 # env = gym.make('Pendulum-v0')
 env = gym.make('BallBalancerSim-v0')
@@ -36,7 +49,8 @@ update_frequency = 1
 env.seed(random_seed)
 
 agent = Agent(state_size=env_observation_size, action_size=env_action_size,
-              action_bounds=(env_action_low, env_action_high), random_seed=random_seed)
+              action_bounds=(env_action_low, env_action_high), random_seed=random_seed, buffer_size=BUFFER_SIZE,
+              batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, LR_Actor=LR_ACTOR, LR_Critic=LR_CRITIC, weight_decay=WEIGHT_DECAY)
 
 
 def training(epochs=2000, max_steps=500, epoch_checkpoint=250):
