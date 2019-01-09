@@ -8,16 +8,15 @@ import sys
 from torch_ddpg.DDPGAgent import Agent
 
 
-# TODO: OU Noise verstehen
-# TODO: Tabelle machen mit Parametern
 # TODO: Plot von Bell_error & Regression_error (Yannik Frisch)
 # TODO: Replay Buffer füllen lassen
-# TODO: List mit Parametern die wichtig sind
 # TODO: Alle Parameter werden in der Main gesetzt
 # TODO: Batch normalization (zum Schluss)
 
+
 # env = gym.make('Qube-v0')
-env = gym.make('Pendulum-v0')
+# env = gym.make('Pendulum-v0')
+env = gym.make('BallBalancerSim-v0')
 print(env.spec)
 print("State Space Shape: {}\nLow: {}\nHigh: {}".format(np.shape(env.reset()),
                                                         env.observation_space.low,
@@ -36,7 +35,7 @@ agent = Agent(state_size=env_observation_size, action_size=env_action_size,
               action_bounds=(env_action_low, env_action_high), random_seed=random_seed)
 
 
-def training(epochs=1000, max_steps=500, epoch_checkpoint=500):
+def training(epochs=1500, max_steps=500, epoch_checkpoint=250):
     """
     Runs the training process on the gym environment.
     :param epochs: Number of epochs for training
@@ -77,10 +76,11 @@ def training(epochs=1000, max_steps=500, epoch_checkpoint=500):
               format(e, np.mean(scores_deque), t, (time.time() - time_start)/60), end="")
         if e % epoch_checkpoint == 0:
             # Print cumulative reward per episode averaged over #epoch_checkpoint episodes
-            print('\rEpisode {}\tAverage Reward: {:.2f}\t({:.2f} min elapsed'.
+            print('\rEpisode {}\tAverage Reward: {:.2f}\t({:.2f} min elapsed)'.
                   format(e, np.mean(scores_deque), (time.time() - time_start)/60))
 
     print("Learning weights took {:.2f} min.".format((time.time() - time_start) / 60 ))
+    print("Final average cumulative reward", np.mean(e_cumulative_rewards))
 
 
     return e_cumulative_rewards

@@ -3,20 +3,24 @@ import random
 import copy
 
 
-# TODO: Source, descriptions
+# TODO: Source
 class OUNoise:
     """
         Ornstein Uhlenbeck noise for actions.
+        Stochastic gaussian-process.
+        Process X converges to 'mean reversion level' mu by time.
+        The 'mean-reversion-speed' theta induces the 'attraction' of mu on X.
+        The diffusion sigma controls the randomness of the process.
 
     """
-    def __init__(self, size, seed, mu=0., theta=0.15, sigma=1.5):
+    def __init__(self, size, seed, mu=0., theta=0.15, sigma=1.6):
         """
         Initializes the parameters and the noise process.
         :param size: Dimensions of the environments actions
         :param seed: Random seed
-        :param mu: Mean for OU process (default = 0)
-        :param theta: TODO
-        :param sigma: Variance for OU process
+        :param mu: Mean / reversion for OU process (default = 0)
+        :param theta: Reversion speed
+        :param sigma: Variance / diffusion for OU process
             0.2 works well for Pendulum-v0; 1.2 for Qube-v0?
         """
         self.mu = mu * np.ones(size)
