@@ -66,6 +66,7 @@ def sample(epochs):
     D = []
     state = env.reset()
     for e in range(epochs):
+        # Random sample
         action = env.action_space.sample()
         next_state, reward, done, info = env.step(action)
         D.append((state, action, reward, next_state))
@@ -75,7 +76,7 @@ def sample(epochs):
     return D
 
 
-def evaluate(w_star, episodes, plot):
+def evaluate(w_star, episodes, render, plot):
     if plot:
         plt.figure()
         # plt.title("Cumulative reward per episode")
@@ -88,7 +89,8 @@ def evaluate(w_star, episodes, plot):
         time_step = 0
         while True:
             time_step += 1
-            env.render()
+            if render:
+                env.render()
             action = pi(state, w_star)
             chosen_actions.append(action)
             # print(action)
@@ -102,7 +104,7 @@ def evaluate(w_star, episodes, plot):
             state = np.copy(next_state)
         if plot:
             plt.plot(rewards)
-        # plt.plot(cumulative_reward)
+            # plt.plot(cumulative_reward)
     # Average cumulative rewards over episodes
     if plot:
         plt.figure()
@@ -123,7 +125,7 @@ def main():
        w_0[i] = np.random.rand()**3
     # w_0.fill(20)
     # w_0 = np.zeros(shape=(len(kleinvieh), 1))
-    gamma = 0.95  # 0.2
+    gamma = 0.99  # 0.95  # 0.2
     # epsilon = 1e-2
     epsilon = 1  # should be reduced to perform better but results in super slow convergence
     print("Learning...")
@@ -132,7 +134,7 @@ def main():
     print("...done")
     print("Evaluating...", end='')
     sys.stdout.flush()
-    evaluate(w_star, episodes=10, plot=True)
+    evaluate(w_star, episodes=25, render=False, plot=True)
     print("done")
 
 
@@ -150,7 +152,7 @@ kleinvieh = [
     lambda s, a: 1,
     lambda s, a: np.sin(s[0])**2 * a,
     lambda s, a: np.sin(s[1])**2 * a,
-    lambda s, a: np.sin(s[2])**2 * a,
+    # lambda s, a: np.sin(s[2])**2 * a,
     # lambda s, a: np.sin(s[3])**2 * a,
     # lambda s, a: np.sin(s[4])**2 * a,
     # lambda s, a: np.exp(s[0]) * a,
@@ -158,17 +160,13 @@ kleinvieh = [
     lambda s, a: np.exp(s[2]) * a,
     # lambda s, a: np.exp(s[3]) * a,
     # lambda s, a: np.exp(s[4]) * a,
-
-
-
     # lambda s, a: np.cos(s[0])**2 * a,
-    # lambda s, a: np.cos(s[1])**2 * a,
-    # lambda s, a: np.cos(s[2])**2 * a,
+    lambda s, a: np.cos(s[1])**2 * a,
+    lambda s, a: np.cos(s[2])**2 * a,
     # lambda s, a: np.cos(s[3])**2 * a,
     # lambda s, a: np.cos(s[4])**2 * a,
 
 ]
 
 if __name__ == '__main__':
-# Define gym environment
     main()
