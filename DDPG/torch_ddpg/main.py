@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import time
 import sys
 from torch_ddpg.DDPGAgent import Agent
+from torch_ddpg.ActionNoise import OUNoise
 
 
 # TODO: Noise Source
@@ -17,16 +18,13 @@ from torch_ddpg.DDPGAgent import Agent
 # TODO: Forumeintrag anschauen und einarbeiten
 
 
-
 BUFFER_SIZE = int(1e6)  # replay buffer size #100000
-BATCH_SIZE = 1024       # minibatch size #128
+BATCH_SIZE = 64       # minibatch size #128
 GAMMA = 0.99            # discount factor #0.99
-TAU = 0.01                 # for soft update of target parameters #1e-3
-LR_ACTOR = 1e-5         # learning rate of the actor #1e-5
-LR_CRITIC = 1e-4        # learning rate of the critic #1e-4
-WEIGHT_DECAY = 0        # L2 weight decay #0
-
-
+TAU = 1e-3                 # for soft update of target parameters #1e-3
+LR_ACTOR = 1e-4         # learning rate of the actor #1e-5
+LR_CRITIC = 1e-3        # learning rate of the critic #1e-4
+WEIGHT_DECAY = 1e-2        # L2 weight decay #0
 
 
 # env = gym.make('Qube-v0')
@@ -48,19 +46,57 @@ update_frequency = 1
 
 env.seed(random_seed)
 
-agent = Agent(state_size=env_observation_size, action_size=env_action_size,
+# Noise generating process
+OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.25, sigma=2.2)
+
+
+# DDPG learning agent
+AGENT = Agent(state_size=env_observation_size, action_size=env_action_size,
               action_bounds=(env_action_low, env_action_high), random_seed=random_seed, buffer_size=BUFFER_SIZE,
-              batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, LR_Actor=LR_ACTOR, LR_Critic=LR_CRITIC, weight_decay=WEIGHT_DECAY)
+              batch_size=BATCH_SIZE, gamma=GAMMA, tau=TAU, lr_actor=LR_ACTOR, lr_critic=LR_CRITIC,
+              weight_decay=WEIGHT_DECAY, noise_generator=OU_NOISE)
 
 
-def training(epochs=2000, max_steps=500, epoch_checkpoint=250):
+def evaluation(epochs=25, render=False):
+    """
+    Evaluates the trained agent on the environment (both declaired above).
+    Plots the reward per timestep for every episode.
+    :param epochs: Episodes for evaluation
+    :param render: Set true to render the evaluation episodes
+    :return: None
+    """
+    plt.figure()
+    plt.title("Rewards during evaluation")
+    plt.xlabel("Time-step")
+    plt.ylabel("Current reward")
+    for e in range(1, epochs + 1):
+        state = env.reset()
+        rewards = []
+        t = 0
+        while True:
+            t += 1
+            if render:
+                env.render()
+            action = AGENT.act(state)
+            next_state, reward, done, _ = env.step(action)
+            rewards.append(reward)
+            state = np.copy(next_state)
+            if done:
+                break
+            plt.plot(rewards)
+        env.close()
+
+
+def training(epochs=1000, max_steps=500, epoch_checkpoint=250, render=False):
     """
     Runs the training process on the gym environment.
+    Then plots the cumulative reward per episode.
     :param epochs: Number of epochs for training
     :param max_steps: Maximum time-steps for each training epoch;
      Does end epochs for environments, which epochs are not time limited
     :param epoch_checkpoint: Checkpoint for printing the learning progress and rendering the environment
-    :return: List of cumulative rewards for the episodes
+    :param render: Set true for rendering every 'epoch_checkpoint' episode
+    :return: None
     """
 
     # Measure the time we need to learn
@@ -72,25 +108,19 @@ def training(epochs=2000, max_steps=500, epoch_checkpoint=250):
     e_cumulative_rewards = []
     for e in range(1, epochs + 1):
         state = env.reset()
-        agent.reset()
+        AGENT.reset()
         cumulative_reward = 0
         t = 0
         for t_i in range(max_steps):
             t += 1
-            if e % epoch_checkpoint == 0:
+            if (e % epoch_checkpoint == 0) and render:
                 env.render()
-            action = agent.act(state)
+            action = AGENT.act(state)
             # print(action)
             next_state, reward, done, _ = env.step(action)
             # print(reward)
             # reward = reward*1000  # Qube-v0 rewards are VERY small; only for debugging
-            if (t_i % update_frequency) == 0:
-                perform_update = True
-            else:
-                perform_update = False
-            critic_l = agent.step(state, action, reward, next_state, done, perform_update)
-            if critic_l is not None:
-                critic_loss.append(critic_l.item())
+            AGENT.step(state, action, reward, next_state, done)
             state = next_state
             cumulative_reward += reward
             if done:
@@ -108,14 +138,17 @@ def training(epochs=2000, max_steps=500, epoch_checkpoint=250):
     print("Learning weights took {:.2f} min.".format((time.time() - time_start) / 60 ))
     print("Final average cumulative reward", np.mean(e_cumulative_rewards))
 
-    return e_cumulative_rewards
+    # Plot the cumulative reward per episode during training process
+    fig = plt.figure()
+    plt.title("Cumulative reward during training")
+    ax = fig.add_subplot(111)
+    plt.plot(np.arange(1, len(e_cumulative_rewards) + 1), e_cumulative_rewards)
+    plt.ylabel('Cumulative reward')
+    plt.xlabel('Episode #')
 
 
-# Plot the cumulative reward per episode
-scores = training()
-fig = plt.figure()
-ax = fig.add_subplot(111)
-plt.plot(np.arange(1, len(scores)+1), scores)
-plt.ylabel('Score')
-plt.xlabel('Episode #')
-plt.show()
+if __name__ == "__main__":
+    training()
+    evaluation()
+    plt.show()
+

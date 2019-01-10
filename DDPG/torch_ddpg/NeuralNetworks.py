@@ -19,7 +19,7 @@ def hidden_init(layer):
 class Actor(nn.Module):
     """Actor model, approximating the discrete policy π(s)->a"""
 
-    def __init__(self, state_size, action_size, seed, fc1_units=100, fc2_units=300):
+    def __init__(self, state_size, action_size, seed, fc1_units=64, fc2_units=300):
         """
         Initializes the network's parameters and build it's model.
         :param state_size: The dimension of a state of the environment
@@ -70,7 +70,7 @@ class Actor(nn.Module):
 class Critic(nn.Module):
     """Critic model, approximating the value function Q(s,a)."""
 
-    def __init__(self, state_size, action_size, seed, fcs1_units=100, fc2_units=300):
+    def __init__(self, state_size, action_size, seed, fcs1_units=72, fc2_units=300):
         """
         Initializes the critic network's parameters and builds it's model.
         The model merges state input and action input after the first hidden layer.

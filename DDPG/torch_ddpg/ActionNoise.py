@@ -12,7 +12,7 @@ class OUNoise:
         The 'mean-reversion-speed' theta induces the 'attraction' of mu on X.
         The diffusion sigma controls the randomness of the process.
     """
-    def __init__(self, size, seed, mu=0., theta=0.15, sigma=1.6):
+    def __init__(self, size, seed, mu, theta, sigma):
         """
         Initializes the parameters and the noise process.
         :param size: Dimensions of the environments actions

@@ -5,18 +5,15 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 from torch_ddpg.NeuralNetworks import Actor, Critic
-from torch_ddpg.ActionNoise import OUNoise
 from torch_ddpg.ReplayBuffer import ReplayBuffer
-
-
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 class Agent:
-    def __init__(self, state_size, action_size, action_bounds, random_seed, buffer_size, batch_size, gamma, tau, LR_Actor,
-                 LR_Critic, weight_decay):
+    def __init__(self, state_size, action_size, action_bounds, random_seed, buffer_size, batch_size, gamma, tau,
+                 lr_actor, lr_critic, weight_decay, noise_generator):
         """
         Initializes an DDPG Agent object.
         :param state_size: amount of dimensions of the environment's states
@@ -32,8 +29,8 @@ class Agent:
         self.BATCH_SIZE = batch_size
         self.GAMMA = gamma
         self.TAU = tau
-        self.LR_ACTOR = LR_Actor
-        self.LR_CRITIC = LR_Critic
+        self.LR_ACTOR = lr_actor
+        self.LR_CRITIC = lr_critic
         self.WEIGHT_DECAY = weight_decay
 
         # Actor Network and Actor Target Network
@@ -44,15 +41,17 @@ class Agent:
         # Critic Network and Critic Target Network
         self.critic_local = Critic(state_size, action_size, random_seed).to(device)
         self.critic_target = Critic(state_size, action_size, random_seed).to(device)
-        self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr=self.LR_CRITIC, weight_decay=self.WEIGHT_DECAY)
+        self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr=self.LR_CRITIC,
+                                           weight_decay=self.WEIGHT_DECAY)
 
         # Noise process
-        self.noise = OUNoise(action_size, random_seed)
+        self.noise = noise_generator
+        # self.noise = OUNoise(action_size, random_seed)
 
         # Replay memory
         self.memory = ReplayBuffer(action_size, self.BUFFER_SIZE, self.BATCH_SIZE, random_seed)
     
-    def step(self, state, action, reward, next_state, done, perform_update):
+    def step(self, state, action, reward, next_state, done):
         """
         Saves one step of experience (s, a, r, s', done) in the replay buffer.
         Then samples a random mini-batch from the replay buffer and learns from that sample.
@@ -69,7 +68,7 @@ class Agent:
         self.memory.add(state, action, reward, next_state, done)
 
         # Learn, if enough samples are available in memory
-        if len(self.memory) > self.BATCH_SIZE and perform_update:
+        if len(self.memory) > self.BATCH_SIZE:
             experiences = self.memory.sample()
             self.learn(experiences, self.GAMMA)
 
