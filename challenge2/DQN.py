@@ -42,14 +42,23 @@ FloatTensor = torch.FloatTensor
 LongTensor = torch.LongTensor
 
 
-EPISODES = 200
+EPISODES = 100
 BATCH_SIZE = 100
 GAMMA = 0.9
 HIDDEN_LAYER_NEURONS = 100
 LEARNING_RATE = 0.001
-ACTION_SPACE = 49
+ACTION_SPACE = 10 #49
+EPS_START = 1
+EPS_END = 0.1
+#EXPLORATION_STEPS = 30000
+EXPLORATION_STEPS = 1000
 
-EPSILON = 0.05
+INITIAL_REPLAY = 1000
+REPLAY_SIZE = 100000
+TARGET_UPDATE = 50
+
+EPSILON = 1
+EPSILON_STEP = (EPS_START-EPS_END)/EXPLORATION_STEPS
 env = gym.make("CartpoleSwingShort-v0")
 #env = gym.make("Pendulum-v0")
 
@@ -57,9 +66,10 @@ env = gym.make("CartpoleSwingShort-v0")
 env.action_space =ActionDisc(env.action_space.high, env.action_space.low, ACTION_SPACE)
 
 #creates the replay buffer and the neural network
-memory = MemoryDQN(10000)
+memory = MemoryDQN(REPLAY_SIZE)
 model = DQN(HIDDEN_LAYER_NEURONS, ACTION_SPACE, env.observation_space.shape[0])
-#target = DQN(HIDDEN_LAYER_NEURONS, ACTION_SPACE, env.observation_space.shape[0])
+target = DQN(HIDDEN_LAYER_NEURONS, ACTION_SPACE, env.observation_space.shape[0])
+target.parameters = model.parameters
 #print(model.parameters)
 
 optimizer = optim.Adam(model.parameters(), LEARNING_RATE)
@@ -69,14 +79,12 @@ cum_reward = []
 
 
 def select_action(state_pred):
-    #global steps_done
     sample = random.random()
-    '''eps_threshold = EPS_END + (EPS_START - EPS_END) * \
-        math.exp(-1. * steps_done / EPS_DECAY)
-    steps_done += 1
-    eps_threshold = 0.2'''
-    eps_threshold = EPSILON
-    if sample > eps_threshold:
+    global EPSILON
+    epsilon_old = EPSILON
+    if EPSILON > EPS_END and memory.size_mem() > INITIAL_REPLAY:
+        EPSILON -= EPSILON_STEP
+    if sample > epsilon_old and memory.size_mem() > INITIAL_REPLAY:
         with torch.no_grad():
             #change predicted states to torch tensor
             state_pred = torch.from_numpy(state_pred).type(FloatTensor).unsqueeze(0)
@@ -91,13 +99,12 @@ def select_action(state_pred):
         #return a random action of the action space
         return torch.tensor(np.array([[env.action_space.sample()]]))
 
-
+total_steps = 1
 for epi in range(EPISODES):
     cum_reward.append(0)
     state = env.reset()
     step = 0
-    steps_done = 0
-    loss = 100
+    total_loss = 0
 
     while True:
         action = select_action(state)
@@ -111,7 +118,9 @@ for epi in range(EPISODES):
             env.render()
 
         #training
-        if memory.size_mem() > BATCH_SIZE:
+        #if memory.size_mem() > BATCH_SIZE:
+        if memory.size_mem() > INITIAL_REPLAY:
+
             states, actions, rewards, next_states = memory.random_batch(BATCH_SIZE)
 
             #find the index to the given action
@@ -130,11 +139,17 @@ for epi in range(EPISODES):
 
             #loss = F.smooth_l1_loss(current_q_values, expected_q_values.type(FloatTensor))
             loss = F.mse_loss(current_q_values, expected_q_values.type(FloatTensor))
+            total_loss += loss.item()
 
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
+            total_steps += 1
+            #update the model weights with the target parameters
+            if total_steps % TARGET_UPDATE == 0:
+                total_steps = 1
+                target.parameters = model.parameters
         state = state_follows
         step += 1
 
@@ -142,6 +157,6 @@ for epi in range(EPISODES):
             break'''
         if step == 500:
             break
-    print(cum_reward[-1], epi, loss)
+    print(step, cum_reward[-1], epi, total_loss, EPSILON)
 plt.plot(cum_reward)
 plt.show()
