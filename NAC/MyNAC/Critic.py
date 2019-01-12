@@ -9,8 +9,9 @@ import keras.backend as K
 
 import tensorflow as tf
 
+
 class Critic:
-    def __init__(self, env):
+    def __init__(self, env, sess):
         self.env = env
 
         self.critic_state_input, self.critic_action_input, \
@@ -40,3 +41,9 @@ class Critic:
     def predict(self, state, action):
         """Return future reward"""
         return self.critic_model.predict([state, action])[0][0]
+
+    def get_weights(self):
+        self.critic_model.get_weights()
+
+    def set_weights(self, weights):
+        self.critic_model.set_weights(weights)
