@@ -11,6 +11,8 @@ from MyNAC.ReplayBuffer import ReplayBuffer
 from MyNAC.Actor import Actor
 from MyNAC.Critic import Critic
 
+""" Natural Actor Critic from Yannik Frisch, Tabea Wilke & Max A. Gehrke"""
+
 UPDATES = 10
 EPISODES = 10
 N = 200
@@ -19,6 +21,7 @@ ALPHA = 0.05
 GAMMA = 0.9
 
 def main():
+    """ Here we implement episodic NAC """
 
     sess = tf.Session()
     K.set_session(sess)

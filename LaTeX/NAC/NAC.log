@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.12.30)  11 JAN 2019 15:30
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.12.30)  12 JAN 2019 21:29
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -316,11 +316,11 @@ Underfull \hbox (badness 10000) in paragraph at lines 163--166
 
 [2] (./NAC.bbl [3]) [4] (./NAC.aux) ) 
 Here is how much of TeX's memory you used:
- 3436 strings out of 493014
- 47946 string characters out of 6133350
- 115548 words of memory out of 5000000
- 6932 multiletter control sequences out of 15000+600000
- 10646 words of font info for 38 fonts, out of 8000000 for 9000
+ 3432 strings out of 493014
+ 47931 string characters out of 6133350
+ 115296 words of memory out of 5000000
+ 6927 multiletter control sequences out of 15000+600000
+ 10992 words of font info for 39 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  38i,10n,23p,358b,548s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2016/texmf-dist/fonts/
@@ -340,11 +340,12 @@ ts/cm/cmr7.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/
 cm/cmr8.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/
 cmsy10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/c
 msy7.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cms
-y8.pfb>
-Output written on NAC.pdf (4 pages, 182430 bytes).
+y8.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmti1
+0.pfb>
+Output written on NAC.pdf (4 pages, 197417 bytes).
 PDF statistics:
- 85 PDF objects out of 1000 (max. 8388607)
- 61 compressed objects within 1 object stream
+ 89 PDF objects out of 1000 (max. 8388607)
+ 64 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

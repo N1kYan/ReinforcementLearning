@@ -1,40 +1,35 @@
-\begin{thebibliography}{6}
-\providecommand{\natexlab}[1]{#1}
-\providecommand{\url}[1]{{#1}}
-\providecommand{\urlprefix}{URL }
-\expandafter\ifx\csname urlstyle\endcsname\relax
-  \providecommand{\doi}[1]{DOI~\discretionary{}{}{}#1}\else
-  \providecommand{\doi}{DOI~\discretionary{}{}{}\begingroup
-  \urlstyle{rm}\Url}\fi
-\providecommand{\eprint}[2][]{\url{#2}}
+\begin{thebibliography}{1}
 
-\bibitem[{Bhatnagar et~al.(2008)Bhatnagar, Ghavamzadeh, Lee, and
-  Sutton}]{bhatnagar2008incremental}
-Bhatnagar S, Ghavamzadeh M, Lee M, Sutton RS (2008) Incremental natural
-  actor-critic algorithms. In: Advances in neural information processing
-  systems, pp 105--112
+\bibitem{bhatnagar2008incremental}
+Shalabh Bhatnagar, Mohammad Ghavamzadeh, Mark Lee, and Richard~S Sutton.
+\newblock Incremental natural actor-critic algorithms.
+\newblock In {\em Advances in neural information processing systems}, pages
+  105--112, 2008.
 
-\bibitem[{Bhatnagar et~al.(2009)Bhatnagar, Sutton, Ghavamzadeh, and
-  Lee}]{bhatnagar2009natural}
-Bhatnagar S, Sutton RS, Ghavamzadeh M, Lee M (2009) Natural actor--critic
-  algorithms. Automatica 45(11):2471--2482
+\bibitem{bhatnagar2009natural}
+Shalabh Bhatnagar, Richard~S Sutton, Mohammad Ghavamzadeh, and Mark Lee.
+\newblock Natural actor--critic algorithms.
+\newblock {\em Automatica}, 45(11):2471--2482, 2009.
 
-\bibitem[{Dann et~al.(2014)Dann, Neumann, and Peters}]{dann2014policy}
-Dann C, Neumann G, Peters J (2014) Policy evaluation with temporal differences:
-  A survey and comparison. The Journal of Machine Learning Research
-  15(1):809--883
+\bibitem{dann2014policy}
+Christoph Dann, Gerhard Neumann, and Jan Peters.
+\newblock Policy evaluation with temporal differences: A survey and comparison.
+\newblock {\em The Journal of Machine Learning Research}, 15(1):809--883, 2014.
 
-\bibitem[{Peters and Schaal(2008{\natexlab{a}})}]{peters2008natural}
-Peters J, Schaal S (2008{\natexlab{a}}) Natural actor-critic. Neurocomputing
-  71(7-9):1180--1190
+\bibitem{peters2008natural}
+Jan Peters and Stefan Schaal.
+\newblock Natural actor-critic.
+\newblock {\em Neurocomputing}, 71(7-9):1180--1190, 2008.
 
-\bibitem[{Peters and Schaal(2008{\natexlab{b}})}]{peters2008reinforcement}
-Peters J, Schaal S (2008{\natexlab{b}}) Reinforcement learning of motor skills
-  with policy gradients. Neural networks 21(4):682--697
+\bibitem{peters2008reinforcement}
+Jan Peters and Stefan Schaal.
+\newblock Reinforcement learning of motor skills with policy gradients.
+\newblock {\em Neural networks}, 21(4):682--697, 2008.
 
-\bibitem[{Peters et~al.(2005)Peters, Vijayakumar, and
-  Schaal}]{peters2005natural}
-Peters J, Vijayakumar S, Schaal S (2005) Natural actor-critic. In: European
-  Conference on Machine Learning, Springer, pp 280--291
+\bibitem{peters2005natural}
+Jan Peters, Sethu Vijayakumar, and Stefan Schaal.
+\newblock Natural actor-critic.
+\newblock In {\em European Conference on Machine Learning}, pages 280--291.
+  Springer, 2005.
 
 \end{thebibliography}
