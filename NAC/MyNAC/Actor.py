@@ -37,7 +37,7 @@ class Actor:
         :return: the gradients of the actor network for 'input_state'
         """
         grads = self.sess.run(tf.gradients(self.actor_model.output,
-                                           self.actor_state_input),
+                                           self.actor_model.trainable_weights),
                               feed_dict={self.actor_state_input:  input_state}
                               )[0]
 

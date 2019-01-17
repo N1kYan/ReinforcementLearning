@@ -63,7 +63,7 @@ env = gym.make("CartpoleSwingShort-v0")
 #env = gym.make("Pendulum-v0")
 
 #define a new discrete action space
-env.action_space =ActionDisc(env.action_space.high, env.action_space.low, ACTION_SPACE)
+env.action_space = ActionDisc(env.action_space.high, env.action_space.low, ACTION_SPACE)
 
 #creates the replay buffer and the neural network
 memory = MemoryDQN(REPLAY_SIZE)

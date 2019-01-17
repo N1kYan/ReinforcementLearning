@@ -62,6 +62,8 @@ grestore
 
 %\usepackage{hyperref}
 
+\newcommand{\x}{\item}
+
 
 % please place your own definitions here and don't use \def but
 % \newcommand{}{}
@@ -113,9 +115,13 @@ Natural Actor Critic:
 	\item 3rd version: RL of motor skills with policy gradients in NN \cite{peters2008reinforcement}.
 \end{itemize}
 
-\noindent Recommended by Jan:
+\noindent Must read paper to understand basics by Jan:
 \begin{itemize}
 	\item Policy Evaluation with TD \cite{dann2014policy}.
+\end{itemize}
+
+\noindent Recommended by Jan:
+\begin{itemize}
 	\item Incremental NAC algorithms \cite{bhatnagar2008incremental}.
 	\item Jan said that a paper form C. Dann is very important. Did he mean Policy Evaluation with TD by Dann or did he mean a second paper?
 \end{itemize}
@@ -158,6 +164,39 @@ Meetings:
 \end{itemize}
 
 % ---------------------- eNAC --------------------------------- %
+
+\section{Ideas}
+\subsection{Fitted NAC}
+
+\begin{align}
+	\pi(a|s) = p(a|s, \Theta) = \mathcal{N}(a|\mu = NN_{\Theta}(s), \sigma) \\
+	f(s,a) = \log p(a|s, \Theta)^T w \\
+	f_V(s) = NN_V(s) \\
+	\text{''fitted''}\\
+	\min_{V_t, W_t} (r(s,a) + \gamma f_{V_{t+1}}(s') - f_{V_t}(s) + f_{W_t}(s,a))^2
+\end{align}
+
+
+
+\subsection{Ideas of TRPO}
+
+
+\subsection{Other Extentions}
+
+\begin{itemize}
+	\x stochastic
+	\x minibatches
+	\x importance sampling:
+\end{itemize}
+
+\begin{align}
+	V_{\Theta} J = \sum \mu(s) \pi'(a|s) \nabla \log \pi'(a|s) Q^{\pi'}(a|s) \\
+	\approx \dfrac{1}{N} \sum \nabla \log \pi'(a|s) Q(s,a) = g(\Theta)
+\end{align}
+
+
+
+
 
 \section{Episodic NAC}
 Important to understand beforehand: In episodic NAC, our system of equations has one equation per trajectory and not one equation per action as in the normal NAC algorithm.
