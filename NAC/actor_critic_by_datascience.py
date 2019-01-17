@@ -1,5 +1,9 @@
 """
 solving pendulum using actor-critic model
+
+https://towardsdatascience.com/
+reinforcement-learning-w-keras-openai-actor-critic-models-f084612cfd69
+
 """
 
 import gym

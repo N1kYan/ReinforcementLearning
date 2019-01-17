@@ -85,7 +85,7 @@ def main():
 
             env.reset()
 
-            # TODO: add w_tau later on via deque. atm we have a delay of 1
+            # TODO: add w_tau later via deque. atm we have a delay of 1
             w_old = w_new
 
 
