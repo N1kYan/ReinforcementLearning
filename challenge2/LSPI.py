@@ -150,21 +150,26 @@ print("Discrete Action Space: ", A)
 kleinvieh = [
     # lambda s, a: s[0]*s[1]*s[2]*s[3]*s[4]*a,
     lambda s, a: 1,
-    lambda s, a: np.sin(s[0])**2 * a,
-    lambda s, a: np.sin(s[1])**2 * a,
-    # lambda s, a: np.sin(s[2])**2 * a,
+    # lambda s, a: a,
+    lambda s, a: np.abs(np.sin(s[0])) * a,
+    lambda s, a: np.abs(np.sin(s[1])) * a,
+    # lambda s, a: np.abs(np.sin(s[2])) * a,
+    # lambda s, a: - np.abs(np.sin(s[2])) * a,
+
     # lambda s, a: np.sin(s[3])**2 * a,
     # lambda s, a: np.sin(s[4])**2 * a,
     # lambda s, a: np.exp(s[0]) * a,
     # lambda s, a: np.exp(s[1]) * a,
-    lambda s, a: np.exp(s[2]) * a,
+    # lambda s, a: np.exp(s[2]) * a,
     # lambda s, a: np.exp(s[3]) * a,
     # lambda s, a: np.exp(s[4]) * a,
-    # lambda s, a: np.cos(s[0])**2 * a,
-    lambda s, a: np.cos(s[1])**2 * a,
-    lambda s, a: np.cos(s[2])**2 * a,
+    # lambda s, a: np.abs(np.cos(s[0])) * a,
+    # lambda s, a: np.abs(np.cos(s[1])) * a,
+    lambda s, a: np.abs(np.cos(s[2])) * a,
     # lambda s, a: np.cos(s[3])**2 * a,
     # lambda s, a: np.cos(s[4])**2 * a,
+    lambda s, a: s[3]*np.abs(a),
+    lambda s, a: s[4]*np.abs(a),
 
 ]
 

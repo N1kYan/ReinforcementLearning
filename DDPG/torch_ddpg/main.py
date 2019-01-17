@@ -18,17 +18,17 @@ from torch_ddpg.ActionNoise import OUNoise
 # TODO: Forumeintrag anschauen und einarbeiten
 
 
-BUFFER_SIZE = int(1e6)  # replay buffer size #100000
-BATCH_SIZE = 64       # minibatch size #128
-GAMMA = 0.99            # discount factor #0.99
-TAU = 1e-3                 # for soft update of target parameters #1e-3
-LR_ACTOR = 1e-4         # learning rate of the actor #1e-5
-LR_CRITIC = 1e-3        # learning rate of the critic #1e-4
-WEIGHT_DECAY = 1e-2        # L2 weight decay #0
+BUFFER_SIZE = int(1e6)  # replay buffer size #1e6
+BATCH_SIZE = 1024      # minibatch size #64
+GAMMA = 0.9            # discount factor #0.99
+TAU = 1e-2                # for soft update of target parameters #1e-3
+LR_ACTOR = 1e-4        # learning rate of the actor #1e-4
+LR_CRITIC = 1e-3        # learning rate of the critic #1e-3
+WEIGHT_DECAY = 0        # L2 weight decay #1e-2
 
 
-# env = gym.make('Qube-v0')
-# env = gym.make('Pendulum-v0')
+#env = gym.make('Qube-v0')
+#env = gym.make('Pendulum-v0')
 env = gym.make('BallBalancerSim-v0')
 print(env.spec)
 print("State Space Shape: {}\nLow: {}\nHigh: {}".format(np.shape(env.reset()),
@@ -47,7 +47,7 @@ update_frequency = 1
 env.seed(random_seed)
 
 # Noise generating process
-OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.25, sigma=2.2)
+OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.15, sigma=0.2)
 
 
 # DDPG learning agent
@@ -87,7 +87,7 @@ def evaluation(epochs=25, render=False):
         env.close()
 
 
-def training(epochs=1000, max_steps=500, epoch_checkpoint=250, render=False):
+def training(epochs=2000, max_steps=500, epoch_checkpoint=100, render=True):
     """
     Runs the training process on the gym environment.
     Then plots the cumulative reward per episode.
@@ -99,6 +99,9 @@ def training(epochs=1000, max_steps=500, epoch_checkpoint=250, render=False):
     :return: None
     """
 
+    # Reset agent's noise generator
+    AGENT.reset()
+
     # Measure the time we need to learn
     time_start = time.time()
 
@@ -108,7 +111,7 @@ def training(epochs=1000, max_steps=500, epoch_checkpoint=250, render=False):
     e_cumulative_rewards = []
     for e in range(1, epochs + 1):
         state = env.reset()
-        AGENT.reset()
+        # AGENT.reset()
         cumulative_reward = 0
         t = 0
         for t_i in range(max_steps):
@@ -132,7 +135,7 @@ def training(epochs=1000, max_steps=500, epoch_checkpoint=250, render=False):
               format(e, np.mean(scores_deque), t, (time.time() - time_start)/60), end="")
         if e % epoch_checkpoint == 0:
             # Print cumulative reward per episode averaged over #epoch_checkpoint episodes
-            print('\rEpisode {}\tAverage Reward: {:.2f}\t({:.2f} min elapsed)'.
+            print('\rEpisode {}\tAverage Reward: {:.3f}\t({:.2f} min elapsed)'.
                   format(e, np.mean(scores_deque), (time.time() - time_start)/60))
 
     print("Learning weights took {:.2f} min.".format((time.time() - time_start) / 60 ))
