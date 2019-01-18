@@ -49,9 +49,9 @@ class Actor:
         # Check which action to take
         probs_sum = 0
         action = None
+        rnd = random.uniform(0, 1)
         for i in range(self.disc_actions.length()):
-            probs_sum += probs[0][i] # TODO: is this access correct?
-            rnd = random.uniform(0, 1)
+            probs_sum += probs[0][i]  # TODO: is this access correct?
             if rnd < probs_sum:
                 action = i
 

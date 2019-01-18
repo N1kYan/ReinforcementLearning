@@ -65,7 +65,7 @@ env = gym.make("CartpoleSwingShort-v0")
 # define a new discrete action space
 env.action_space = ActionDisc(env.action_space.high, env.action_space.low, ACTION_SPACE)
 
-# creates the replay buffer and the neural network
+# create the replay buffer and the neural networks
 memory = MemoryDQN(REPLAY_SIZE)
 model = DQN(HIDDEN_LAYER_NEURONS, ACTION_SPACE, env.observation_space.shape[0])
 target = DQN(HIDDEN_LAYER_NEURONS, ACTION_SPACE, env.observation_space.shape[0])
@@ -87,7 +87,8 @@ def select_action(state_pred):
     if sample > epsilon_old and memory.size_mem() > INITIAL_REPLAY:
         with torch.no_grad():
             # change predicted states to torch tensor
-            state_pred = torch.from_numpy(state_pred).type(FloatTensor).unsqueeze(0)
+            state_pred = torch.from_numpy(state_pred)\
+                .type(FloatTensor).unsqueeze(0)
             # predict the actions to the given states
             pred_actions = model(Variable(state_pred))
             # find the action with the best q-value
@@ -98,6 +99,7 @@ def select_action(state_pred):
     else:
         # return a random action of the action space
         return torch.tensor(np.array([[env.action_space.sample()]]))
+
 
 total_steps = 1
 for epi in range(EPISODES):
@@ -121,12 +123,14 @@ for epi in range(EPISODES):
         # if memory.size_mem() > BATCH_SIZE:
         if memory.size_mem() > INITIAL_REPLAY:
 
-            states, actions, rewards, next_states = memory.random_batch(BATCH_SIZE)
+            states, actions, rewards, next_states = \
+                memory.random_batch(BATCH_SIZE)
 
             # find the index to the given action
             actions = env.action_space.contains(actions)
             # repeat it for the gather method of torch
-            actions = np.array(actions).repeat(ACTION_SPACE).reshape(BATCH_SIZE,ACTION_SPACE)
+            actions = np.array(actions).repeat(ACTION_SPACE)\
+                .reshape(BATCH_SIZE, ACTION_SPACE)
             # change it to a long tensor (instead of a float tensor)
             actions = LongTensor(actions)
 
