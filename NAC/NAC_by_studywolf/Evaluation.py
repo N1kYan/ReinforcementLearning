@@ -6,6 +6,10 @@ import tensorflow as tf
 
 
 def evaluate(env, policy_grad, episodes, render, sleep, sess):
+    time_steps = 100000
+
+    print("\nEVALUATION: {} episodes with {} time steps each (or until 'done')"
+          .format(episodes, time_steps))
 
     # unpack the policy network (generates control policy)
     (pl_calculated, pl_state, pl_actions,
@@ -14,7 +18,7 @@ def evaluate(env, policy_grad, episodes, render, sleep, sess):
     for e in range(episodes):
         done = False
         observation = env.reset()
-        for t in range(10000):
+        for t in range(time_steps):
             # Render environment
             if render:
                 env.render()

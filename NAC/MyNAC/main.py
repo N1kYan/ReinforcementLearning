@@ -10,8 +10,11 @@ import sys
 from MyNAC.ReplayBuffer import ReplayBuffer
 from MyNAC.Actor import Actor
 from MyNAC.Critic import Critic
+from MyNAC.ActionDisc import ActionDisc
 
 """ Natural Actor Critic from Yannik Frisch, Tabea Wilke & Max A. Gehrke"""
+
+ENV_NAME = 'CartPole-v0'
 
 UPDATES = 10
 EPISODES = 10
@@ -20,21 +23,31 @@ EPSILON = 0.1
 ALPHA = 0.05
 GAMMA = 0.9
 
+# TODO: shall the action selection of the actor be stochastic or deterministic
+det_action_select = True
+NUM_OF_ACTIONS = 2
+
 def main():
     """ Here we implement episodic NAC """
 
     sess = tf.Session()
     K.set_session(sess)
 
-    env = gym.make("Pendulum-v0")
+    env = gym.make(ENV_NAME)
 
     print("\n######")
     print(env.spec)
     print("Observation Space: {}".format(env.observation_space.shape))
     print("Action Space: {}".format(env.action_space.shape))
 
+    disc_actions = ActionDisc(high=env.action_space.high,
+                              low=env.action_space.low,
+                              number=NUM_OF_ACTIONS)
+
     memory = ReplayBuffer()
-    actor = Actor(env=env, sess=sess)
+    actor = Actor(env=env, sess=sess,
+                  det_action_select=det_action_select,
+                  disc_actions=disc_actions)
     critic = Critic(env=env, sess=sess)
 
     state = env.reset()
@@ -75,7 +88,7 @@ def main():
 
                 w_new_and_J = tf.linalg.inv(Phi_e * Phi_e) * Phi_e * R_e
                 w_new, J_test = w_new_and_J[:-1], w_new_and_J[-1]
-                assert(J, J_test)
+                assert J == J_test
                 critic.set_weights(w_new)
 
 

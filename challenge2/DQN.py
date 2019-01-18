@@ -15,7 +15,7 @@ import torch.nn.functional as F
 
 
 class ActionDisc(gym.Space):
-    #self defined action space
+    # self defined action space
     def __init__(self, high, low, number):
         gym.Space.__init__(self, (), np.float)
         self.high = high
@@ -28,10 +28,10 @@ class ActionDisc(gym.Space):
         return random.choice(self.space)
 
     def contains(self, x):
-        '''
+        """
         :param x: action space values (as array or similar)
         :return: index of the given actions (as list)
-        '''
+        """
         indices = []
         for i in x:
             indices.append(np.where(self.space==i)[0][0])
@@ -50,7 +50,7 @@ LEARNING_RATE = 0.001
 ACTION_SPACE = 10 #49
 EPS_START = 1
 EPS_END = 0.1
-#EXPLORATION_STEPS = 30000
+# EXPLORATION_STEPS = 30000
 EXPLORATION_STEPS = 1000
 
 INITIAL_REPLAY = 1000
@@ -60,17 +60,17 @@ TARGET_UPDATE = 50
 EPSILON = 1
 EPSILON_STEP = (EPS_START-EPS_END)/EXPLORATION_STEPS
 env = gym.make("CartpoleSwingShort-v0")
-#env = gym.make("Pendulum-v0")
+# env = gym.make("Pendulum-v0")
 
-#define a new discrete action space
+# define a new discrete action space
 env.action_space = ActionDisc(env.action_space.high, env.action_space.low, ACTION_SPACE)
 
-#creates the replay buffer and the neural network
+# creates the replay buffer and the neural network
 memory = MemoryDQN(REPLAY_SIZE)
 model = DQN(HIDDEN_LAYER_NEURONS, ACTION_SPACE, env.observation_space.shape[0])
 target = DQN(HIDDEN_LAYER_NEURONS, ACTION_SPACE, env.observation_space.shape[0])
 target.parameters = model.parameters
-#print(model.parameters)
+# print(model.parameters)
 
 optimizer = optim.Adam(model.parameters(), LEARNING_RATE)
 
@@ -86,17 +86,17 @@ def select_action(state_pred):
         EPSILON -= EPSILON_STEP
     if sample > epsilon_old and memory.size_mem() > INITIAL_REPLAY:
         with torch.no_grad():
-            #change predicted states to torch tensor
+            # change predicted states to torch tensor
             state_pred = torch.from_numpy(state_pred).type(FloatTensor).unsqueeze(0)
-            #predict the actions to the given states
+            # predict the actions to the given states
             pred_actions = model(Variable(state_pred))
-            #find the action with the best q-value
+            # find the action with the best q-value
             max_action = pred_actions.max(1)[1]
-            #return the best action as tensor
+            # return the best action as tensor
             return torch.tensor(np.array([[env.action_space.space[max_action]]]))
-    #exploration
+    # exploration
     else:
-        #return a random action of the action space
+        # return a random action of the action space
         return torch.tensor(np.array([[env.action_space.sample()]]))
 
 total_steps = 1
@@ -117,28 +117,32 @@ for epi in range(EPISODES):
         if epi == EPISODES - 1:
             env.render()
 
-        #training
-        #if memory.size_mem() > BATCH_SIZE:
+        # training
+        # if memory.size_mem() > BATCH_SIZE:
         if memory.size_mem() > INITIAL_REPLAY:
 
             states, actions, rewards, next_states = memory.random_batch(BATCH_SIZE)
 
-            #find the index to the given action
+            # find the index to the given action
             actions = env.action_space.contains(actions)
-            #repeat it for the gather method of torch
+            # repeat it for the gather method of torch
             actions = np.array(actions).repeat(ACTION_SPACE).reshape(BATCH_SIZE,ACTION_SPACE)
-            #change it to a long tensor (instead of a float tensor)
+            # change it to a long tensor (instead of a float tensor)
             actions = LongTensor(actions)
 
-            #for each q-value(for each state in the batch and for each action), take the one from the chosen action
+            # for each q-value(for each state in the batch and for each action)
+            # take the one from the chosen action
             current_q_values = model(states).gather(dim=1, index=actions)[:, 0]
 
-            # neural net estimates the q-values for the next states, take the ones with the highest values
+            # neural net estimates the q-values for the next states
+            # take the ones with the highest values
             max_next_q_values = model(next_states).detach().max(1)[0]
             expected_q_values = rewards + (GAMMA * max_next_q_values)
 
-            #loss = F.smooth_l1_loss(current_q_values, expected_q_values.type(FloatTensor))
-            loss = F.mse_loss(current_q_values, expected_q_values.type(FloatTensor))
+            # loss = F.smooth_l1_loss(current_q_values,
+            #                       expected_q_values.type(FloatTensor))
+            loss = F.mse_loss(current_q_values,
+                              expected_q_values.type(FloatTensor))
             total_loss += loss.item()
 
             optimizer.zero_grad()
@@ -146,7 +150,7 @@ for epi in range(EPISODES):
             optimizer.step()
 
             total_steps += 1
-            #update the model weights with the target parameters
+            # update the model weights with the target parameters
             if total_steps % TARGET_UPDATE == 0:
                 total_steps = 1
                 target.parameters = model.parameters
