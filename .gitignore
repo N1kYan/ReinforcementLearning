@@ -31,3 +31,9 @@
 *.idea
 __pycache__/
 *.pyc
+
+# latex compilation files #
+*.aux
+*.log
+*.bbl
+*.blg
