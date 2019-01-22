@@ -59,10 +59,13 @@ AGENT = Agent(state_size=env_observation_size, action_size=env_action_size,
               weight_decay=WEIGHT_DECAY, noise_generator=OU_NOISE)
 
 
-def evaluation(epochs=25, render=False):
+def evaluation(load_flag=True, actor='.\actor22-1-18', epochs=25, render=False):
     """
+    Loads saved actor/agent if available.
     Evaluates the trained agent on the environment (both declaired above).
     Plots the reward per timestep for every episode.
+    :param load_flag: Declines whether to load the actor from a saved pytorch object
+    :param actor: Path leading to saved pytorch actor object
     :param epochs: Episodes for evaluation
     :param render: Set true to render the evaluation episodes
     :return: None
@@ -71,6 +74,11 @@ def evaluation(epochs=25, render=False):
     plt.title("Rewards during evaluation")
     plt.xlabel("Time-step")
     plt.ylabel("Current reward")
+
+    # Load actor if load_flag=True and actor path available
+    if load_flag:
+        actor = ...
+
     for e in range(1, epochs + 1):
         state = env.reset()
         rewards = []
@@ -93,6 +101,7 @@ def training(epochs=1, max_steps=500, epoch_checkpoint=500, render=True):
     """
     Runs the training process on the gym environment.
     Then plots the cumulative reward per episode.
+    Saves actor and critic torch model.
     :param epochs: Number of epochs for training
     :param max_steps: Maximum time-steps for each training epoch;
      Does end epochs for environments, which epochs are not time limited
@@ -140,8 +149,8 @@ def training(epochs=1, max_steps=500, epoch_checkpoint=500, render=True):
 
     # Save torch model of actor and critic
     t = datetime.datetime.now()
-    torch.save(AGENT.actor_local.state_dict(), './actor {}-{}'.format(t.day, t.month))
-    torch.save(AGENT.critic_local.state_dict(), './critic {}-{}'.format(t.day, t.month))
+    torch.save(AGENT.actor_local.state_dict(), './actor{}-{}-{}'.format(t.day, t.month, t.hour))
+    torch.save(AGENT.critic_local.state_dict(), './critic{}-{}-{}'.format(t.day, t.month, t.hour))
 
 
     # Plot the cumulative reward per episode during training process
