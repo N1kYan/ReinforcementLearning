@@ -4,7 +4,9 @@ import numpy as np
 from collections import deque
 import matplotlib.pyplot as plt
 import time
+import datetime
 import sys
+import torch
 from torch_ddpg.DDPGAgent import Agent
 from torch_ddpg.ActionNoise import OUNoise
 
@@ -19,9 +21,9 @@ from torch_ddpg.ActionNoise import OUNoise
 
 
 BUFFER_SIZE = int(1e6)  # replay buffer size #1e6
-BATCH_SIZE = 1024      # minibatch size #64
-GAMMA = 0.9            # discount factor #0.99
-TAU = 1e-2                # for soft update of target parameters #1e-3
+BATCH_SIZE = 64      # minibatch size #64
+GAMMA = 0.99            # discount factor #0.99
+TAU = 1e-4                # for soft update of target parameters #1e-3
 LR_ACTOR = 1e-4        # learning rate of the actor #1e-4
 LR_CRITIC = 1e-3        # learning rate of the critic #1e-3
 WEIGHT_DECAY = 0        # L2 weight decay #1e-2
@@ -47,7 +49,7 @@ update_frequency = 1
 env.seed(random_seed)
 
 # Noise generating process
-OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.15, sigma=0.2)
+OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.15, sigma=0.1)
 
 
 # DDPG learning agent
@@ -87,7 +89,7 @@ def evaluation(epochs=25, render=False):
         env.close()
 
 
-def training(epochs=2000, max_steps=500, epoch_checkpoint=100, render=True):
+def training(epochs=1, max_steps=500, epoch_checkpoint=500, render=True):
     """
     Runs the training process on the gym environment.
     Then plots the cumulative reward per episode.
@@ -119,10 +121,7 @@ def training(epochs=2000, max_steps=500, epoch_checkpoint=100, render=True):
             if (e % epoch_checkpoint == 0) and render:
                 env.render()
             action = AGENT.act(state)
-            # print(action)
             next_state, reward, done, _ = env.step(action)
-            # print(reward)
-            # reward = reward*1000  # Qube-v0 rewards are VERY small; only for debugging
             AGENT.step(state, action, reward, next_state, done)
             state = next_state
             cumulative_reward += reward
@@ -138,8 +137,12 @@ def training(epochs=2000, max_steps=500, epoch_checkpoint=100, render=True):
             print('\rEpisode {}\tAverage Reward: {:.3f}\t({:.2f} min elapsed)'.
                   format(e, np.mean(scores_deque), (time.time() - time_start)/60))
 
-    print("Learning weights took {:.2f} min.".format((time.time() - time_start) / 60 ))
-    print("Final average cumulative reward", np.mean(e_cumulative_rewards))
+
+    # Save torch model of actor and critic
+    t = datetime.datetime.now()
+    torch.save(AGENT.actor_local.state_dict(), './actor {}-{}'.format(t.day, t.month))
+    torch.save(AGENT.critic_local.state_dict(), './critic {}-{}'.format(t.day, t.month))
+
 
     # Plot the cumulative reward per episode during training process
     fig = plt.figure()
