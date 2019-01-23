@@ -1,6 +1,7 @@
 from __future__ import print_function
 import sys
 import gym
+import pickle
 import quanser_robots
 import numpy as np
 import matplotlib.pyplot as plt
@@ -18,7 +19,7 @@ def basis_functions():
         # lambda s, a: a,
         lambda s, a: np.abs(np.sin(s[0])) * a,
         lambda s, a: np.abs(np.sin(s[1])) * a,
-        # lambda s, a: np.abs(np.sin(s[2])) * a,
+        lambda s, a: np.abs(np.sin(s[2])) * a,
         # lambda s, a: - np.abs(np.sin(s[2])) * a,
 
         # lambda s, a: np.sin(s[3])**2 * a,
@@ -29,10 +30,10 @@ def basis_functions():
         # lambda s, a: np.exp(s[3]) * a,
         # lambda s, a: np.exp(s[4]) * a,
         # lambda s, a: np.abs(np.cos(s[0])) * a,
-        # lambda s, a: np.abs(np.cos(s[1])) * a,
+        lambda s, a: np.abs(np.cos(s[1])) * a,
         lambda s, a: np.abs(np.cos(s[2])) * a,
-        # lambda s, a: np.cos(s[3])**2 * a,
-        # lambda s, a: np.cos(s[4])**2 * a,
+        lambda s, a: np.cos(s[3])**2 * a,
+        lambda s, a: np.cos(s[4])**2 * a,
         lambda s, a: s[3] * np.abs(a),
         lambda s, a: s[4] * np.abs(a),
     ]
@@ -134,15 +135,19 @@ def sample(epochs):
     return D
 
 
-def evaluate(w_star, episodes=25, render=False, plot=True):
+def evaluate(w_star=None, episodes=25, render=False, plot=True, load_flag=True):
     """
     Evaluate the learned weights/policy.
     :param w_star: Learned weights
     :param episodes: Episodes for evaluation
     :param render: Set true to render the episodes
     :param plot: Set true to plot rewards per episode
+    :param load_flag: Set true to lead learned weights from file
     :return: None
     """
+    if load_flag:
+        w_star = pickle.load(open("lspi_weights.p", "rb"))
+
     print("Evaluating...", end='')
     sys.stdout.flush()
     if plot:
@@ -178,13 +183,14 @@ def evaluate(w_star, episodes=25, render=False, plot=True):
     print("done")
 
 
-def train(my_env, sample_epochs=10000, gamma=0.99, epsilon=1):
+def train(my_env, sample_epochs=10000, gamma=0.99, epsilon=0.01, save_flag=True):
     """
     Set environment, discretize action Space and run LSPI training.
     :param my_env: The gym environment
     :param sample_epochs: Episodes for samling D
     :param gamma: Discount factor gamma  # 0.95
     :param epsilon: Convergence criterium  # 1
+    :param save_flag: Set true to save learned weights to file
     :return: learned weights w_star
     """
     # Define gym environment
@@ -209,13 +215,17 @@ def train(my_env, sample_epochs=10000, gamma=0.99, epsilon=1):
     for i in range(len(w_0)):
         w_0[i] = np.random.rand() ** 3
     # w_0.fill(20)
-    # w_0 = np.zeros(shape=(len(kleinvieh), 1))
+    # w_0 = np.zeros(shape=(len(basis_functions), 1))
 
     # Run LSPI algorithm
     print("Learning...")
     w_star = lspi(D=D, phi=basis_functions(), gamma=gamma, epsilon=epsilon, w_0=w_0)
     print("w*:", w_star)
     print("...done")
+
+    # Save learned weights in text file
+    if save_flag:
+        pickle.dump(w_star, open("lspi_weights.p", "wb"))
 
     # Return learned weights
     return w_star
@@ -224,6 +234,7 @@ def train(my_env, sample_epochs=10000, gamma=0.99, epsilon=1):
 def main():
     w_star = train(my_env='CartpoleStabShort-v0')
     evaluate(w_star=w_star)
+    # evaluate()
 
 
 if __name__ == '__main__':
