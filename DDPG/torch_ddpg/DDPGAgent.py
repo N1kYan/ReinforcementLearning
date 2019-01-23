@@ -132,7 +132,8 @@ class Agent:
         # ---------------------------- update actor ---------------------------- #
         # Compute actor loss
         actions_pred = self.actor_local(states)
-        actor_loss = -self.critic_local(states, actions_pred).mean()
+        actor_loss = -self.critic_local(states, actions_pred).mean()  # Why -L
+        # actor_loss = self.critic_local(states, actions_pred).mean()
         # Minimize the loss
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
