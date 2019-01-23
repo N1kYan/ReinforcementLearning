@@ -4,24 +4,67 @@ import gym
 import quanser_robots
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.optimize import minimize_scalar
 
 
-# Policy returning the linear combination of basis functions and weights
+def basis_functions():
+    """
+    Defines the basis functions used for linear approximation.
+
+    :return: The basis functions
+    """
+    kleinvieh = [
+        # lambda s, a: s[0]*s[1]*s[2]*s[3]*s[4]*a,
+        lambda s, a: 1,
+        # lambda s, a: a,
+        lambda s, a: np.abs(np.sin(s[0])) * a,
+        lambda s, a: np.abs(np.sin(s[1])) * a,
+        # lambda s, a: np.abs(np.sin(s[2])) * a,
+        # lambda s, a: - np.abs(np.sin(s[2])) * a,
+
+        # lambda s, a: np.sin(s[3])**2 * a,
+        # lambda s, a: np.sin(s[4])**2 * a,
+        # lambda s, a: np.exp(s[0]) * a,
+        # lambda s, a: np.exp(s[1]) * a,
+        # lambda s, a: np.exp(s[2]) * a,
+        # lambda s, a: np.exp(s[3]) * a,
+        # lambda s, a: np.exp(s[4]) * a,
+        # lambda s, a: np.abs(np.cos(s[0])) * a,
+        # lambda s, a: np.abs(np.cos(s[1])) * a,
+        lambda s, a: np.abs(np.cos(s[2])) * a,
+        # lambda s, a: np.cos(s[3])**2 * a,
+        # lambda s, a: np.cos(s[4])**2 * a,
+        lambda s, a: s[3] * np.abs(a),
+        lambda s, a: s[4] * np.abs(a),
+    ]
+    return kleinvieh
+
+
 def pi(s, w,):
+    """
+    Policy returning the liner combination of basis functions and weights
+    :param s: state
+    :param w: weights
+    :return: Linear combination (action)
+    """
     def policy_a(a):
         su = 0
-        for (mist, w_dash) in zip(kleinvieh, w):
+        for (mist, w_dash) in zip(basis_functions(), w):
             dash = mist(s, a) * w_dash
             su += dash
         return su
-    # return max((policy_a(a) for a in A))
+    global A
     return np.array([A[np.argmax([policy_a(a) for a in A])]])
-    # return np.array(max((policy_a(a) for a in A)))
 
 
-# Optimized LSTDQ
-def lstdq_opt(D, phi,gamma, w):
+def lstdq_opt(D, phi, gamma, w):
+    """
+    Optimized LSTDQ
+    :param D: Samples
+    :param phi: Basis functions
+    :param gamma: Discount factor
+    :param w: Current weights
+    :return: TODO
+    """
     k = len(phi)
     sigma = 100
     B_tilde = np.eye(N=k, M=k)*(1/sigma)
@@ -35,8 +78,15 @@ def lstdq_opt(D, phi,gamma, w):
     return np.matmul(B_tilde, b_tilde)
 
 
-# Least-Squares Temporal-Difference Q-Learning
 def lstdq(D, phi, gamma, w):
+    """
+    Least-Squares Temporal-Difference Q-Learning
+    :param D: Samples
+    :param phi: Basis functions
+    :param gamma: Discount factor
+    :param w: Current weights
+    :return: TODO
+    """
     k = len(phi)
     A_tilde = np.zeros(shape=(k, k))
     b_tilde = np.zeros(shape=(k, 1))
@@ -48,8 +98,16 @@ def lstdq(D, phi, gamma, w):
     return np.matmul(np.linalg.inv(A_tilde), b_tilde)
 
 
-# Least-Squares Policy Iteration
 def lspi(D, phi, gamma, epsilon, w_0):
+    """
+    Least-Squares Policy Iteration
+    :param D: Samples
+    :param phi: Basis functions
+    :param gamma: Discount factor
+    :param epsilon: Convergence criterion
+    :param w_0: Initial weights
+    :return: Learned optimal weights
+    """
     w_dash = w_0
     while True:
         w = w_dash
@@ -59,7 +117,7 @@ def lspi(D, phi, gamma, epsilon, w_0):
         print("Diff {} < {}: {} ".format(diff, epsilon, diff < epsilon))
         if diff < epsilon:
             break
-    return w_dash  # w?
+    return w_dash  # TODO: w?
 
 
 def sample(epochs):
@@ -76,7 +134,17 @@ def sample(epochs):
     return D
 
 
-def evaluate(w_star, episodes, render, plot):
+def evaluate(w_star, episodes=25, render=False, plot=True):
+    """
+    Evaluate the learned weights/policy.
+    :param w_star: Learned weights
+    :param episodes: Episodes for evaluation
+    :param render: Set true to render the episodes
+    :param plot: Set true to plot rewards per episode
+    :return: None
+    """
+    print("Evaluating...", end='')
+    sys.stdout.flush()
     if plot:
         plt.figure()
         # plt.title("Cumulative reward per episode")
@@ -105,73 +173,58 @@ def evaluate(w_star, episodes, render, plot):
         if plot:
             plt.plot(rewards)
             # plt.plot(cumulative_reward)
-    # Average cumulative rewards over episodes
     if plot:
-        plt.figure()
-        plt.title("Distribution of chosen actions")
-        plt.hist(x=chosen_actions, bins=len(A))
         plt.show()
-    return cumulative_reward[-1]
+    print("done")
+
+
+def train(my_env, sample_epochs=10000, gamma=0.99, epsilon=1):
+    """
+    Set environment, discretize action Space and run LSPI training.
+    :param my_env: The gym environment
+    :param sample_epochs: Episodes for samling D
+    :param gamma: Discount factor gamma  # 0.95
+    :param epsilon: Convergence criterium  # 1
+    :return: learned weights w_star
+    """
+    # Define gym environment
+    global env
+    env = gym.make(my_env)
+    print("State Space Low:", env.observation_space.low)
+    print("State Space Hight:", env.observation_space.high)
+
+    # Set discrete action space
+    global A
+    A = np.linspace(start=env.action_space.low, stop=env.action_space.high, num=7)  # 13, 25, 49
+    print("Discrete Action Space: ", A)
+
+    # Sample from environment
+    print("Sampling...", end='')
+    sys.stdout.flush()
+    D = sample(epochs=sample_epochs)
+    print("done")
+
+    # Initialize weights
+    w_0 = np.ones(shape=(len(basis_functions()), 1))
+    for i in range(len(w_0)):
+        w_0[i] = np.random.rand() ** 3
+    # w_0.fill(20)
+    # w_0 = np.zeros(shape=(len(kleinvieh), 1))
+
+    # Run LSPI algorithm
+    print("Learning...")
+    w_star = lspi(D=D, phi=basis_functions(), gamma=gamma, epsilon=epsilon, w_0=w_0)
+    print("w*:", w_star)
+    print("...done")
+
+    # Return learned weights
+    return w_star
 
 
 def main():
-    print("Sampling...", end='')
-    sys.stdout.flush()
-    D = sample(epochs=10000)
-    print("done")
-    # Initial weights
-    w_0 = np.ones(shape=(len(kleinvieh), 1))
-    for i in range(len(w_0)):
-       w_0[i] = np.random.rand()**3
-    # w_0.fill(20)
-    # w_0 = np.zeros(shape=(len(kleinvieh), 1))
-    gamma = 0.99  # 0.95  # 0.2
-    # epsilon = 1e-2
-    epsilon = 1  # should be reduced to perform better but results in super slow convergence
-    print("Learning...")
-    w_star = lspi(D=D, phi=kleinvieh, gamma=gamma, epsilon=epsilon, w_0=w_0)
-    print("w*:", w_star)
-    print("...done")
-    print("Evaluating...", end='')
-    sys.stdout.flush()
-    evaluate(w_star, episodes=25, render=False, plot=True)
-    print("done")
+    w_star = train(my_env='CartpoleStabShort-v0')
+    evaluate(w_star=w_star)
 
-
-# Define gym environment
-env = gym.make("CartpoleStabShort-v0")
-print("State Space Low:", env.observation_space.low)
-print("State Space Hight:", env.observation_space.high)
-# Set discrete action space
-A = np.linspace(start=env.action_space.low, stop=env.action_space.high, num=7)  # 13, 25, 49
-print("Discrete Action Space: ", A)
-# Define basis functions
-
-kleinvieh = [
-    # lambda s, a: s[0]*s[1]*s[2]*s[3]*s[4]*a,
-    lambda s, a: 1,
-    # lambda s, a: a,
-    lambda s, a: np.abs(np.sin(s[0])) * a,
-    lambda s, a: np.abs(np.sin(s[1])) * a,
-    # lambda s, a: np.abs(np.sin(s[2])) * a,
-    # lambda s, a: - np.abs(np.sin(s[2])) * a,
-
-    # lambda s, a: np.sin(s[3])**2 * a,
-    # lambda s, a: np.sin(s[4])**2 * a,
-    # lambda s, a: np.exp(s[0]) * a,
-    # lambda s, a: np.exp(s[1]) * a,
-    # lambda s, a: np.exp(s[2]) * a,
-    # lambda s, a: np.exp(s[3]) * a,
-    # lambda s, a: np.exp(s[4]) * a,
-    # lambda s, a: np.abs(np.cos(s[0])) * a,
-    # lambda s, a: np.abs(np.cos(s[1])) * a,
-    lambda s, a: np.abs(np.cos(s[2])) * a,
-    # lambda s, a: np.cos(s[3])**2 * a,
-    # lambda s, a: np.cos(s[4])**2 * a,
-    lambda s, a: s[3]*np.abs(a),
-    lambda s, a: s[4]*np.abs(a),
-
-]
 
 if __name__ == '__main__':
     main()
