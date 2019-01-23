@@ -33,6 +33,8 @@ will be manually analyzed to identify outstanding submissions.
 """
 
 import numpy as np
+import torch
+import DQN
 import pickle
 import LSPI
 
@@ -55,7 +57,10 @@ def load_dqn_policy():
 
     :return: function pi: s -> a
     """
-    return lambda obs: np.array([3.1415])
+    model = torch.load("model.pt")
+    model.eval()
+    return model
+    #return lambda obs: np.array([3.1415])
 
 
 def train_dqn_policy(env):
@@ -67,7 +72,9 @@ def train_dqn_policy(env):
     :param env: gym.Env
     :return: function pi: s -> a
     """
-    return lambda obs: np.array([2.7183])
+    model = DQN.run_dqn(env)
+    return model
+    #return lambda obs: np.array([2.7183])
 
 
 def load_lspi_policy():
