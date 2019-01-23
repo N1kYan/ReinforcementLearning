@@ -44,8 +44,8 @@ def run_dqn(env, save = False):
     FloatTensor = torch.FloatTensor
     LongTensor = torch.LongTensor
 
-    EPISODES = 200
-    BATCH_SIZE = 100
+    EPISODES = 100
+    BATCH_SIZE = 1024
     GAMMA = 0.9
     HIDDEN_LAYER_NEURONS = 100
     LEARNING_RATE = 0.001
@@ -85,10 +85,11 @@ def run_dqn(env, save = False):
         if sample > epsilon_old and memory.size_mem() > INITIAL_REPLAY:
             with torch.no_grad():
                 # change predicted states to torch tensor
-                state_pred = torch.from_numpy(state_pred) \
-                    .type(FloatTensor).unsqueeze(0)
+                #state_pred = torch.from_numpy(state_pred) \
+                #    .type(FloatTensor).unsqueeze(0)
                 # predict the actions to the given states
-                pred_actions = model(Variable(state_pred))
+                #pred_actions = model(Variable(state_pred))
+                pred_actions = model(state_pred)
                 # find the action with the best q-value
                 max_action = pred_actions.max(1)[1]
                 # return the best action as tensor
@@ -136,12 +137,13 @@ def run_dqn(env, save = False):
 
                 # for each q-value(for each state in the batch and for each action)
                 # take the one from the chosen action
-                current_q_values = model(states).gather(dim=1, index=actions)[:, 0]
+
+                current_q_values = model(states)[0].gather(dim=1, index=actions)[:, 0]
 
                 # neural net estimates the q-values for the next states
                 # take the ones with the highest values
-                # max_next_q_values = model(next_states).detach().max(1)[0]
-                max_next_q_values = target(next_states).detach().max(1)[0]
+                max_next_q_values = model(next_states)[0].detach().max(1)[0]
+                #max_next_q_values = target(next_states)[0].detach().max(1)[0]
 
                 expected_q_values = rewards + (GAMMA * max_next_q_values)
 
@@ -165,17 +167,18 @@ def run_dqn(env, save = False):
             step += 1
 
             if done:
+                cum_reward[-1]=cum_reward[-1]/step
                 break
             if step == 500:
                 break
-        print(step, cum_reward[-1], epi, total_loss)
+        print(step, cum_reward[-1], epi, total_loss/step)
 
     if save:
         torch.save(model, "model.pt")
-
+    plt.plot(cum_reward)
+    plt.show()
     return model.eval()
 
-#env = gym.make("CartpoleSwingShort-v0")
-#run_dqn(env, True)
-#plt.plot(cum_reward)
-#plt.show()
+env = gym.make("CartpoleSwingShort-v0")
+run_dqn(env)
+

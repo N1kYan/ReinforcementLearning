@@ -137,15 +137,15 @@ def main():
         env.close()
 
     # DQN I: Check learned policy
-    env = Monitor(gym.make('CartpoleSwingShort-v0'), 'dqn_eval')
+    env = Monitor(gym.make('CartpoleSwingShort-v0'), 'dqn_eval', force=True)
     policy = load_dqn_policy()
     check(env, policy)
 
     # DQN II: Check learning procedure
-    env = Monitor(gym.make('CartpoleSwingShort-v0'), 'dqn_train', video_callable=False)
+    env = Monitor(gym.make('CartpoleSwingShort-v0'), 'dqn_train', video_callable=False, force=True)
     policy = train_dqn_policy(env)
     check(env, policy)
-
+    '''
     # LSPI I: Check learned policy
     env = Monitor(gym.make('CartpoleStabShort-v0'), 'lspi_eval')
     policy = load_lspi_policy()
@@ -154,7 +154,7 @@ def main():
     # LSPI II: Check learning procedure
     env = Monitor(gym.make('CartpoleStabShort-v0'), 'lspi_train', video_callable=False)
     policy = train_lspi_policy(env)
-    check(env, policy)
+    check(env, policy)'''
 
 
 if __name__ == '__main__':
