@@ -1,3 +1,5 @@
+import torch
+import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -9,6 +11,8 @@ class DQN(nn.Module):
         self.l2 = nn.Linear(hidden_neurons, output)
 
     def forward(self, x):
+        x = torch.from_numpy(x).type(torch.FloatTensor).unsqueeze(0)
+        x = torch.autograd.Variable(x)
         x = F.relu(self.l1(x))
         x = self.l2(x)
         return x
