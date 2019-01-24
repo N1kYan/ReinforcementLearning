@@ -8,9 +8,9 @@ import datetime
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
-from torch_ddpg.NeuralNetworks import Actor, Critic
-from torch_ddpg.DDPGAgent import ReplayBuffer
-from torch_ddpg.ActionNoise import OUNoise
+from NeuralNetworks import Actor, Critic
+from ReplayBuffer import ReplayBuffer
+from ActionNoise import OUNoise
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -248,15 +248,15 @@ def main():
     env.seed(3)
 
     # Noise generating process
-    OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.15, sigma=2.2)
+    OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.15, sigma=0.2)
 
     # Replay memory
-    MEMORY = ReplayBuffer(action_size=env_specs[1], buffer_size=int(1e6), batch_size=1024,
+    MEMORY = ReplayBuffer(action_size=env_specs[1], buffer_size=int(1e6), batch_size=64,
                           seed=random_seed)
 
     # Run training procedure with defined hyperparameters
     ACTOR = training(epochs=10000, max_steps=300, epoch_checkpoint=500, noise=OU_NOISE, add_noise=True,
-                     lr_actor=1e-4, lr_critic=1e-3, weight_decay=0, gamma=0.9, memory=MEMORY, tau=1e-3,
+                     lr_actor=1e-4, lr_critic=1e-3, weight_decay=0.2, gamma=0.9, memory=MEMORY, tau=1e-3,
                      seed=random_seed, render=True)
 
     # Run evaluation
