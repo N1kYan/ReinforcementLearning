@@ -21,17 +21,17 @@ from torch_ddpg.ActionNoise import OUNoise
 
 
 BUFFER_SIZE = int(1e6)  # replay buffer size #1e6
-BATCH_SIZE = 64      # minibatch size #64
-GAMMA = 0.99            # discount factor #0.99
-TAU = 1e-4                # for soft update of target parameters #1e-3
+BATCH_SIZE = 1024      # minibatch size #64
+GAMMA = 0.9            # discount factor #0.99
+TAU = 1e-2               # for soft update of target parameters #1e-3
 LR_ACTOR = 1e-4        # learning rate of the actor #1e-4
 LR_CRITIC = 1e-3        # learning rate of the critic #1e-3
 WEIGHT_DECAY = 0        # L2 weight decay #1e-2
 
 
-#env = gym.make('Qube-v0')
+env = gym.make('Qube-v0')
 #env = gym.make('Pendulum-v0')
-env = gym.make('BallBalancerSim-v0')
+#env = gym.make('BallBalancerSim-v0')
 print(env.spec)
 print("State Space Shape: {}\nLow: {}\nHigh: {}".format(np.shape(env.reset()),
                                                         env.observation_space.low,
@@ -49,7 +49,7 @@ update_frequency = 1
 env.seed(random_seed)
 
 # Noise generating process
-OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.15, sigma=0.1)
+OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.15, sigma=2.2)
 
 
 # DDPG learning agent
@@ -59,7 +59,7 @@ AGENT = Agent(state_size=env_observation_size, action_size=env_action_size,
               weight_decay=WEIGHT_DECAY, noise_generator=OU_NOISE)
 
 
-def evaluation(load_flag=True, actor='.\actor22-1-18', epochs=25, render=False):
+def evaluation(load_flag=False, actor='.\actor22-1-18', epochs=25, render=False):
     """
     Loads saved actor/agent if available.
     Evaluates the trained agent on the environment (both declaired above).
@@ -97,7 +97,7 @@ def evaluation(load_flag=True, actor='.\actor22-1-18', epochs=25, render=False):
         env.close()
 
 
-def training(epochs=1, max_steps=500, epoch_checkpoint=500, render=True):
+def training(epochs=5000, max_steps=300, epoch_checkpoint=500, render=True):
     """
     Runs the training process on the gym environment.
     Then plots the cumulative reward per episode.
@@ -146,12 +146,10 @@ def training(epochs=1, max_steps=500, epoch_checkpoint=500, render=True):
             print('\rEpisode {}\tAverage Reward: {:.3f}\t({:.2f} min elapsed)'.
                   format(e, np.mean(scores_deque), (time.time() - time_start)/60))
 
-
     # Save torch model of actor and critic
     t = datetime.datetime.now()
     torch.save(AGENT.actor_local.state_dict(), './actor{}-{}-{}'.format(t.day, t.month, t.hour))
     torch.save(AGENT.critic_local.state_dict(), './critic{}-{}-{}'.format(t.day, t.month, t.hour))
-
 
     # Plot the cumulative reward per episode during training process
     fig = plt.figure()
