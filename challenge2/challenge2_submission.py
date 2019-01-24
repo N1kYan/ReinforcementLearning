@@ -35,6 +35,9 @@ will be manually analyzed to identify outstanding submissions.
 import numpy as np
 import torch
 import DQN
+import pickle
+import LSPI
+
 
 info = dict(
     group_number=None,  # change if you are an existing seminar/project group
@@ -83,7 +86,8 @@ def load_lspi_policy():
 
     :return: function pi: s -> a
     """
-    return lambda obs: np.array([1.6180])
+    w_star = pickle.load(open("lspi_weights.p", "rb"))
+    return lambda obs: LSPI.pi(obs, w_star)
 
 
 def train_lspi_policy(env):
@@ -95,7 +99,8 @@ def train_lspi_policy(env):
     :param env: gym.Env
     :return: function pi: s -> a
     """
-    return lambda obs: np.array([0.5772])
+    w_star = LSPI.train(my_env=env)
+    return lambda obs: LSPI.pi(obs, w_star)
 
 
 # ==== Example evaluation
