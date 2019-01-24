@@ -202,8 +202,10 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
 
     # Save torch model of actor and critic
     t = datetime.datetime.now()
-    torch.save(actor_local.state_dict(), './actor{}-{}-{}'.format(t.day, t.month, t.hour))
-    torch.save(critic_local.state_dict(), './critic{}-{}-{}'.format(t.day, t.month, t.hour))
+    torch.save(actor_local.state_dict(), './actor-{}-{}-{}-{}'.
+               format(env.spec.id, t.day, t.month, t.hour))
+    torch.save(critic_local.state_dict(), './critic-{}-{}-{}-{}'.
+               format(env.spec.id, t.day, t.month, t.hour))
 
     # Plot the cumulative reward per episode during training process
     fig = plt.figure()
