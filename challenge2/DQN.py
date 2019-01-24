@@ -44,19 +44,20 @@ def run_dqn(env, save = False):
     FloatTensor = torch.FloatTensor
     LongTensor = torch.LongTensor
 
-    EPISODES = 200
-    BATCH_SIZE = 64
+    EPISODES = 1000
+    #EPISODES = 2000
+    BATCH_SIZE = 128
     GAMMA = 0.9
     HIDDEN_LAYER_NEURONS = 100
     LEARNING_RATE = 0.001
-    ACTION_SPACE = 5  # 49
+    ACTION_SPACE = 10  # 49
     EPS_START = 1
     EPS_END = 0.1
     EXPLORATION_STEPS = 10000
 
     INITIAL_REPLAY = 1000
     REPLAY_SIZE = 1000000
-    TARGET_UPDATE = 1
+    TARGET_UPDATE = 100
     global EPSILON
     EPSILON = 1
     EPSILON_STEP = (EPS_START - EPS_END) / EXPLORATION_STEPS
@@ -71,7 +72,7 @@ def run_dqn(env, save = False):
 
     target.l1.weight = model.l1.weight
     target.l2.weight = model.l2.weight
-    target.l3.weight = model.l3.weight
+    #target.l3.weight = model.l3.weight
 
     optimizer = optim.Adam(model.parameters(), LEARNING_RATE)
 
@@ -85,11 +86,7 @@ def run_dqn(env, save = False):
             EPSILON -= EPSILON_STEP
         if sample > epsilon_old and memory.size_mem() > INITIAL_REPLAY:
             with torch.no_grad():
-                # change predicted states to torch tensor
-                #state_pred = torch.from_numpy(state_pred) \
-                #    .type(FloatTensor).unsqueeze(0)
                 # predict the actions to the given states
-                #pred_actions = model(Variable(state_pred))
                 pred_actions = model(state_pred)
                 # find the action with the best q-value
                 max_action = pred_actions.max(1)[1]
@@ -113,8 +110,6 @@ def run_dqn(env, save = False):
 
             cum_reward[epi] += reward
 
-            '''if done:
-                reward = -10'''
             memory.add_observation(state, action, reward, state_follows)
 
             if epi == EPISODES - 1:
@@ -164,7 +159,8 @@ def run_dqn(env, save = False):
                     total_steps = 1
                     target.l1.weight = model.l1.weight
                     target.l2.weight = model.l2.weight
-                    target.l3.weight = model.l3.weight
+                    #target.l3.weight = model.l3.weight
+
             state = state_follows
             step += 1
 
