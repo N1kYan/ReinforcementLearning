@@ -58,8 +58,8 @@ def load_dqn_policy():
     :return: function pi: s -> a
     """
     model = torch.load("model.pt")
-    model.eval()
-    return model
+    #model.eval()
+    return lambda s: DQN.model_to_action(model, s)
     #return lambda obs: np.array([3.1415])
 
 
@@ -73,7 +73,8 @@ def train_dqn_policy(env):
     :return: function pi: s -> a
     """
     model = DQN.run_dqn(env)
-    return model
+
+    return lambda s: DQN.model_to_action(model,s, env, 10)
     #return lambda obs: np.array([2.7183])
 
 

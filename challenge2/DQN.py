@@ -22,7 +22,7 @@ class ActionDisc(gym.Space):
         self.low = low
         self.n = number
         self.space = np.linspace(self.low, self.high, self.n)
-        print(self.space)
+        #print(self.space)
 
     def sample(self):
         return random.choice(self.space)
@@ -38,28 +38,34 @@ class ActionDisc(gym.Space):
         return indices
 
 
-
+def model_to_action(model, s, env=gym.make("CartpoleSwingShort-v0"), actionspace=10):
+    env.action_space = ActionDisc(env.action_space.high, env.action_space.low, actionspace)
+    pred_action = model(s)
+    max_action = pred_action.max(1)[1]
+    # return the best action as ndarray
+    return torch.tensor(np.array([[env.action_space.space[max_action]]])).numpy()[0]
 
 def run_dqn(env, save = False):
     FloatTensor = torch.FloatTensor
     LongTensor = torch.LongTensor
 
-    EPISODES = 1000
+    EPISODES = 500
     #EPISODES = 2000
-    BATCH_SIZE = 128
+    BATCH_SIZE = 100
     GAMMA = 0.9
-    HIDDEN_LAYER_NEURONS = 100
+    HIDDEN_LAYER_NEURONS = 50
     LEARNING_RATE = 0.001
     ACTION_SPACE = 10  # 49
     EPS_START = 1
-    EPS_END = 0.1
-    EXPLORATION_STEPS = 10000
+    EPS_END = 0.01
+    #EPS_END = 0.05
+    EXPLORATION_STEPS = 1000
 
     INITIAL_REPLAY = 1000
     REPLAY_SIZE = 1000000
-    TARGET_UPDATE = 100
+    TARGET_UPDATE = 500
     global EPSILON
-    EPSILON = 1
+    EPSILON = EPS_START
     EPSILON_STEP = (EPS_START - EPS_END) / EXPLORATION_STEPS
 
     # define a new discrete action space
@@ -70,8 +76,10 @@ def run_dqn(env, save = False):
     model = DQN(HIDDEN_LAYER_NEURONS, ACTION_SPACE, env.observation_space.shape[0])
     target = DQN(HIDDEN_LAYER_NEURONS, ACTION_SPACE, env.observation_space.shape[0])
 
-    target.l1.weight = model.l1.weight
-    target.l2.weight = model.l2.weight
+    target.load_state_dict(model.state_dict())
+
+    #target.l1.weight = model.l1.weight
+    #target.l2.weight = model.l2.weight
     #target.l3.weight = model.l3.weight
 
     optimizer = optim.Adam(model.parameters(), LEARNING_RATE)
@@ -106,6 +114,7 @@ def run_dqn(env, save = False):
 
         while True:
             action = select_action(state)
+
             state_follows, reward, done, info = env.step(action.numpy()[0])
 
             cum_reward[epi] += reward
@@ -143,10 +152,8 @@ def run_dqn(env, save = False):
 
                 expected_q_values = rewards + (GAMMA * max_next_q_values)
 
-                # loss = F.smooth_l1_loss(current_q_values,
-                #                       expected_q_values.type(FloatTensor))
-                loss = F.mse_loss(current_q_values,
-                                  expected_q_values.type(FloatTensor))
+                loss = F.smooth_l1_loss(current_q_values, expected_q_values.type(FloatTensor))
+                #loss = F.mse_loss(current_q_values, expected_q_values.type(FloatTensor))
                 total_loss += loss.item()
 
                 optimizer.zero_grad()
@@ -157,8 +164,11 @@ def run_dqn(env, save = False):
                 # update the model weights with the target parameters
                 if total_steps % TARGET_UPDATE == 0:
                     total_steps = 1
+                    # target.load_state_dict(model.state_dict())
                     target.l1.weight = model.l1.weight
                     target.l2.weight = model.l2.weight
+                    # target.l1.weight = 0.001*model.l1.weight+(1-0.001)*target.l1.weight
+                    # target.l2.weight = 0.001*model.l2.weight+(1-0.001)*target.l2.weight
                     #target.l3.weight = model.l3.weight
 
             state = state_follows
@@ -167,17 +177,18 @@ def run_dqn(env, save = False):
             if done:
                 cum_reward[-1]=cum_reward[-1]/step
                 break
-            if step == 500:
+            '''if step == 500:
                 cum_reward[-1]=cum_reward[-1]/500.
-                break
+                break'''
         print(step, cum_reward[-1], epi, total_loss/step)
 
     if save:
         torch.save(model, "model.pt")
-    plt.plot(cum_reward)
-    plt.show()
-    #return model.eval()
+    #plt.plot(cum_reward)
+    #plt.show()
+    return model
 
-env = gym.make("CartpoleSwingShort-v0")
-run_dqn(env)
+#env = gym.make("CartpoleSwingShort-v0")
+#run_dqn(env, save=False)
+#run_dqn(env, save=True)
 

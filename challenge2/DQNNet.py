@@ -8,7 +8,7 @@ class DQN(nn.Module):
     def __init__(self, hidden_neurons, output, input):
         super(DQN, self).__init__()
         self.l1 = nn.Linear(input, hidden_neurons)
-        #self.l3 = nn.Linear(hidden_neurons, 100)
+        #self.l3 = nn.Linear(hidden_neurons, 50)
         self.l2 = nn.Linear(hidden_neurons, output)
 
     def forward(self, x):
