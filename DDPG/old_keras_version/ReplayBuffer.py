@@ -1,17 +1,15 @@
 import random
 import numpy as np
 from collections import deque
-import torch
-from torch.autograd import Variable
 
 
-class MemoryDQN(object):
+class ReplayBuffer(object):
     def __init__(self, buffer_number):
         self.size = buffer_number
         self.ReplayBuffer = deque()
 
-    def add_observation(self, state, action, reward, next_state):
-        self.ReplayBuffer.append([state, action, reward, next_state])
+    def add_observation(self, state, action, reward, next_state, done):
+        self.ReplayBuffer.append([state, action, reward, next_state, done])
         if len(self.ReplayBuffer) > self.size:
             self.ReplayBuffer.popleft()
 
@@ -24,8 +22,6 @@ class MemoryDQN(object):
         actions = list(zip(*expectations))[1]
         rewards = list(zip(*expectations))[2]
         next_states = list(zip(*expectations))[3]
-        return np.array(states), np.array(actions), \
-               torch.from_numpy(np.array(rewards)).type(torch.FloatTensor),np.array(next_states)
-
-    def size_mem(self):
-        return len(self.ReplayBuffer)
+        dones = list(zip(*expectations))[4]
+        #return states, actions, rewards, next_states, dones
+        return np.array(states), np.array(actions), np.array(rewards), np.array(next_states), np.array(dones)

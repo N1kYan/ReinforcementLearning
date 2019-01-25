@@ -4,7 +4,9 @@ import numpy as np
 from collections import deque
 import matplotlib.pyplot as plt
 import time
+import datetime
 import sys
+import torch
 from torch_ddpg.DDPGAgent import Agent
 from torch_ddpg.ActionNoise import OUNoise
 
@@ -21,15 +23,15 @@ from torch_ddpg.ActionNoise import OUNoise
 BUFFER_SIZE = int(1e6)  # replay buffer size #1e6
 BATCH_SIZE = 1024      # minibatch size #64
 GAMMA = 0.9            # discount factor #0.99
-TAU = 1e-2                # for soft update of target parameters #1e-3
+TAU = 1e-2               # for soft update of target parameters #1e-3
 LR_ACTOR = 1e-4        # learning rate of the actor #1e-4
 LR_CRITIC = 1e-3        # learning rate of the critic #1e-3
 WEIGHT_DECAY = 0        # L2 weight decay #1e-2
 
 
-#env = gym.make('Qube-v0')
+env = gym.make('Qube-v0')
 #env = gym.make('Pendulum-v0')
-env = gym.make('BallBalancerSim-v0')
+#env = gym.make('BallBalancerSim-v0')
 print(env.spec)
 print("State Space Shape: {}\nLow: {}\nHigh: {}".format(np.shape(env.reset()),
                                                         env.observation_space.low,
@@ -47,7 +49,7 @@ update_frequency = 1
 env.seed(random_seed)
 
 # Noise generating process
-OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.15, sigma=0.2)
+OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.15, sigma=2.2)
 
 
 # DDPG learning agent
@@ -57,10 +59,13 @@ AGENT = Agent(state_size=env_observation_size, action_size=env_action_size,
               weight_decay=WEIGHT_DECAY, noise_generator=OU_NOISE)
 
 
-def evaluation(epochs=25, render=False):
+def evaluation(load_flag=False, actor='.\actor22-1-18', epochs=25, render=False):
     """
+    Loads saved actor/agent if available.
     Evaluates the trained agent on the environment (both declaired above).
     Plots the reward per timestep for every episode.
+    :param load_flag: Declines whether to load the actor from a saved pytorch object
+    :param actor: Path leading to saved pytorch actor object
     :param epochs: Episodes for evaluation
     :param render: Set true to render the evaluation episodes
     :return: None
@@ -69,6 +74,11 @@ def evaluation(epochs=25, render=False):
     plt.title("Rewards during evaluation")
     plt.xlabel("Time-step")
     plt.ylabel("Current reward")
+
+    # Load actor if load_flag=True and actor path available
+    if load_flag:
+        actor = ...
+
     for e in range(1, epochs + 1):
         state = env.reset()
         rewards = []
@@ -87,10 +97,11 @@ def evaluation(epochs=25, render=False):
         env.close()
 
 
-def training(epochs=2000, max_steps=500, epoch_checkpoint=100, render=True):
+def training(epochs=5000, max_steps=300, epoch_checkpoint=500, render=True):
     """
     Runs the training process on the gym environment.
     Then plots the cumulative reward per episode.
+    Saves actor and critic torch model.
     :param epochs: Number of epochs for training
     :param max_steps: Maximum time-steps for each training epoch;
      Does end epochs for environments, which epochs are not time limited
@@ -119,10 +130,7 @@ def training(epochs=2000, max_steps=500, epoch_checkpoint=100, render=True):
             if (e % epoch_checkpoint == 0) and render:
                 env.render()
             action = AGENT.act(state)
-            # print(action)
             next_state, reward, done, _ = env.step(action)
-            # print(reward)
-            # reward = reward*1000  # Qube-v0 rewards are VERY small; only for debugging
             AGENT.step(state, action, reward, next_state, done)
             state = next_state
             cumulative_reward += reward
@@ -138,8 +146,10 @@ def training(epochs=2000, max_steps=500, epoch_checkpoint=100, render=True):
             print('\rEpisode {}\tAverage Reward: {:.3f}\t({:.2f} min elapsed)'.
                   format(e, np.mean(scores_deque), (time.time() - time_start)/60))
 
-    print("Learning weights took {:.2f} min.".format((time.time() - time_start) / 60 ))
-    print("Final average cumulative reward", np.mean(e_cumulative_rewards))
+    # Save torch model of actor and critic
+    t = datetime.datetime.now()
+    torch.save(AGENT.actor_local.state_dict(), './actor{}-{}-{}'.format(t.day, t.month, t.hour))
+    torch.save(AGENT.critic_local.state_dict(), './critic{}-{}-{}'.format(t.day, t.month, t.hour))
 
     # Plot the cumulative reward per episode during training process
     fig = plt.figure()
