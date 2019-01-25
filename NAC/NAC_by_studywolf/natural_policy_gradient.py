@@ -42,12 +42,12 @@ import sys
 
 def policy_gradient():
     with tf.variable_scope("policy"):
-        params = tf.get_variable("policy_parameters", [4,2])
+        params = tf.get_variable("policy_parameters", [4, 2])
         state = tf.placeholder("float", [None, 4], name="state")
         # NOTE: have to specify shape of actions so we can call
         # get_shape when calculating g_log_prob below
         actions = tf.placeholder("float", [200, 2], name="actions")
-        advantages = tf.placeholder("float", [None,], name="advantages")
+        advantages = tf.placeholder("float", [None, ], name="advantages")
         linear = tf.matmul(state, params)
         probabilities = tf.nn.softmax(linear)
         my_variables = tf.trainable_variables()
@@ -65,7 +65,7 @@ def policy_gradient():
                 for i in range(action_log_prob_flat.get_shape()[0])])
         g_log_prob = tf.reshape(g_log_prob, (200, 8, 1))
 
-        # calculate the policy gradient by multiplying by the advantage function
+        # calculate the policy gradient by multiplying by the advantage fct.
         g = tf.multiply(g_log_prob, tf.reshape(advantages, (200, 1, 1)))
         # sum over time
         g = 1.00 / 200.00 * tf.reduce_sum(g, reduction_indices=[0])
@@ -255,6 +255,7 @@ for ii in range(1):
     np.savez_compressed('data/natural_policy_gradient_%i' % ii,
                         max_rewards=max_rewards, total_episodes=total_episodes)
 
+    # Render the result
     Evaluation.evaluate(env, policy_grad, 50, True, 0.1, sess)
 
     sess.close()
