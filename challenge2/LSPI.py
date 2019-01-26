@@ -19,14 +19,9 @@ def basis_functions():
         lambda s, a: np.abs(np.sin(s[1])) * a,
         lambda s, a: np.abs(np.sin(s[2])) * a,
         lambda s, a: np.abs(np.sin(s[3])) * a,
-        lambda s, a: np.abs(np.sin(s[4])) * a,
-        lambda s, a: np.abs(np.cos(s[0])) * a,
         lambda s, a: np.abs(np.cos(s[1])) * a,
         lambda s, a: np.abs(np.cos(s[2])) * a,
-        lambda s, a: np.abs(np.cos(s[3])) * a,
-        lambda s, a: np.abs(np.cos(s[4])) * a,
-        lambda s, a: s[3] * a,
-        lambda s, a: s[4] * a,
+
 
         # lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[0]/s[1]), np.arctan(s[2]/s[3])] -
         #                                              np.array([-np.pi / 4, -1])) / 2)) * a,
@@ -139,19 +134,20 @@ def sample(epochs):
     :return: Sample Matrix
     """
     D = []
-    state = env.reset()
     for e in range(epochs):
-        # Random sample
-        action = env.action_space.sample()
-        next_state, reward, done, info = env.step(action)
-        D.append((state, action, reward, next_state))
-        state = np.copy(next_state)
-        if done:
-            state = env.reset()
+        state = env.reset()
+        while True:
+            # Random sample
+            action = env.action_space.sample()
+            next_state, reward, done, info = env.step(action)
+            D.append((state, action, reward, next_state))
+            state = np.copy(next_state)
+            if done:
+                break
     return D
 
 
-def evaluate(w_star=None, episodes=25, render=False, plot=True, load_flag=True):
+def evaluate(w_star=None, episodes=5, render=True, plot=True, load_flag=True):
     """
     Evaluate the learned weights/policy.
     :param w_star: Learned weights
@@ -198,7 +194,7 @@ def evaluate(w_star=None, episodes=25, render=False, plot=True, load_flag=True):
     print("done")
 
 
-def train(my_env, sample_epochs=10000, gamma=0.99, epsilon=1e-4, save_flag=True):
+def train(my_env, sample_epochs=500, gamma=0.99, epsilon=1e-1, save_flag=True):
     """
     Set environment, discretize action Space and run LSPI training.
     :param my_env: The gym environment
@@ -213,7 +209,7 @@ def train(my_env, sample_epochs=10000, gamma=0.99, epsilon=1e-4, save_flag=True)
     env = gym.make(my_env)
     print(env.spec)
     print("State Space Low:", env.observation_space.low)
-    print("State Space Hight:", env.observation_space.high)
+    print("State Space High:", env.observation_space.high)
 
     # Set discrete action space
     global A
