@@ -49,7 +49,7 @@ def run_dqn(env, save = False):
     FloatTensor = torch.FloatTensor
     LongTensor = torch.LongTensor
 
-    EPISODES = 500
+    EPISODES = 5000
     #EPISODES = 2000
     BATCH_SIZE =100
     GAMMA = 0.9
@@ -59,7 +59,7 @@ def run_dqn(env, save = False):
     EPS_START = 1
     EPS_END = 0.01
     #EPS_END = 0.05
-    EXPLORATION_STEPS = 1000
+    EXPLORATION_STEPS = 10000
 
     INITIAL_REPLAY = 100
     REPLAY_SIZE = 1000000
@@ -181,7 +181,8 @@ def run_dqn(env, save = False):
             '''if step == 500:
                 cum_reward[-1]=cum_reward[-1]/500.
                 break'''
-        print(step, cum_reward[-1], epi, total_loss/step)
+        print("Episode:{} Steps:{} Cum.Reward:{} Loss/Step:{} Epsilon:{}"
+              .format(epi, step, cum_reward[-1], total_loss/step, EPSILON))
 
     if save:
         torch.save(model, "model.pt")
