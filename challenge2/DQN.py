@@ -51,19 +51,19 @@ def run_dqn(env, save = False):
 
     EPISODES = 500
     #EPISODES = 2000
-    BATCH_SIZE = 100
+    BATCH_SIZE =100
     GAMMA = 0.9
-    HIDDEN_LAYER_NEURONS = 50
-    LEARNING_RATE = 0.001
+    HIDDEN_LAYER_NEURONS = 200
+    LEARNING_RATE = 0.0001
     ACTION_SPACE = 10  # 49
     EPS_START = 1
     EPS_END = 0.01
     #EPS_END = 0.05
     EXPLORATION_STEPS = 1000
 
-    INITIAL_REPLAY = 1000
+    INITIAL_REPLAY = 100
     REPLAY_SIZE = 1000000
-    TARGET_UPDATE = 500
+    TARGET_UPDATE = 7000
     global EPSILON
     EPSILON = EPS_START
     EPSILON_STEP = (EPS_START - EPS_END) / EXPLORATION_STEPS
@@ -92,6 +92,7 @@ def run_dqn(env, save = False):
         epsilon_old = EPSILON
         if EPSILON > EPS_END and memory.size_mem() > INITIAL_REPLAY:
             EPSILON -= EPSILON_STEP
+        #epsilon_old = 0.05
         if sample > epsilon_old and memory.size_mem() > INITIAL_REPLAY:
             with torch.no_grad():
                 # predict the actions to the given states
@@ -152,8 +153,8 @@ def run_dqn(env, save = False):
 
                 expected_q_values = rewards + (GAMMA * max_next_q_values)
 
-                loss = F.smooth_l1_loss(current_q_values, expected_q_values.type(FloatTensor))
-                #loss = F.mse_loss(current_q_values, expected_q_values.type(FloatTensor))
+                #loss = F.smooth_l1_loss(current_q_values, expected_q_values.type(FloatTensor))
+                loss = F.mse_loss(current_q_values, expected_q_values.type(FloatTensor))
                 total_loss += loss.item()
 
                 optimizer.zero_grad()
@@ -164,9 +165,9 @@ def run_dqn(env, save = False):
                 # update the model weights with the target parameters
                 if total_steps % TARGET_UPDATE == 0:
                     total_steps = 1
-                    # target.load_state_dict(model.state_dict())
-                    target.l1.weight = model.l1.weight
-                    target.l2.weight = model.l2.weight
+                    target.load_state_dict(model.state_dict())
+                    #target.l1.weight = model.l1.weight
+                    #target.l2.weight = model.l2.weight
                     # target.l1.weight = 0.001*model.l1.weight+(1-0.001)*target.l1.weight
                     # target.l2.weight = 0.001*model.l2.weight+(1-0.001)*target.l2.weight
                     #target.l3.weight = model.l3.weight
@@ -184,11 +185,13 @@ def run_dqn(env, save = False):
 
     if save:
         torch.save(model, "model.pt")
-    #plt.plot(cum_reward)
-    #plt.show()
+    plt.plot(cum_reward)
+    plt.show()
     return model
 
-#env = gym.make("CartpoleSwingShort-v0")
-#run_dqn(env, save=False)
+env = gym.make("CartpoleSwingShort-v0")
+#env = gym.make("Pendulum-v0")
+
+run_dqn(env, save=False)
 #run_dqn(env, save=True)
 
