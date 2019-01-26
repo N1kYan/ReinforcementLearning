@@ -6,6 +6,7 @@ from DQNNet import DQN
 import math
 import random
 import matplotlib.pyplot as plt
+import datetime
 
 
 import torch
@@ -59,10 +60,10 @@ def run_dqn(env, save = False):
     EPS_START = 1
     EPS_END = 0.01
     #EPS_END = 0.05
-    EXPLORATION_STEPS = 10000
+    EXPLORATION_STEPS = 1e5
 
     INITIAL_REPLAY = 100
-    REPLAY_SIZE = 1000000
+    REPLAY_SIZE = 1e6
     TARGET_UPDATE = 7000
     global EPSILON
     EPSILON = EPS_START
@@ -107,6 +108,8 @@ def run_dqn(env, save = False):
             return torch.tensor(np.array([[env.action_space.sample()]]))
 
     total_steps = 1
+    # Start time
+    start = datetime.datetime.now()
     for epi in range(EPISODES):
         cum_reward.append(0)
         state = env.reset()
@@ -183,7 +186,9 @@ def run_dqn(env, save = False):
                 break'''
         print("Episode:{} Steps:{} Cum.Reward:{} Loss/Step:{} Epsilon:{}"
               .format(epi, step, cum_reward[-1], total_loss/step, EPSILON))
-
+    # End time
+    end = datetime.datetime.now()
+    print("Learning took", (end-start))
     if save:
         torch.save(model, "model.pt")
     plt.plot(cum_reward)
