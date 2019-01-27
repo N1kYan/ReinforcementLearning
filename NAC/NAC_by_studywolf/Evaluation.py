@@ -6,7 +6,7 @@ import tensorflow as tf
 
 
 def evaluate(env, policy_grad, episodes, render, sleep, sess):
-    time_steps = 100000
+    time_steps = 10000
 
     print("\nEVALUATION: {} episodes with {} time steps each (or until 'done')"
           .format(episodes, time_steps))

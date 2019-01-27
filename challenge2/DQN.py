@@ -50,12 +50,12 @@ def run_dqn(env, save = False):
     FloatTensor = torch.FloatTensor
     LongTensor = torch.LongTensor
 
-    EPISODES = 5000
+    EPISODES = 1000
     #EPISODES = 2000
-    BATCH_SIZE =100
-    GAMMA = 0.9
+    BATCH_SIZE = 32
+    GAMMA = 0.99
     HIDDEN_LAYER_NEURONS = 200
-    LEARNING_RATE = 0.0001
+    LEARNING_RATE = 0.00025
     ACTION_SPACE = 10  # 49
     EPS_START = 1
     EPS_END = 0.01
@@ -68,6 +68,9 @@ def run_dqn(env, save = False):
     global EPSILON
     EPSILON = EPS_START
     EPSILON_STEP = (EPS_START - EPS_END) / EXPLORATION_STEPS
+
+
+    EVAL_EPISODES = 10
 
     # define a new discrete action space
     env.action_space = ActionDisc(env.action_space.high, env.action_space.low, ACTION_SPACE)
@@ -125,8 +128,8 @@ def run_dqn(env, save = False):
 
             memory.add_observation(state, action, reward, state_follows)
 
-            if epi == EPISODES - 1:
-                env.render()
+            # if epi == EPISODES - 1:
+            #     env.render()
 
 
             # training
@@ -184,7 +187,7 @@ def run_dqn(env, save = False):
             '''if step == 500:
                 cum_reward[-1]=cum_reward[-1]/500.
                 break'''
-        print("Episode:{} Steps:{} Cum.Reward:{} Loss/Step:{} Epsilon:{}"
+        print("Episode:{},\tSteps:{},\tCum.Reward:{},\t\tLoss/Step:{},\t\tEpsilon:{}"
               .format(epi, step, cum_reward[-1], total_loss/step, EPSILON))
     # End time
     end = datetime.datetime.now()
@@ -193,11 +196,34 @@ def run_dqn(env, save = False):
         torch.save(model, "model.pt")
     plt.plot(cum_reward)
     plt.show()
+
+    for e in range(EVAL_EPISODES):
+        state = env.reset()
+
+        R = 0
+
+        while True:
+            action = select_action(state)
+
+            state_follows, reward, done, info = env.step(action.numpy()[0])
+
+            R += reward
+
+            env.render()
+
+            if done:
+                break
+
+            state = state_follows
+
+        print("Test Episode {}: {} reward".format(e, R))
+
     return model
+
 
 env = gym.make("CartpoleSwingShort-v0")
 #env = gym.make("Pendulum-v0")
 
-run_dqn(env, save=False)
+run_dqn(env, save=True)
 #run_dqn(env, save=True)
 
