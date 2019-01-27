@@ -220,7 +220,7 @@ def evaluate(w_star=None, episodes=10, render=True, plot=True, load_flag=True):
     if load_flag:
         w_star = pickle.load(open("lspi_weights.p", "rb"))
 
-    print("Evaluating...", end='')
+    print("Evaluating ...  ")
     sys.stdout.flush()
     if plot:
         plt.figure()
@@ -251,10 +251,10 @@ def evaluate(w_star=None, episodes=10, render=True, plot=True, load_flag=True):
             # plt.plot(cumulative_reward)
     if plot:
         plt.show()
-    print("done")
+    print("... Done!")
 
 
-def train(my_env, sample_epochs=20, gamma=0.99, epsilon=1e-1, save_flag=True):
+def train(my_env, sample_epochs=5, gamma=0.99, epsilon=1e-1, save_flag=True):
     """
     Set environment, discretize action Space and run LSPI training.
     :param my_env: The gym environment
