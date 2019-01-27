@@ -290,10 +290,10 @@ def train(my_env, sample_epochs=20, gamma=0.99, epsilon=1e-1, save_flag=True):
         w_0[i] = np.random.uniform(low=-1, high=1)
 
     # Run LSPI algorithm
-    print("Learning...")
+    print("Learning ... ")
     w_star = lspi(D=D, phi=basis_functions(), gamma=gamma, epsilon=epsilon, w_0=w_0)
     print("w*:", w_star)
-    print("...done")
+    print(" ... Done!")
 
     # Save learned weights in text file
     if save_flag:
