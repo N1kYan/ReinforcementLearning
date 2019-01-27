@@ -29,10 +29,18 @@ class DiscreteActionSpace(gym.Space):
             indices.append(np.where(self.space==i)[0][0])
         return indices
 
+
 def bf_helper(mu, action):
+    """
+    Give basis function.
+    :param mu: Mean
+    :param action: Action
+    :return:
+    """
     return lambda s, a: np.exp(-np.linalg.norm(
         np.array([np.arctan(s[1] / s[2]), s[4]] -
                  np.array(mu)) / 2)) * (action == a)
+
 
 def basis_functions():
     """
@@ -170,7 +178,7 @@ def lspi(D, phi, gamma, epsilon, w_0):
         w_dash = lstdq(D=D, phi=phi, gamma=gamma, w=w)
         # w_dash = lstdq_opt(D=D, phi=phi, gamma=gamma, w=w)
         diff = np.linalg.norm(x=(w-w_dash), ord=2)
-        print("Diff {} < {}: {} ".format(diff, epsilon, diff < epsilon))
+        # print("Diff {} < {}: {} ".format(diff, epsilon, diff < epsilon))
         if diff < epsilon:
             break
 
@@ -210,7 +218,7 @@ def evaluate(w_star=None, episodes=5, render=True, plot=True, load_flag=True):
     if load_flag:
         w_star = pickle.load(open("lspi_weights.p", "rb"))
 
-    print("Evaluating ...  ")
+    # print("Evaluating ...  ")
     sys.stdout.flush()
     if plot:
         plt.figure()
@@ -227,14 +235,14 @@ def evaluate(w_star=None, episodes=5, render=True, plot=True, load_flag=True):
             if render:
                 env.render()
             action = pi(state, w_star)
-            print(action)
+            # print(action)
             chosen_actions.append(action)
             next_state, reward, done, info = env.step(action)
             rewards.append(reward)
             cumulative_reward.append(reward+cumulative_reward[-1])
             if done:
-                print("Episode {} terminated after {} timesteps with a total cumulative reward of {}".
-                      format(e, time_step, cumulative_reward[-1]))
+                # print("Episode {} terminated after {} timesteps with a total cumulative reward of {}".
+                #      format(e, time_step, cumulative_reward[-1]))
                 break
             state = np.copy(next_state)
         if plot:
@@ -242,10 +250,10 @@ def evaluate(w_star=None, episodes=5, render=True, plot=True, load_flag=True):
             # plt.plot(cumulative_reward)
     if plot:
         plt.show()
-    print("... Done!")
+    # print("... Done!")
 
 
-def train(env, sample_epochs=30, gamma=0.9999, epsilon=1e-1, save_flag=True):
+def train(my_env, sample_epochs=30, gamma=0.9999, epsilon=1e-1, save_flag=False):
     """
     Set environment, discretize action Space and run LSPI training.
     :param my_env: The gym environment
@@ -255,13 +263,14 @@ def train(env, sample_epochs=30, gamma=0.9999, epsilon=1e-1, save_flag=True):
     :param save_flag: Set true to save learned weights to file
     :return: learned weights w_star
     """
-
+    global env
+    env = my_env
     # Sample from environment
-    print("Sampling ... ", end='')
+    # print("Sampling ... ", end='')
     sys.stdout.flush()
     D = sample(epochs=sample_epochs)
-    # np.random.shuffle(D)
-    print("Done!")
+    np.random.shuffle(D)
+    # print("Done!")
 
     # Initialize weights
     w_0 = np.zeros(shape=(len(basis_functions()), 1))
@@ -269,10 +278,10 @@ def train(env, sample_epochs=30, gamma=0.9999, epsilon=1e-1, save_flag=True):
         w_0[i] = np.random.uniform(low=-1, high=1)
 
     # Run LSPI algorithm
-    print("Learning ... ")
+    # print("Learning ... ")
     w_star = lspi(D=D, phi=basis_functions(), gamma=gamma, epsilon=epsilon, w_0=w_0)
-    print("w*:", w_star)
-    print(" ... Done!")
+    # print("w*:", w_star)
+    # print(" ... Done!")
 
     # Save learned weights in text file
     if save_flag:
@@ -290,15 +299,15 @@ def main():
 # Define gym environment
 global env
 env = gym.make('CartpoleStabShort-v0')
-print(env.spec)
-print("State Space Low:", env.observation_space.low)
-print("State Space High:", env.observation_space.high)
+# print(env.spec)
+# print("State Space Low:", env.observation_space.low)
+# print("State Space High:", env.observation_space.high)
 
 # Set discrete action space
 global A
 A = DiscreteActionSpace(low=env.action_space.low, high=env.action_space.high, number=3)
 env.action_space = A
-print("Discrete Action Space: ", A.space)
+# print("Discrete Action Space: ", A.space)
 
 if __name__ == '__main__':
     main()

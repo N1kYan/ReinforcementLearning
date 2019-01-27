@@ -55,6 +55,7 @@ def load_dqn_policy():
 
     :return: function pi: s -> a
     """
+    print("LOAD DQN")
     model = torch.load("model.pt")
     return lambda s: DQN.model_to_action(model, s)
 
@@ -68,6 +69,7 @@ def train_dqn_policy(env):
     :param env: gym.Env
     :return: function pi: s -> a
     """
+    print("RUN DQN")
     model = DQN.run_dqn(env)
     return lambda s: DQN.model_to_action(model, s, env, 10)
     #return lambda obs: np.array([2.7183])
@@ -82,6 +84,7 @@ def load_lspi_policy():
 
     :return: function pi: s -> a
     """
+    print("LOAD LSPI")
     w_star = pickle.load(open("lspi_weights.p", "rb"))
     return lambda obs: LSPI.pi(obs, w_star)
 
@@ -95,6 +98,7 @@ def train_lspi_policy(env):
     :param env: gym.Env
     :return: function pi: s -> a
     """
+    print("RUN LSPI")
     w_star = LSPI.train(my_env=env)
     return lambda obs: LSPI.pi(obs, w_star)
 
@@ -102,7 +106,7 @@ def train_lspi_policy(env):
 # ==== Example evaluation
 def main():
     import gym
-    # from gym.wrappers.monitor import Monitor
+    from gym.wrappers.monitor import Monitor
     import quanser_robots
 
     def evaluate(env, policy, num_evlas=25):
@@ -132,7 +136,7 @@ def main():
         print(np.mean(ret_all), np.std(ret_all))
         env.close()
 
-    ''''# DQN I: Check learned policy
+    # DQN I: Check learned policy
     env = Monitor(gym.make('CartpoleSwingShort-v0'), 'dqn_eval', force=True)
     policy = load_dqn_policy()
     check(env, policy)
@@ -140,7 +144,7 @@ def main():
     # DQN II: Check learning procedure
     env = Monitor(gym.make('CartpoleSwingShort-v0'), 'dqn_train', video_callable=False, force=True)
     policy = train_dqn_policy(env)
-    check(env, policy
+    check(env, policy)
 
     # LSPI I: Check learned policy
     env = Monitor(gym.make('CartpoleStabShort-v0'), 'lspi_eval')
@@ -150,7 +154,7 @@ def main():
     # LSPI II: Check learning procedure
     env = Monitor(gym.make('CartpoleStabShort-v0'), 'lspi_train', video_callable=False)
     policy = train_lspi_policy(env)
-    check(env, policy)'''
+    check(env, policy)
 
 
 if __name__ == '__main__':

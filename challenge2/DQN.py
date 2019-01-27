@@ -68,7 +68,7 @@ def run_dqn(env, save = False):
     FloatTensor = torch.FloatTensor
     LongTensor = torch.LongTensor
 
-    EPISODES = 300
+    EPISODES = 1
     #EPISODES = 2000
     BATCH_SIZE =1000
     GAMMA = 0.9
@@ -148,8 +148,8 @@ def run_dqn(env, save = False):
 
             memory.add_observation(state, action, reward, state_follows)
 
-            if epi == EPISODES - 1:
-                env.render()
+            # if epi == EPISODES - 1:
+            #    env.render()
 
 
             # training
@@ -207,19 +207,20 @@ def run_dqn(env, save = False):
             '''if step == 500:
                 cum_reward[-1]=cum_reward[-1]/500.
                 break'''
-        print("Episode:{} Steps:{} Cum.Reward:{} Loss/Step:{} Epsilon:{}"
-              .format(epi, step, cum_reward[-1], total_loss/step, EPSILON))
+        # print("Episode:{} Steps:{} Cum.Reward:{} Loss/Step:{} Epsilon:{}"
+        #      .format(epi, step, cum_reward[-1], total_loss/step, EPSILON))
     # End time
     end = datetime.datetime.now()
-    print("Learning took", (end-start))
+    # print("Learning took", (end-start))
     if save:
         torch.save(model, "model.pt")
-    plt.plot(cum_reward)
-    plt.show()
+    # plt.plot(cum_reward)
+    # plt.show()
     return model
+
 
 env = gym.make("CartpoleSwingShort-v0")
 
-# run_dqn(env, save=False)
-run_dqn(env, save=True)
+run_dqn(env, save=False)
+# run_dqn(env, save=True)
 
