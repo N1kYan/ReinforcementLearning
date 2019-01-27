@@ -12,6 +12,11 @@ class DQN(nn.Module):
         self.l2 = nn.Linear(hidden_neurons, output)
 
     def forward(self, x):
+        """
+        Forward pass through the environment.
+        :param x: input (state)
+        :return: output (approximated V(s))
+        """
         x = torch.from_numpy(x).type(torch.FloatTensor).unsqueeze(0)
         x = torch.autograd.Variable(x)
         x = F.relu(self.l1(x))

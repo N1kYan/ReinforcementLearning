@@ -26,6 +26,10 @@ class ActionDisc(gym.Space):
         #print(self.space)
 
     def sample(self):
+        """
+        Random sample from the discrete action space.
+        :return: Random action sample
+        """
         return random.choice(self.space)
 
     def contains(self, x):
@@ -40,6 +44,14 @@ class ActionDisc(gym.Space):
 
 
 def model_to_action(model, s, env=gym.make("CartpoleSwingShort-v0"), actionspace=10):
+    """
+    Gives an action for a given state from the model.
+    :param model: The pytorch model for the approximated Q(s, a)
+    :param s: State of the gym environment.
+    :param env: The gym environment.
+    :param actionspace: Size of discrete action space
+    :return: Action
+    """
     env.action_space = ActionDisc(env.action_space.high, env.action_space.low, actionspace)
     pred_action = model(s)
     max_action = pred_action.max(1)[1]
@@ -47,15 +59,21 @@ def model_to_action(model, s, env=gym.make("CartpoleSwingShort-v0"), actionspace
     return torch.tensor(np.array([[env.action_space.space[max_action]]])).numpy()[0]
 
 def run_dqn(env, save = False):
+    """
+    Runs the DQN algorithm.
+    :param env: Gym environment
+    :param save: Set True to save pytorch model of learned weights.
+    :return: The learned pytorch model
+    """
     FloatTensor = torch.FloatTensor
     LongTensor = torch.LongTensor
 
-    EPISODES = 1000
+    EPISODES = 300
     #EPISODES = 2000
-    BATCH_SIZE = 32
-    GAMMA = 0.99
-    HIDDEN_LAYER_NEURONS = 200
-    LEARNING_RATE = 0.00025
+    BATCH_SIZE =1000
+    GAMMA = 0.9
+    HIDDEN_LAYER_NEURONS = 300
+    LEARNING_RATE = 0.0001
     ACTION_SPACE = 10  # 49
     EPS_START = 1
     EPS_END = 0.01
@@ -68,9 +86,6 @@ def run_dqn(env, save = False):
     global EPSILON
     EPSILON = EPS_START
     EPSILON_STEP = (EPS_START - EPS_END) / EXPLORATION_STEPS
-
-
-    EVAL_EPISODES = 10
 
     # define a new discrete action space
     env.action_space = ActionDisc(env.action_space.high, env.action_space.low, ACTION_SPACE)
@@ -91,6 +106,11 @@ def run_dqn(env, save = False):
     cum_reward = []
 
     def select_action(state_pred):
+        """
+        Epsilon greedy policy
+        :param state_pred: Curren state
+        :return: Action
+        """
         sample = random.random()
         global EPSILON
         epsilon_old = EPSILON
@@ -128,8 +148,8 @@ def run_dqn(env, save = False):
 
             memory.add_observation(state, action, reward, state_follows)
 
-            # if epi == EPISODES - 1:
-            #     env.render()
+            if epi == EPISODES - 1:
+                env.render()
 
 
             # training
@@ -187,7 +207,7 @@ def run_dqn(env, save = False):
             '''if step == 500:
                 cum_reward[-1]=cum_reward[-1]/500.
                 break'''
-        print("Episode:{},\tSteps:{},\tCum.Reward:{},\t\tLoss/Step:{},\t\tEpsilon:{}"
+        print("Episode:{} Steps:{} Cum.Reward:{} Loss/Step:{} Epsilon:{}"
               .format(epi, step, cum_reward[-1], total_loss/step, EPSILON))
     # End time
     end = datetime.datetime.now()
@@ -196,34 +216,10 @@ def run_dqn(env, save = False):
         torch.save(model, "model.pt")
     plt.plot(cum_reward)
     plt.show()
-
-    for e in range(EVAL_EPISODES):
-        state = env.reset()
-
-        R = 0
-
-        while True:
-            action = select_action(state)
-
-            state_follows, reward, done, info = env.step(action.numpy()[0])
-
-            R += reward
-
-            env.render()
-
-            if done:
-                break
-
-            state = state_follows
-
-        print("Test Episode {}: {} reward".format(e, R))
-
     return model
 
-
 env = gym.make("CartpoleSwingShort-v0")
-#env = gym.make("Pendulum-v0")
 
+# run_dqn(env, save=False)
 run_dqn(env, save=True)
-#run_dqn(env, save=True)
 
