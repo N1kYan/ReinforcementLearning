@@ -207,7 +207,7 @@ def sample(epochs):
     return D
 
 
-def evaluate(w_star=None, episodes=5, render=True, plot=True, load_flag=True):
+def evaluate(w_star=None, episodes=10, render=True, plot=True, load_flag=True):
     """
     Evaluate the learned weights/policy.
     :param w_star: Learned weights
@@ -278,11 +278,11 @@ def train(my_env, sample_epochs=20, gamma=0.99, epsilon=1e-1, save_flag=True):
     print("Discrete Action Space: ", A.space)
 
     # Sample from environment
-    print("Sampling...", end='')
+    print("Sampling ... ", end='')
     sys.stdout.flush()
     D = sample(epochs=sample_epochs)
     np.random.shuffle(D)
-    print("done")
+    print("Done!")
 
     # Initialize weights
     w_0 = np.zeros(shape=(len(basis_functions()), 1))
