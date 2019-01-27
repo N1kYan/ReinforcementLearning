@@ -95,7 +95,7 @@ def train_lspi_policy(env):
     :param env: gym.Env
     :return: function pi: s -> a
     """
-    w_star = LSPI.train(env=env)
+    w_star = LSPI.train(my_env=env)
     return lambda obs: LSPI.pi(obs, w_star)
 
 
