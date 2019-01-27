@@ -130,8 +130,8 @@ def run_dqn(env, save = False):
 
 
             # training
-            #if memory.size_mem() > BATCH_SIZE:
-            if memory.size_mem() > INITIAL_REPLAY:
+            if memory.size_mem() > BATCH_SIZE:
+            #if memory.size_mem() > INITIAL_REPLAY:
 
                 states, actions, rewards, next_states = \
                     memory.random_batch(BATCH_SIZE)

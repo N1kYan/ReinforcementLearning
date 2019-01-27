@@ -7,20 +7,50 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+class DiscreteActionSpace(gym.Space):
+    def __init__(self, high, low, number):
+        gym.Space.__init__(self, (), np.float)
+        self.high = high
+        self.low = low
+        self.n = number
+        self.space = np.linspace(self.low, self.high, self.n)
+
+    def sample(self):
+        return np.array([np.random.choice(self.space)])
+
+    def contains(self, x):
+        """
+        :param x: action space values (as array or similar)
+        :return: index of the given actions (as list)
+        """
+        indices = []
+        for i in x:
+            indices.append(np.where(self.space==i)[0][0])
+        return indices
+
+
 def basis_functions():
+    def indicator(indi, a):
+        print(indi, a)
+        if indi == a:
+            return 1
+        else:
+            return 0
     """
     Defines the basis functions used for linear approximation.
 
     :return: The basis functions
     """
-    kleinvieh = [
-        lambda s, a: 1,
-        lambda s, a: np.abs(np.sin(s[0])) * a,
-        lambda s, a: np.abs(np.sin(s[1])) * a,
-        lambda s, a: np.abs(np.sin(s[2])) * a,
-        lambda s, a: np.abs(np.sin(s[3])) * a,
-        lambda s, a: np.abs(np.cos(s[1])) * a,
-        lambda s, a: np.abs(np.cos(s[2])) * a,
+    kleinvieh = []
+    for action in A.space:
+        kleinvieh.append(lambda s, a: 1 * indicator(action, a),)
+        # kleinvieh.append(lambda s, a: (np.sin(s[0])) * indicator(action, a),)
+        # kleinvieh.append(lambda s, a: (np.sin(s[1])) * indicator(action, a),)
+        # kleinvieh.append(lambda s, a: (np.sin(s[2])) * indicator(action, a),)
+        # kleinvieh.append(lambda s, a: (np.sin(s[3])) * indicator(action, a),)
+        # kleinvieh.append(lambda s, a: (np.cos(s[1])) * indicator(action, a),)
+        # kleinvieh.append(lambda s, a: (np.cos(s[2])) * indicator(action, a),)
+        kleinvieh.append(lambda s, a: np.exp(-s[4]) * indicator(action, a),)
 
 
         # lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[0]/s[1]), np.arctan(s[2]/s[3])] -
@@ -42,13 +72,12 @@ def basis_functions():
         # lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[0] / s[1]), np.arctan(s[2] / s[3])] -
         #                                              np.array([np.pi / 4, 1])) / 2)) * a,
 
-    ]
     return kleinvieh
 
 
 def pi(s, w,):
     """
-    Policy returning the liner combination of basis functions and weights
+    Policy returning the action maximizing the linear combination of basis functions of (s, a) and weights
     :param s: state
     :param w: weights
     :return: Linear combination (action)
@@ -59,8 +88,7 @@ def pi(s, w,):
             dash = mist(s, a) * w_dash
             su += dash
         return su
-    global A
-    return np.array([A[np.argmax([policy_a(a) for a in A])]])
+    return np.array([A.space[np.argmax([policy_a(a) for a in A.space])]])
 
 
 def lstdq_opt(D, phi, gamma, w):
@@ -74,14 +102,14 @@ def lstdq_opt(D, phi, gamma, w):
     """
     k = len(phi)
     sigma = 100
-    B_tilde = np.eye(N=k, M=k)*(1/sigma)
+    B_tilde = np.dot(np.eye(N=k, M=k), (1/sigma))
     b_tilde = np.zeros(shape=(k, 1))
     for (s, a, r, s_dash) in D:
         phis = np.array([p(s, a) for p in phi]).reshape(-1, 1)
         phis_dash = np.array([p(s_dash, pi(s_dash, w)) for p in phi]).reshape(-1, 1)
-        B_tilde -= (np.matmul(B_tilde, np.matmul(phis, np.matmul((phis-gamma*phis_dash).T, B_tilde)))
-                    / (1+np.matmul((phis-gamma*phis_dash).T, np.matmul(B_tilde, phis))))
-        b_tilde = b_tilde + phis*r
+        B_tilde -= (np.matmul(B_tilde, np.matmul(phis, np.matmul((phis-np.dot(gamma, phis_dash)).T, B_tilde)))
+                    / (1+np.matmul((phis-np.dot(gamma, phis_dash)).T, np.matmul(B_tilde, phis))))
+        b_tilde = b_tilde + np.dot(phis, r)
     return np.matmul(B_tilde, b_tilde)
 
 
@@ -94,14 +122,20 @@ def lstdq(D, phi, gamma, w):
     :param w: Current weights
     :return: TODO
     """
+    print()
     k = len(phi)
     A_tilde = np.zeros(shape=(k, k))
     b_tilde = np.zeros(shape=(k, 1))
     for (s, a, r, s_dash) in D:
-        phis = np.array([p(s, a) for p in phi]).reshape(-1, 1)
-        phis_dash = np.array([p(s_dash, pi(s_dash, w)) for p in phi])
-        A_tilde = A_tilde + phis*(phis-gamma*phis_dash).T
-        b_tilde = b_tilde + phis*r
+        print("Action:", a)
+        phis = np.array([p(s, a) for p in phi]).reshape(-1, 1)  # kx1
+        print("Phis:", np.transpose(phis))
+        phis_dash = np.array([p(s_dash, pi(s_dash, w)) for p in phi]).reshape(-1, 1)  # kx1
+        print("Phis':", np.transpose(phis_dash))
+        A_tilde = A_tilde + np.matmul(phis, (phis-np.dot(gamma, phis_dash)).T)  # kxk
+        b_tilde = b_tilde + np.dot(phis, r)
+        print(A_tilde)
+        print()
     return np.matmul(np.linalg.inv(A_tilde), b_tilde)
 
 
@@ -194,13 +228,13 @@ def evaluate(w_star=None, episodes=5, render=True, plot=True, load_flag=True):
     print("done")
 
 
-def train(my_env, sample_epochs=500, gamma=0.99, epsilon=1e-1, save_flag=True):
+def train(my_env, sample_epochs=5, gamma=0.99, epsilon=1e-1, save_flag=True):
     """
     Set environment, discretize action Space and run LSPI training.
     :param my_env: The gym environment
-    :param sample_epochs: Episodes for samling D
+    :param sample_epochs: Episodes for sampling D
     :param gamma: Discount factor gamma  # 0.95
-    :param epsilon: Convergence criterium  # 1
+    :param epsilon: Convergence criterion  # 1
     :param save_flag: Set true to save learned weights to file
     :return: learned weights w_star
     """
@@ -213,8 +247,9 @@ def train(my_env, sample_epochs=500, gamma=0.99, epsilon=1e-1, save_flag=True):
 
     # Set discrete action space
     global A
-    A = np.linspace(start=env.action_space.low, stop=env.action_space.high, num=7)  # 13, 25, 49
-    print("Discrete Action Space: ", A)
+    A = DiscreteActionSpace(low=env.action_space.low, high=env.action_space.high, number=2)
+    env.action_space = A
+    print("Discrete Action Space: ", A.space)
 
     # Sample from environment
     print("Sampling...", end='')
