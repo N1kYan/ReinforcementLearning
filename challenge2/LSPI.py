@@ -14,6 +14,7 @@ class DiscreteActionSpace(gym.Space):
         self.low = low
         self.n = number
         self.space = np.linspace(self.low, self.high, self.n)
+        # self.space =[-24, -12, -2, 0, 2, 12, 24]
 
     def sample(self):
         return np.array([np.random.choice(self.space)])
@@ -64,6 +65,66 @@ def basis_functions():
         lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1]/s[2]), s[4]] -
                                                      np.array([np.pi / 4, 1])) / 2)) * (24 == a),
 
+        lambda s, a: 1 * (12 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                     np.array([-np.pi / 4, -1])) / 2)) * (12 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                     np.array([0, -1])) / 2)) * (12 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                     np.array([np.pi / 4, -1])) / 2)) * (12 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                     np.array([-np.pi / 4, 0])) / 2)) * (12 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                     np.array([0, 0])) / 2)) * (12 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                     np.array([np.pi / 4, 0])) / 2)) * (12 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                     np.array([-np.pi / 4, 1])) / 2)) * (12 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                     np.array([0, 1])) / 2)) * (12 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                     np.array([np.pi / 4, 1])) / 2)) * (12 == a),
+
+        lambda s, a: 1 * (0 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                     np.array([-np.pi / 4, -1])) / 2)) * (0 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                     np.array([0, -1])) / 2)) * (0 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                     np.array([np.pi / 4, -1])) / 2)) * (0 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                     np.array([-np.pi / 4, 0])) / 2)) * (0 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                     np.array([0, 0])) / 2)) * (0 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                     np.array([np.pi / 4, 0])) / 2)) * (0 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                     np.array([-np.pi / 4, 1])) / 2)) * (0 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                     np.array([0, 1])) / 2)) * (0 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                     np.array([np.pi / 4, 1])) / 2)) * (0 == a),
+
+        lambda s, a: 1 * (-12 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                    np.array([-np.pi / 4, -1])) / 2)) * (-12 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                    np.array([0, -1])) / 2)) * (-12 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                    np.array([np.pi / 4, -1])) / 2)) * (-12 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                    np.array([-np.pi / 4, 0])) / 2)) * (-12 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                    np.array([0, 0])) / 2)) * (-12 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                    np.array([np.pi / 4, 0])) / 2)) * (-12 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                    np.array([-np.pi / 4, 1])) / 2)) * (-12 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                    np.array([0, 1])) / 2)) * (-12 == a),
+        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1] / s[2]), s[4]] -
+                                                    np.array([np.pi / 4, 1])) / 2)) * (-12 == a),
+
         lambda s, a: 1 * (-24 == a),
         lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1]/s[2]), s[4]] -
                                                      np.array([-np.pi / 4, -1])) / 2)) * (-24 == a),
@@ -83,27 +144,8 @@ def basis_functions():
                                                      np.array([0, 1])) / 2)) * (-24 == a),
         lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1]/s[2]), s[4]] -
                                                      np.array([np.pi / 4, 1])) / 2)) * (-24 == a),
-
-        lambda s, a: 1 * (0 == a),
-        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1]/s[2]), s[4]] -
-                                                     np.array([-np.pi / 4, -1])) / 2)) * (0 == a),
-        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1]/s[2]), s[4]] -
-                                                     np.array([0, -1])) / 2)) * (0 == a),
-        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1]/s[2]), s[4]] -
-                                                     np.array([np.pi / 4, -1])) / 2)) * (0 == a),
-        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1]/s[2]), s[4]] -
-                                                     np.array([-np.pi / 4, 0])) / 2)) * (0 == a),
-        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1]/s[2]), s[4]] -
-                                                     np.array([0, 0])) / 2)) * (0 == a),
-        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1]/s[2]), s[4]] -
-                                                     np.array([np.pi / 4, 0])) / 2)) * (0 == a),
-        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1]/s[2]), s[4]] -
-                                                     np.array([-np.pi / 4, 1])) / 2)) * (0 == a),
-        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1]/s[2]), s[4]] -
-                                                     np.array([0, 1])) / 2)) * (0 == a),
-        lambda s, a: np.exp(-np.linalg.norm(np.array([np.arctan(s[1]/s[2]), s[4]] -
-                                                     np.array([np.pi / 4, 1])) / 2)) * (0 == a),
     ]
+
     return kleinvieh
 
 
@@ -162,7 +204,6 @@ def lstdq(D, phi, gamma, w):
         phis_dash = np.array([p(s_dash, pi(s_dash, w)) for p in phi]).reshape(-1, 1)  # kx1
         A_tilde = A_tilde + np.matmul(phis, (phis-np.dot(gamma, phis_dash)).T)  # kxk
         b_tilde = b_tilde + np.dot(phis, r)
-
     return np.matmul(np.linalg.inv(A_tilde), b_tilde)
 
 
@@ -197,7 +238,7 @@ def lspi(D, phi, gamma, epsilon, w_0):
         w_dash = lstdq(D=D, phi=phi, gamma=gamma, w=w)
         # w_dash = lstdq_opt(D=D, phi=phi, gamma=gamma, w=w)
         diff = np.linalg.norm(x=(w-w_dash), ord=2)
-        print("Diff {} < {}: {} ".format(diff, epsilon, diff < epsilon), end='')
+        print("Diff {} < {}: {} ".format(diff, epsilon, diff < epsilon))
         if diff < epsilon:
             break
 
@@ -224,7 +265,7 @@ def sample(epochs):
     return D
 
 
-def evaluate(w_star=None, episodes=10, render=True, plot=True, load_flag=True):
+def evaluate(w_star=None, episodes=5, render=True, plot=True, load_flag=True):
     """
     Evaluate the learned weights/policy.
     :param w_star: Learned weights
@@ -254,6 +295,7 @@ def evaluate(w_star=None, episodes=10, render=True, plot=True, load_flag=True):
             if render:
                 env.render()
             action = pi(state, w_star)
+            print(action)
             chosen_actions.append(action)
             next_state, reward, done, info = env.step(action)
             rewards.append(reward)
@@ -271,7 +313,7 @@ def evaluate(w_star=None, episodes=10, render=True, plot=True, load_flag=True):
     print("... Done!")
 
 
-def train(my_env, sample_epochs=5, gamma=0.99, epsilon=0.1, save_flag=True):
+def train(env, sample_epochs=5, gamma=0.99, epsilon=1e-1, save_flag=True):
     """
     Set environment, discretize action Space and run LSPI training.
     :param my_env: The gym environment
@@ -281,18 +323,6 @@ def train(my_env, sample_epochs=5, gamma=0.99, epsilon=0.1, save_flag=True):
     :param save_flag: Set true to save learned weights to file
     :return: learned weights w_star
     """
-    # Define gym environment
-    global env
-    env = gym.make(my_env)
-    print(env.spec)
-    print("State Space Low:", env.observation_space.low)
-    print("State Space High:", env.observation_space.high)
-
-    # Set discrete action space
-    global A
-    A = DiscreteActionSpace(low=env.action_space.low, high=env.action_space.high, number=3)
-    env.action_space = A
-    print("Discrete Action Space: ", A.space)
 
     # Sample from environment
     print("Sampling ... ", end='')
@@ -321,10 +351,22 @@ def train(my_env, sample_epochs=5, gamma=0.99, epsilon=0.1, save_flag=True):
 
 
 def main():
-    w_star = train(my_env='CartpoleStabShort-v0')
+    w_star = train(env=env)
     evaluate(w_star=w_star)
     # evaluate()
 
+# Define gym environment
+global env
+env = gym.make('CartpoleStabShort-v0')
+print(env.spec)
+print("State Space Low:", env.observation_space.low)
+print("State Space High:", env.observation_space.high)
+
+# Set discrete action space
+global A
+A = DiscreteActionSpace(low=env.action_space.low, high=env.action_space.high, number=5)
+env.action_space = A
+print("Discrete Action Space: ", A.space)
 
 if __name__ == '__main__':
     main()

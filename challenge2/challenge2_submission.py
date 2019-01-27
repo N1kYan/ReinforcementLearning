@@ -37,15 +37,13 @@ import torch
 import DQN
 import pickle
 import LSPI
+import sys
 
 
 info = dict(
-    group_number=None,  # change if you are an existing seminar/project group
-    authors="John Doe; Lorem Ipsum; Foo Bar",
-    description="Explain what your code does and how. "
-                "Keep this description short "
-                "as it is not meant to be a replacement for docstrings "
-                "but rather a quick summary to help the grader.")
+    group_number=19,  # change if you are an existing seminar/project group
+    authors="Tabea Wilke; Maximilian Gehrke; Yannik Frisch",
+    description="The code runs DQN and LSPI on the given environment")
 
 
 def load_dqn_policy():
@@ -58,9 +56,7 @@ def load_dqn_policy():
     :return: function pi: s -> a
     """
     model = torch.load("model.pt")
-    #model.eval()
     return lambda s: DQN.model_to_action(model, s)
-    #return lambda obs: np.array([3.1415])
 
 
 def train_dqn_policy(env):
@@ -73,8 +69,7 @@ def train_dqn_policy(env):
     :return: function pi: s -> a
     """
     model = DQN.run_dqn(env)
-
-    return lambda s: DQN.model_to_action(model,s, env, 10)
+    return lambda s: DQN.model_to_action(model, s, env, 10)
     #return lambda obs: np.array([2.7183])
 
 
@@ -100,14 +95,14 @@ def train_lspi_policy(env):
     :param env: gym.Env
     :return: function pi: s -> a
     """
-    w_star = LSPI.train(my_env=env)
+    w_star = LSPI.train(env=env)
     return lambda obs: LSPI.pi(obs, w_star)
 
 
 # ==== Example evaluation
 def main():
     import gym
-    from gym.wrappers.monitor import Monitor
+    # from gym.wrappers.monitor import Monitor
     import quanser_robots
 
     def evaluate(env, policy, num_evlas=25):
@@ -137,7 +132,7 @@ def main():
         print(np.mean(ret_all), np.std(ret_all))
         env.close()
 
-    # DQN I: Check learned policy
+    ''''# DQN I: Check learned policy
     env = Monitor(gym.make('CartpoleSwingShort-v0'), 'dqn_eval', force=True)
     policy = load_dqn_policy()
     check(env, policy)
@@ -145,8 +140,8 @@ def main():
     # DQN II: Check learning procedure
     env = Monitor(gym.make('CartpoleSwingShort-v0'), 'dqn_train', video_callable=False, force=True)
     policy = train_dqn_policy(env)
-    check(env, policy)
-    '''
+    check(env, policy
+
     # LSPI I: Check learned policy
     env = Monitor(gym.make('CartpoleStabShort-v0'), 'lspi_eval')
     policy = load_lspi_policy()
