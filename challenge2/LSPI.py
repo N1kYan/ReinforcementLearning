@@ -162,7 +162,23 @@ def lstdq(D, phi, gamma, w):
         phis_dash = np.array([p(s_dash, pi(s_dash, w)) for p in phi]).reshape(-1, 1)  # kx1
         A_tilde = A_tilde + np.matmul(phis, (phis-np.dot(gamma, phis_dash)).T)  # kxk
         b_tilde = b_tilde + np.dot(phis, r)
+
     return np.matmul(np.linalg.inv(A_tilde), b_tilde)
+
+
+def sample_w(epochs, w):
+    D = []
+    for e in range(epochs):
+        state = env.reset()
+        while True:
+            # Random sample
+            action = pi(state, w)
+            next_state, reward, done, info = env.step(action)
+            D.append((state, action, reward, next_state))
+            state = np.copy(next_state)
+            if done:
+                break
+    return D
 
 
 def lspi(D, phi, gamma, epsilon, w_0):
@@ -181,10 +197,11 @@ def lspi(D, phi, gamma, epsilon, w_0):
         w_dash = lstdq(D=D, phi=phi, gamma=gamma, w=w)
         # w_dash = lstdq_opt(D=D, phi=phi, gamma=gamma, w=w)
         diff = np.linalg.norm(x=(w-w_dash), ord=2)
-        print("Diff {} < {}: {} ".format(diff, epsilon, diff < epsilon))
+        print("Diff {} < {}: {} ".format(diff, epsilon, diff < epsilon), end='')
         if diff < epsilon:
             break
-    return w_dash  # TODO: w?
+
+    return w_dash
 
 
 def sample(epochs):
@@ -254,7 +271,7 @@ def evaluate(w_star=None, episodes=10, render=True, plot=True, load_flag=True):
     print("... Done!")
 
 
-def train(my_env, sample_epochs=5, gamma=0.99, epsilon=1e-1, save_flag=True):
+def train(my_env, sample_epochs=5, gamma=0.99, epsilon=0.1, save_flag=True):
     """
     Set environment, discretize action Space and run LSPI training.
     :param my_env: The gym environment
