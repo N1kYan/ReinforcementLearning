@@ -245,7 +245,7 @@ def evaluate(w_star=None, episodes=5, render=True, plot=True, load_flag=True):
     print("... Done!")
 
 
-def train(env, sample_epochs=20, gamma=0.999, epsilon=1e-1, save_flag=True):
+def train(env, sample_epochs=30, gamma=0.9999, epsilon=1e-1, save_flag=True):
     """
     Set environment, discretize action Space and run LSPI training.
     :param my_env: The gym environment
@@ -260,7 +260,7 @@ def train(env, sample_epochs=20, gamma=0.999, epsilon=1e-1, save_flag=True):
     print("Sampling ... ", end='')
     sys.stdout.flush()
     D = sample(epochs=sample_epochs)
-    np.random.shuffle(D)
+    # np.random.shuffle(D)
     print("Done!")
 
     # Initialize weights
