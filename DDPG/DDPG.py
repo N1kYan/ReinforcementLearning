@@ -12,7 +12,7 @@ from NeuralNetworks import Actor, Critic
 from ReplayBuffer import ReplayBuffer
 from ActionNoise import OUNoise
 
-
+# Use cuda if available
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
@@ -117,8 +117,8 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
         # ---------------------------- update actor ---------------------------- #
         # Compute actor loss
         actions_pred = actor_local(states)
-        actor_loss = -critic_local(states, actions_pred).mean()  # Why -L
-        # actor_loss = self.critic_local(states, actions_pred).mean()
+        actor_loss = -critic_local(states, actions_pred).mean()  # TODO: Why -L ??
+        # actor_loss = critic_local(states, actions_pred).mean()
         # Minimize the loss
         actor_optimizer.zero_grad()
         actor_loss.backward()
@@ -155,13 +155,26 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
     e_cumulative_rewards = []
     for e in range(1, epochs + 1):
         state = env.reset()
-        # AGENT.reset()
+        noise.reset()
         cumulative_reward = 0
         t = 0
         for t_i in range(max_steps):
             t += 1
-            if (e % epoch_checkpoint == 0) and render:
-                env.render()
+            # Save average cumulative reward prints every 'epoch_checkpoint'
+            if e % epoch_checkpoint == 0:
+                # Plot the cumulative reward per episode during training process
+                fig = plt.figure()
+                plt.title("Cumulative reward during training")
+                ax = fig.add_subplot(111)
+                plt.plot(np.arange(1, len(e_cumulative_rewards) + 1), e_cumulative_rewards)
+                plt.ylabel('Cumulative reward')
+                plt.xlabel('Episode #')
+                save_time = datetime.datetime.now()
+                plt.savefig('./{}/{}-{}-{}-Episode-{}'.format(env.spec.id, save_time.day,
+                                                              save_time.month, save_time.hour, e))
+                # Render the 'epoch_checkpoint'
+                if render:
+                    env.render()
             # Output action from actor network / current policy given the current state
             state = torch.from_numpy(state).float().to(device)
             actor_local.eval()
@@ -201,19 +214,12 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
                   format(e, np.mean(scores_deque), (time.time() - time_start) / 60))
 
     # Save torch model of actor and critic
-    t = datetime.datetime.now()
-    torch.save(actor_local.state_dict(), './actor-{}-{}-{}-{}'.
-               format(env.spec.id, t.day, t.month, t.hour))
-    torch.save(critic_local.state_dict(), './critic-{}-{}-{}-{}'.
-               format(env.spec.id, t.day, t.month, t.hour))
-
-    # Plot the cumulative reward per episode during training process
-    fig = plt.figure()
-    plt.title("Cumulative reward during training")
-    ax = fig.add_subplot(111)
-    plt.plot(np.arange(1, len(e_cumulative_rewards) + 1), e_cumulative_rewards)
-    plt.ylabel('Cumulative reward')
-    plt.xlabel('Episode #')
+    save_time = datetime.datetime.now()
+    # Saving in format day-month-hour-episode
+    torch.save(actor_local.state_dict(), './{}/actor-{}-{}-{}-{}'.
+               format(env.spec.id, save_time.day, save_time.month, save_time.hour))
+    torch.save(critic_local.state_dict(), './{}/critic-{}-{}-{}-{}'.
+               format(env.spec.id, save_time.day, save_time.month, save_time.hour))
 
     # Return learned policy / actor network
     return actor_local
@@ -248,16 +254,16 @@ def main():
     env.seed(3)
 
     # Noise generating process
-    OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.15, sigma=0.2)
+    OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.15, sigma=1.0)
 
     # Replay memory
-    MEMORY = ReplayBuffer(action_size=env_specs[1], buffer_size=int(1e6), batch_size=64,
+    MEMORY = ReplayBuffer(action_size=env_specs[1], buffer_size=int(1e6), batch_size=256,
                           seed=random_seed)
 
     # Run training procedure with defined hyperparameters
-    ACTOR = training(epochs=10000, max_steps=300, epoch_checkpoint=500, noise=OU_NOISE, add_noise=True,
-                     lr_actor=1e-4, lr_critic=1e-3, weight_decay=0.2, gamma=0.9, memory=MEMORY, tau=1e-3,
-                     seed=random_seed, render=True)
+    ACTOR = training(epochs=20000, max_steps=300, epoch_checkpoint=1000, noise=OU_NOISE, add_noise=True,
+                     lr_actor=1e-4, lr_critic=1e-3, weight_decay=0.02, gamma=0.9, memory=MEMORY, tau=1e-3,
+                     seed=random_seed, render=False)
 
     # Run evaluation
     # evaluation(load_flag=False, actor='./actor22-1-18', epochs=25, render=False)
@@ -266,3 +272,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    plt.show()
