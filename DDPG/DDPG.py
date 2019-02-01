@@ -10,7 +10,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from NeuralNetworks import Actor, Critic
 from ReplayBuffer import ReplayBuffer
-from ActionNoise import OUNoise
+from ActionNoise import OUNoise, Gaussian
 
 # Use cuda if available
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -32,7 +32,7 @@ def evaluation(load_flag, actor, epochs, render):
     plt.xlabel("Time-step")
     plt.ylabel("Current reward")
 
-    # Load actor if load_flag=True and actor path available
+    # TODO: Load actor if load_flag=True and actor path available
     if load_flag:
         actor = ...
 
@@ -61,6 +61,7 @@ def evaluation(load_flag, actor, epochs, render):
                 break
             plt.plot(rewards)
         env.close()
+        plt.show()
 
 
 def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr_critic, weight_decay, memory, gamma,
@@ -117,7 +118,8 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
         # ---------------------------- update actor ---------------------------- #
         # Compute actor loss
         actions_pred = actor_local(states)
-        actor_loss = -critic_local(states, actions_pred).mean()  # TODO: Why -L ??
+        # Gradient ascent to get actor parameters maximizing critic estimation of value function
+        actor_loss = -critic_local(states, actions_pred).mean()
         # actor_loss = critic_local(states, actions_pred).mean()
         # Minimize the loss
         actor_optimizer.zero_grad()
@@ -227,7 +229,7 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
 
 def main():
     """
-    Defining the gym environment and initializing the DDPG objects (nns, noise and replay buffer).
+    Defining the gym environment and initializing the DDPG objects (NNs, noise and replay buffer).
     Hyperparameters are set in this method.  # TODO: Define size of nn layers in this method
     Training and evaluation methods are executed.
     :return: None
@@ -254,15 +256,17 @@ def main():
     env.seed(3)
 
     # Noise generating process
-    OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.15, sigma=1.0)
+    OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.6, sigma=4.0)
+
+    GAUSS_NOISE = Gaussian(size=env_action_size, seed=random_seed, mu=0.0, sigma=5.0, decay=0.5)
 
     # Replay memory
-    MEMORY = ReplayBuffer(action_size=env_specs[1], buffer_size=int(1e6), batch_size=256,
+    MEMORY = ReplayBuffer(action_size=env_specs[1], buffer_size=int(1e6), batch_size=1024,
                           seed=random_seed)
 
     # Run training procedure with defined hyperparameters
-    ACTOR = training(epochs=20000, max_steps=300, epoch_checkpoint=1000, noise=OU_NOISE, add_noise=True,
-                     lr_actor=1e-4, lr_critic=1e-3, weight_decay=0.02, gamma=0.9, memory=MEMORY, tau=1e-3,
+    ACTOR = training(epochs=20000, max_steps=300, epoch_checkpoint=500, noise=OU_NOISE, add_noise=True,
+                     lr_actor=1e-4, lr_critic=1e-3, weight_decay=0.01, gamma=0.99, memory=MEMORY, tau=1e-3,
                      seed=random_seed, render=False)
 
     # Run evaluation
@@ -272,4 +276,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    plt.show()

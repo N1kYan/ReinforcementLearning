@@ -3,6 +3,47 @@ import random
 import copy
 
 
+class Gaussian:
+    """
+    Gaussian noise for actions.
+    Mean 0, Sigma reducing over time.
+    """
+    def __init__(self, size, seed, mu, sigma, decay):
+        """
+        Initializes the parameters and the noise process.
+        :param size: Dimensions of the environments actions
+        :param seed: Random seed
+        :param mu: Mean / reversion for OU process (default = 0)
+        :param decay: Decay rate of variance sigma
+        :param sigma: Variance / diffusion for OU process
+        """
+        self.size =size
+        self.mu = mu * np.ones(size)
+        self.decay = decay
+        self.sigma = sigma
+        self.covariance_matrix = np.eye(size) * sigma
+        self.sigma_start = sigma
+        self.seed = random.seed(seed)
+        self.reset()
+
+    def reset(self):
+        """
+        (Re)sets sigma.
+        :return: None
+        """
+        self.sigma = copy.copy(self.sigma_start)
+
+    def sample(self):
+        """
+        Sample mv gaussian function.
+        :return: Action noise sample
+        """
+        action_noise = np.random.multivariate_normal(mean=self.mu, cov=self.covariance_matrix, size=self.size)
+        self.sigma = self.sigma * (1-self.decay**10)
+        self.covariance_matrix = self.sigma * np.eye(self.size)
+        return action_noise[0]
+
+
 # TODO: Source
 class OUNoise:
     """

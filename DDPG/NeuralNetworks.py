@@ -19,7 +19,7 @@ def hidden_init(layer):
 class Actor(nn.Module):
     """Actor model, approximating the discrete policy π(s)->a"""
 
-    def __init__(self, state_size, action_size, seed, num_layers=2, fc1_units=40, fc2_units=30):
+    def __init__(self, state_size, action_size, seed, num_layers=1, fc1_units=100, fc2_units=30):
         """
         Initializes the network's parameters and build it's model.
         :param state_size: The dimension of a state of the environment
@@ -38,9 +38,9 @@ class Actor(nn.Module):
         if num_layers == 1:
             self.fc1 = nn.Linear(state_size, fc1_units)
             self.fc2 = nn.Linear(fc1_units, action_size)
-        self.reset_parameters()
+        self.initialize_parameters()
 
-    def reset_parameters(self):
+    def initialize_parameters(self):
         """
         Resetting the network's parameters (weights).
         :return: None
@@ -72,7 +72,7 @@ class Actor(nn.Module):
 class Critic(nn.Module):
     """Critic model, approximating the value function Q(s,a)."""
 
-    def __init__(self, state_size, action_size, seed, num_layers=2, fcs1_units=40, fc2_units=30):
+    def __init__(self, state_size, action_size, seed, num_layers=1, fcs1_units=100, fc2_units=30):
         """
         Initializes the critic network's parameters and builds it's model.
         The model merges state input and action input after the first hidden layer.
@@ -92,9 +92,9 @@ class Critic(nn.Module):
         if num_layers == 1:
             self.fc1 = nn.Linear(state_size + action_size, fcs1_units)
             self.fc2 = nn.Linear(fcs1_units, 1)
-        self.reset_parameters()
+        self.initialize_parameters()
 
-    def reset_parameters(self):
+    def initialize_parameters(self):
         """
         Resetting the network's parameters (weights).
         :return: None
