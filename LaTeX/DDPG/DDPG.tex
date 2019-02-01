@@ -46,6 +46,8 @@ grestore
 \smartqed  % flush right qed marks, e.g. at end of proof
 %
 \usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{verbatim}
 %
 % \usepackage{mathptmx}      % use Times fonts if available on your TeX system
 %
@@ -113,13 +115,27 @@ DQN is the combination of neural networks and q-learning. It works on a
 deterministic environment with the goal to achieve the optimal action-value 
 function. This means finding the best action with respect to the rewards also 
 in the future to a given state. In terms of a formula it is represented by \[ 
-Q^*(s_t, a_t)=\pi\]%TODO Formel korrekt einfügen
+Q^*(s_t,a_t)=\underset{\pi}{\max}E\Biggl\lbrack 
+\sum_{t^{'}=t}^{T}\gamma^{t^{'}-t}r_{t^{'}}|s_t=s,
+a_t=a, \pi \Biggr\rbrack
+\]
+%TODO E richtig darstellen
  with $\lambda$ as discount factor smaller but close to 1, 
 so the agent takes also future reward into account. The rewards of the future 
 will have impact on the result but the influence decreases with time. For 
 estimating the action-value function a deep network is used. Furthermore, a 
 replay buffer is used which will save samples of the environment. Therefore, it 
-is possible to achieve a non correlated batch.
+is possible to achieve a non correlated batch. There are different ways of 
+estimating the expected q-values. Either with a target network with the same 
+structure as the network for the action-value function or the normal network. 
+If a target network is used, the target weights need to be updated after some 
+training steps.\\
+The loss is calculated through the mean-squared-loss of the expected q-value 
+and the estimated q-value: \[L_i(\theta_i)=E_{(s,a,r,s^{'})}
+\biggl\lbrack\biggl(r+\gamma \underset{a^{'}}{\max} Q(s^{'}, 
+a^{'};\theta_i^{'})-Q(s,a;\theta_i)\biggr)^2\biggr\rbrack \]
+%TODO E richtig machen
+DQN can only handle discrete and low-dimensional action spaces.
 
 \begin{itemize}
 \item DQN uses deep networks to estimate the action-value function
@@ -152,12 +168,12 @@ and subsection a unique label (see Sect.~\ref{sec:1}).
 \begin{equation}
 a^2+b^2=c^2
 \end{equation}
-
+\begin{comment}
 % For one-column wide figures use
 \begin{figure}
 % Use the relevant command to insert your figure file.
 % For example, with the graphicx package use
-  \includegraphics{example.eps}
+\includegraphics{example.eps}
 % figure caption is below the figure
 \caption{Please write your figure caption here}
 \label{fig:1}       % Give a unique label
@@ -167,11 +183,13 @@ a^2+b^2=c^2
 \begin{figure*}
 % Use the relevant command to insert your figure file.
 % For example, with the graphicx package use
-  \includegraphics[width=0.75\textwidth]{example.eps}
+\includegraphics[width=0.75\textwidth]{example.eps}
 % figure caption is below the figure
 \caption{Please write your figure caption here}
 \label{fig:2}       % Give a unique label
 \end{figure*}
+\end{comment}
+
 %
 % For tables use
 \begin{table}
