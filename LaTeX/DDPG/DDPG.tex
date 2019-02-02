@@ -45,9 +45,16 @@ grestore
 %
 \smartqed  % flush right qed marks, e.g. at end of proof
 %
+
 \usepackage{graphicx}
 \usepackage{amsmath}
-\usepackage{verbatim}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\renewcommand{\algorithmicrequire}{\textbf{Initialize:}}
+
+\usepackage{verbatim} %TODO delete before submission
+
+%TODO Zitierweise ändern, sieht schrecklich aus
 %
 % \usepackage{mathptmx}      % use Times fonts if available on your TeX system
 %
@@ -109,15 +116,20 @@ Gradients (DPG) and Deep Q-Learning (DQN). In the following we describe the
 underlying algorithms DPG and DQN and which aspects DDPG uses of both of them. 
 \subsection{Deterministic Policy Gradient (DPG)}
 \label{sec:DPG}
-\subsection{Deep Q-Learning (DQN)}
+
+
+
+\subsection{Deep Q-Learning (DQN) }
+\nocite{mnih2015human}
+\nocite{mnih2013playing}
 \label{sec:DQN}
 DQN is the combination of neural networks and q-learning. It works on a 
 deterministic environment with the goal to achieve the optimal action-value 
 function. This means finding the best action with respect to the rewards also 
 in the future to a given state. In terms of a formula it is represented by \[ 
-Q^*(s_t,a_t)=\underset{\pi}{\max}E\Biggl\lbrack 
+Q^*(s_t,a_t)=\max_\pi E\left[
 \sum_{t^{'}=t}^{T}\gamma^{t^{'}-t}r_{t^{'}}|s_t=s,
-a_t=a, \pi \Biggr\rbrack
+a_t=a, \pi \right] 
 \]
 %TODO E richtig darstellen
  with $\lambda$ as discount factor smaller but close to 1, 
@@ -132,10 +144,44 @@ If a target network is used, the target weights need to be updated after some
 training steps.\\
 The loss is calculated through the mean-squared-loss of the expected q-value 
 and the estimated q-value: \[L_i(\theta_i)=E_{(s,a,r,s^{'})}
-\biggl\lbrack\biggl(r+\gamma \underset{a^{'}}{\max} Q(s^{'}, 
-a^{'};\theta_i^{'})-Q(s,a;\theta_i)\biggr)^2\biggr\rbrack \]
+\left[\left(r+\gamma \max_{a^{'}} Q(s^{'}, 
+a^{'}|\theta_i^{'})-Q(s,a|\theta_i)\right)^2\right] \]
 %TODO E richtig machen
 DQN can only handle discrete and low-dimensional action spaces.
+
+\begin{algorithm}
+	\caption{Deep Q-Learning (DQN)}\label{DQN-algo}
+	\begin{algorithmic}
+		\REQUIRE Replay buffer $\mathit{D}$ with high capacity
+		\REQUIRE Neural network for action-value function $\mathit{Q}$
+		with random weights $\theta$
+		\REQUIRE Neural network for target action-value function$
+		\mathit{\hat{Q}}$ with weights $\theta^-=\theta$
+		\FOR{episode $1$ \TO $M$}
+		\STATE reset environment to state $s_1$
+		\FOR{$t=1$ \TO $T$}
+		\IF{random $i \le \epsilon$}
+		\STATE random action $a_t$
+		\ELSE
+		\STATE $a_t=\operatorname*{argmin}_a Q(s_t,a|\theta)$
+		\ENDIF
+		\STATE execute $a_t \rightarrow$ reward $r_t$ and next state 
+		$s_{t+1}$
+		\STATE save $(s_t, a_t, r_t,s_{t+1})$ in $D$
+		\STATE sample minibatch $(s_i, a_i, r_i,s_{i+1})$ from $D$
+		\STATE $q_i =
+			\begin{cases}
+			r_i & \textit{if episode terminates at step i+1}\\
+			r_i+\gamma \max_{a^{'}}\hat{Q}(s_{i+1}, a_i|\theta^{-})& 
+			else\\			
+			\end{cases}$
+		\STATE perform gradient descent on $\left(q_i-Q\left(s_i, 
+		a_i|\theta\right)\right)^2_\theta$
+		\STATE every $C$ steps update $\hat{Q}=Q$
+		\ENDFOR
+		\ENDFOR
+	\end{algorithmic}
+\end{algorithm}
 
 \begin{itemize}
 \item DQN uses deep networks to estimate the action-value function
@@ -158,6 +204,8 @@ Your text comes here. Separate text sections with
 
 \section{Extensions to the Algorithm}
 \label{sec:1}
+\begin{comment}
+
 We propose several possible extensions and show their performance on a task.\\
 Text with citations \cite{RefB} and \cite{RefJ}.
 \subsection{Subsection title}
@@ -168,7 +216,7 @@ and subsection a unique label (see Sect.~\ref{sec:1}).
 \begin{equation}
 a^2+b^2=c^2
 \end{equation}
-\begin{comment}
+
 % For one-column wide figures use
 \begin{figure}
 % Use the relevant command to insert your figure file.
@@ -188,7 +236,7 @@ a^2+b^2=c^2
 \caption{Please write your figure caption here}
 \label{fig:2}       % Give a unique label
 \end{figure*}
-\end{comment}
+
 
 %
 % For tables use
@@ -208,18 +256,22 @@ number & number & number \\
 \end{table}
 
 
+\end{comment}
 %\begin{acknowledgements}
 %If you'd like to thank anyone, place your comments here
 %and remove the percent signs.
 %\end{acknowledgements}
 
 % BibTeX users please use one of
-%\bibliographystyle{spbasic}      % basic style, author-year citations
+\bibliographystyle{spbasic}      % basic style, author-year citations
 %\bibliographystyle{spmpsci}      % mathematics and physical sciences
 %\bibliographystyle{spphys}       % APS-like style for physics
-%\bibliography{}   % name your BibTeX data base
+\bibliography{ddpg.bib}   % name your BibTeX data base
 
 % Non-BibTeX users please use
+\begin{comment}
+
+
 \begin{thebibliography}{}
 %
 % and use \bibitem to create references. Consult the Instructions
@@ -232,8 +284,8 @@ Author, Article title, Journal, Volume, page numbers (year)
 \bibitem{RefB}
 Author, Book title, page numbers. Publisher, place (year)
 % etc
-\end{thebibliography}
 
+\end{thebibliography}
+\end{comment}
 \end{document}
 % end of file template.tex
-
