@@ -38,15 +38,23 @@ import random
 import gym
 from NAC_by_studywolf import Evaluation
 import sys
+from NAC_by_studywolf.my_environment import MyEnvironment
 
 
-def policy_gradient():
+def policy_gradient(env):
     with tf.variable_scope("policy"):
-        params = tf.get_variable("policy_parameters", [4, 2])
-        state = tf.placeholder("float", [None, 4], name="state")
+
+        state_size = env.observation_space.shape[0] # dim of one state
+        poss_actions = len(env.action_space) # each action has dim of 1
+
+        params = tf.get_variable(
+            "policy_parameters",
+            [state_size, poss_actions]
+        )
+        state = tf.placeholder("float", [None, state_size], name="state")
         # NOTE: have to specify shape of actions so we can call
         # get_shape when calculating g_log_prob below
-        actions = tf.placeholder("float", [200, 2], name="actions")
+        actions = tf.placeholder("float", [200, poss_actions], name="actions")
         advantages = tf.placeholder("float", [None, ], name="advantages")
         linear = tf.matmul(state, params)
         probabilities = tf.nn.softmax(linear)
@@ -63,7 +71,7 @@ def policy_gradient():
         g_log_prob = tf.stack(
             [tf.gradients(action_log_prob_flat[i], my_variables)[0]
                 for i in range(action_log_prob_flat.get_shape()[0])])
-        g_log_prob = tf.reshape(g_log_prob, (200, 8, 1))
+        g_log_prob = tf.reshape(g_log_prob, (200, poss_actions * state_size, 1))
 
         # calculate the policy gradient by multiplying by the advantage fct.
         g = tf.multiply(g_log_prob, tf.reshape(advantages, (200, 1, 1)))
@@ -94,7 +102,7 @@ def policy_gradient():
             tf.divide(0.001, tf.matmul(tf.transpose(g), F_inv_g)))
 
         update = tf.multiply(learning_rate, F_inv_g)
-        update = tf.reshape(update, (4, 2))
+        update = tf.reshape(update, (state_size, poss_actions))
 
         # update trainable parameters
         # NOTE: whenever my_variables is fetched they're also updated
@@ -102,13 +110,14 @@ def policy_gradient():
 
         return probabilities, state, actions, advantages, my_variables
 
-def value_gradient():
+def value_gradient(env):
     with tf.variable_scope("value"):
-        state = tf.placeholder("float", [None, 4])
+        state_size = env.observation_space.shape[0]
+        state = tf.placeholder("float", [None, state_size])
         newvals = tf.placeholder("float", [None, 1])
-        w1 = tf.get_variable("w1", [4, 10])
+        w1 = tf.get_variable("w1", [state_size, 10])
         b1 = tf.get_variable("b1", [10])
-        h1 = tf.nn.relu(tf.matmul(state,w1) + b1)
+        h1 = tf.nn.relu(tf.matmul(state, w1) + b1)
         w2 = tf.get_variable("w2", [10, 1])
         b2 = tf.get_variable("b2", [1])
         calculated = tf.matmul(h1, w2) + b2
@@ -142,20 +151,40 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj):
 
     n_episodes = 0
     n_timesteps = 200
+
+    # calculate policy
     for t in range(n_timesteps):
-        # calculate policy
+        # Expand state by one dimension
+        # Before = [ ... , ... , ... ], After = [[ ... , ... , ... ]]
         obs_vector = np.expand_dims(observation, axis=0)
+
+        # Probabilities
         probs = sess.run(
             pl_calculated,
             feed_dict={pl_state: obs_vector})
 
+        print("PROBS: ", probs)
+
+        # Check which action to take
         # stochastically generate action using the policy output
-        action = 0 if random.uniform(0,1) < probs[0][0] else 1
+        probs_sum = 0
+        action_i = None
+        rnd = random.uniform(0, 1)
+        for k in range(len(env.action_space)):
+            probs_sum += probs[0][k]
+            if rnd < probs_sum:
+                action_i = k
+
         # record the transition
         states.append(observation)
-        actionblank = np.zeros(2)
-        actionblank[action] = 1
-        actions.append(actionblank)
+        # Make one-hot action array
+        action_array = np.zeros(len(env.action_space))
+        action_array[action_i] = 1
+        actions.append(action_array)
+        print(action_array)
+        # Get the action (not only the index)
+        action = env.action_space[action_i]
+        print("ACTION: ", action) # TODO: Actions sind nicht immer 1D
         # take the action in the environment
         old_observation = observation
         observation, reward, done, info = env.step(action)
@@ -215,26 +244,34 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj):
     return total_rewards, n_episodes
 
 
-# generate the networks
+# VARIABLES & CONSTANTS
+# Choosing the environment
+# For possible environments, please look at the assert check
+ENVIRONMENT = 'DoublePendulum-v0'
+NUM_ACTIONS = None
+
+# Names of envs & default num of actions for discretization
+# If default value is 'None' the action space is already discretized
+env_dict = {'CartPole-v0': None, 'CartPole-v1': None,
+            'Pendulum-v0': 3, 'DoublePendulum-v0': 3}
+assert ENVIRONMENT in env_dict.keys()
+
+# GENERATE ENVIRONMENTS
+print("Generating {} environment:".format(ENVIRONMENT), end="")
+num_actions = env_dict[ENVIRONMENT]
+if NUM_ACTIONS is not None and num_actions is not None:
+    num_actions = NUM_ACTIONS
+env = MyEnvironment(ENVIRONMENT, num_actions)
+
+# GENERATE NETWORKS
 print("Generating Neural Networks ... ", end="")
 sys.stdout.flush()
-policy_grad = policy_gradient()
-value_grad = value_gradient()
+policy_grad = policy_gradient(env)
+value_grad = value_gradient(env)
 print("Done!")
 
 # run the training from scratch 10 times, record results
 for ii in range(1):
-
-    print("Generating environment ... ", end="")
-    sys.stdout.flush()
-    env = gym.make('CartPole-v0')
-    env = gym.wrappers.Monitor(
-        env=env,
-        directory='cartpole-hill/',
-        force=True,
-        video_callable=False)
-    print("Done!\n")
-
     sess = tf.InteractiveSession()
     sess.run(tf.global_variables_initializer())
 
