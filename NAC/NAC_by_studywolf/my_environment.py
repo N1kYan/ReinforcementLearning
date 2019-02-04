@@ -2,6 +2,7 @@ import gym
 import random
 import numpy as np
 import sys
+import quanser_robots
 
 
 class MyEnvironment(gym.Space):
@@ -30,13 +31,14 @@ class MyEnvironment(gym.Space):
         if type(self.env.action_space) is gym.spaces.discrete.Discrete:
             self.action_space = np.arange(self.env.action_space.n)
             assert num_of_actions is None
-        elif type(self.env.action_space) is gym.spaces.box.Box:
+        elif type(self.env.action_space) is gym.spaces.box.Box \
+                or type(self.env.action_space) is quanser_robots.common.LabeledBox:
             self.action_space = np.linspace(self.env.action_space.low,
                                             self.env.action_space.high,
                                             self.num_of_actions)
         else:
             raise ValueError("Env Action Spaces should be of type Discrete "
-                             "or Box.")
+                             "or Box, but is of Type {}.".format(type(self.env.action_space)))
 
         self.env.action_space = self.action_space
         self.action_space_high = np.max(self.action_space)

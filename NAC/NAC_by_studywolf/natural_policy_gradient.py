@@ -47,6 +47,9 @@ def policy_gradient(env):
         state_size = env.observation_space.shape[0] # dim of one state
         poss_actions = len(env.action_space) # each action has dim of 1
 
+        print("State size: ", state_size)
+        print("Poss actions: ", poss_actions)
+
         params = tf.get_variable(
             "policy_parameters",
             [state_size, poss_actions]
@@ -158,12 +161,14 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj):
         # Before = [ ... , ... , ... ], After = [[ ... , ... , ... ]]
         obs_vector = np.expand_dims(observation, axis=0)
 
+        # print("OBS: ", obs_vector)
+
         # Probabilities
         probs = sess.run(
             pl_calculated,
             feed_dict={pl_state: obs_vector})
 
-        print("PROBS: ", probs)
+        # print("PROBS: ", probs)
 
         # Check which action to take
         # stochastically generate action using the policy output
@@ -172,8 +177,9 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj):
         rnd = random.uniform(0, 1)
         for k in range(len(env.action_space)):
             probs_sum += probs[0][k]
-            if rnd < probs_sum:
+            if rnd <= probs_sum:
                 action_i = k
+                break
 
         # record the transition
         states.append(observation)
@@ -181,10 +187,12 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj):
         action_array = np.zeros(len(env.action_space))
         action_array[action_i] = 1
         actions.append(action_array)
-        print(action_array)
+        # print("ACTION ARRAY: ", action_array)
         # Get the action (not only the index)
-        action = env.action_space[action_i]
-        print("ACTION: ", action) # TODO: Actions sind nicht immer 1D
+        action = env.action_space[action_i] # TODO: Actions sind nicht immer 1D
+        if env.name == 'DoublePendulum-v0':
+            action = np.array([action])
+        # print("ACTION: ", action)
         # take the action in the environment
         old_observation = observation
         observation, reward, done, info = env.step(action)

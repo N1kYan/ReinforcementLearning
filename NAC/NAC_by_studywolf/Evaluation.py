@@ -32,8 +32,20 @@ def evaluate(env, policy_grad, episodes, render, sleep, sess):
                 pl_calculated,
                 feed_dict={pl_state: obs_vector})
 
+            # Check which action to take
             # stochastically generate action using the policy output
-            action = 0 if random.uniform(0, 1) < probs[0][0] else 1
+            probs_sum = 0
+            action_i = None
+            rnd = random.uniform(0, 1)
+            for k in range(len(env.action_space)):
+                probs_sum += probs[0][k]
+                if rnd < probs_sum:
+                    action_i = k
+                    break
+
+            action = env.action_space[action_i]
+            if env.name == 'DoublePendulum-v0':
+                action = np.array([action])
 
             observation, reward, done, info = env.step(action)
 
