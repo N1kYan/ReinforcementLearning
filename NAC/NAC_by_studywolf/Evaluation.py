@@ -3,6 +3,7 @@ import time
 import numpy as np
 import random
 import tensorflow as tf
+import sys
 
 
 def evaluate(env, policy_grad, episodes, render, sleep, sess):
@@ -16,6 +17,8 @@ def evaluate(env, policy_grad, episodes, render, sleep, sess):
         pl_advantages, pl_optimizer) = policy_grad
 
     for e in range(episodes):
+        print("Episode {} ... ".format(e), end='')
+        sys.stdout.flush()
         done = False
         observation = env.reset()
         for t in range(time_steps):
@@ -25,6 +28,7 @@ def evaluate(env, policy_grad, episodes, render, sleep, sess):
                 time.sleep(sleep)
 
             if done:
+                print("held stick for {} time steps!".format(t))
                 break
 
             obs_vector = np.expand_dims(observation, axis=0)

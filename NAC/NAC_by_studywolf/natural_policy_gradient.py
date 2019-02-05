@@ -45,10 +45,7 @@ def policy_gradient(env):
     with tf.variable_scope("policy"):
 
         state_size = env.observation_space.shape[0] # dim of one state
-        poss_actions = len(env.action_space) # each action has dim of 1
-
-        print("State size: ", state_size)
-        print("Poss actions: ", poss_actions)
+        poss_actions = len(env.action_space)  # TODO: Actions can have several dimensions
 
         params = tf.get_variable(
             "policy_parameters",
@@ -57,7 +54,7 @@ def policy_gradient(env):
         state = tf.placeholder("float", [None, state_size], name="state")
         # NOTE: have to specify shape of actions so we can call
         # get_shape when calculating g_log_prob below
-        actions = tf.placeholder("float", [200, poss_actions], name="actions")
+        actions = tf.placeholder("float", [env.time_steps, poss_actions], name="actions")
         advantages = tf.placeholder("float", [None, ], name="advantages")
         linear = tf.matmul(state, params)
         probabilities = tf.nn.softmax(linear)
@@ -74,16 +71,16 @@ def policy_gradient(env):
         g_log_prob = tf.stack(
             [tf.gradients(action_log_prob_flat[i], my_variables)[0]
                 for i in range(action_log_prob_flat.get_shape()[0])])
-        g_log_prob = tf.reshape(g_log_prob, (200, poss_actions * state_size, 1))
+        g_log_prob = tf.reshape(g_log_prob, (env.time_steps, poss_actions * state_size, 1))
 
         # calculate the policy gradient by multiplying by the advantage fct.
-        g = tf.multiply(g_log_prob, tf.reshape(advantages, (200, 1, 1)))
+        g = tf.multiply(g_log_prob, tf.reshape(advantages, (env.time_steps, 1, 1)))
         # sum over time
-        g = 1.00 / 200.00 * tf.reduce_sum(g, reduction_indices=[0])
+        g = 1.00 / env.time_steps * tf.reduce_sum(g, reduction_indices=[0])
 
         # calculate the Fischer information matrix and its inverse
         F2 = tf.map_fn(lambda x: tf.matmul(x, tf.transpose(x)), g_log_prob)
-        F = 1.0 / 200.0 * tf.reduce_sum(F2, reduction_indices=[0])
+        F = 1.0 / env.time_steps * tf.reduce_sum(F2, reduction_indices=[0])
 
         # calculate inverse of positive definite clipped F
         # NOTE: have noticed small eigenvalues (1e-10) that are negative,
@@ -133,7 +130,7 @@ def value_gradient(env):
         return calculated, state, newvals, optimizer, loss
 
 
-def run_episode(env, policy_grad, value_grad, sess, num_traj):
+def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
     # unpack the policy network (generates control policy)
     (pl_calculated, pl_state, pl_actions,
         pl_advantages, pl_optimizer) = policy_grad
@@ -153,22 +150,29 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj):
     update_vals = []
 
     n_episodes = 0
-    n_timesteps = 200
+    n_timesteps = env.time_steps
 
     # calculate policy
     for t in range(n_timesteps):
+
+        # I think sometimes we have a zero in the observations
+        # and we somehow divide while calculating the probs
+        # IT WORKS !! (we dont NaN's anymore)
+        observation = \
+            [0.00001 if np.abs(x) < 0.00001 else x for x in observation]
+
         # Expand state by one dimension
         # Before = [ ... , ... , ... ], After = [[ ... , ... , ... ]]
         obs_vector = np.expand_dims(observation, axis=0)
 
-        # print("OBS: ", obs_vector)
+        print("({}) OBS:{}".format(t, obs_vector), end='') if printing else ...
 
         # Probabilities
         probs = sess.run(
             pl_calculated,
             feed_dict={pl_state: obs_vector})
 
-        # print("PROBS: ", probs)
+        print(", PROBS:", probs, end='') if printing else ...
 
         # Check which action to take
         # stochastically generate action using the policy output
@@ -177,7 +181,7 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj):
         rnd = random.uniform(0, 1)
         for k in range(len(env.action_space)):
             probs_sum += probs[0][k]
-            if rnd <= probs_sum:
+            if rnd < probs_sum:  # TODO: Has it to be a <=
                 action_i = k
                 break
 
@@ -187,12 +191,12 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj):
         action_array = np.zeros(len(env.action_space))
         action_array[action_i] = 1
         actions.append(action_array)
-        # print("ACTION ARRAY: ", action_array)
+        print(", ACTION ARRAY: ", action_array, end='') if printing else ...
         # Get the action (not only the index)
         action = env.action_space[action_i] # TODO: Actions sind nicht immer 1D
         if env.name == 'DoublePendulum-v0':
             action = np.array([action])
-        # print("ACTION: ", action)
+        print(", ACTION: ", action) if printing else ...
         # take the action in the environment
         old_observation = observation
         observation, reward, done, info = env.step(action)
@@ -235,7 +239,7 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj):
             else:
                 # if out of time, close environment
                 env.close()
-
+    print("\n\n\n") if printing else ...
     print('Trajectory: {}, Total rewards: {}'.format(num_traj, total_rewards))
 
     # update value function
@@ -257,6 +261,10 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj):
 # For possible environments, please look at the assert check
 ENVIRONMENT = 'DoublePendulum-v0'
 NUM_ACTIONS = None
+TIME_STEPS = 300  # how much time steps should be accumulated in a trajectory
+# Number of trajectories, where every is of length TIME_STEPS
+# Trajectories consist of one or several environment episodes (done = true)
+N_TRAJECTORIES = 300
 
 # Names of envs & default num of actions for discretization
 # If default value is 'None' the action space is already discretized
@@ -269,7 +277,7 @@ print("Generating {} environment:".format(ENVIRONMENT), end="")
 num_actions = env_dict[ENVIRONMENT]
 if NUM_ACTIONS is not None and num_actions is not None:
     num_actions = NUM_ACTIONS
-env = MyEnvironment(ENVIRONMENT, num_actions)
+env = MyEnvironment(ENVIRONMENT, num_actions, TIME_STEPS)
 
 # GENERATE NETWORKS
 print("Generating Neural Networks ... ", end="")
@@ -285,17 +293,16 @@ for ii in range(1):
 
     max_rewards = []
     total_episodes = []
-    # each trajectory is 200 time steps worth of episodes
-    n_trajectories = 300
     import time
     times = []
-    for i in range(n_trajectories):
+    for i in range(N_TRAJECTORIES):
         start_time = time.time()
-        reward, n_episodes = run_episode(env, policy_grad, value_grad, sess, i)
+        reward, n_episodes = \
+            run_episode(env, policy_grad, value_grad, sess, i, printing=False)
         max_rewards.append(np.max(reward))
         total_episodes.append(n_episodes)
         times.append(time.time() - start_time)
-    print('average time: %.3f' % (np.sum(times) / n_trajectories))
+    print('average time: %.3f' % (np.sum(times) / N_TRAJECTORIES))
 
     np.savez_compressed('data/natural_policy_gradient_%i' % ii,
                         max_rewards=max_rewards, total_episodes=total_episodes)

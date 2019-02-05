@@ -6,11 +6,12 @@ import quanser_robots
 
 
 class MyEnvironment(gym.Space):
-    def __init__(self, env_name, num_of_actions):
+    def __init__(self, env_name, num_of_actions, time_steps):
         gym.Space.__init__(self, (), np.float)
 
         self.name = env_name
         self.num_of_actions = num_of_actions
+        self.time_steps = time_steps  # per trajectory
 
         self.env = gym.make(env_name)
         self.env = gym.wrappers.Monitor(
