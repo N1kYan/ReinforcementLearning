@@ -30,10 +30,11 @@ class MyEnvironment(gym.Space):
 
         # ACTION SPACE
         if type(self.env.action_space) is gym.spaces.discrete.Discrete:
-            self.action_space = np.arange(self.env.action_space.n)
             assert num_of_actions is None
+            self.action_space = np.arange(self.env.action_space.n)
         elif type(self.env.action_space) is gym.spaces.box.Box \
                 or type(self.env.action_space) is quanser_robots.common.LabeledBox:
+            assert num_of_actions is not None
             self.action_space = np.linspace(self.env.action_space.low,
                                             self.env.action_space.high,
                                             self.num_of_actions)

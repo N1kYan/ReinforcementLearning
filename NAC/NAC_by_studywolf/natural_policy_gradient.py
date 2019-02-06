@@ -192,14 +192,21 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
         action_array[action_i] = 1
         actions.append(action_array)
         print(", ACTION ARRAY: ", action_array, end='') if printing else ...
-        # Get the action (not only the index)
-        action = env.action_space[action_i] # TODO: Actions sind nicht immer 1D
-        if env.name == 'DoublePendulum-v0':
-            action = np.array([action])
-        print(", ACTION: ", action) if printing else ...
-        # take the action in the environment
+
         old_observation = observation
-        observation, reward, done, info = env.step(action)
+
+        # Get the action (not only the index)
+        # and take the action in the environment
+        # Try/Except: Some env need action in an array
+        action = env.action_space[action_i]  # TODO: Actions sind nicht immer 1D
+        try:
+            observation, reward, done, info = env.step(action)
+        except AssertionError:
+            action = np.array([action])
+            observation, reward, done, info = env.step(action)
+
+        print(", ACTION: ", action) if printing else ...
+
         transitions.append((old_observation, action, reward))
         episode_reward += reward
 
@@ -255,21 +262,26 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
 
     return total_rewards, n_episodes
 
+# -------------------------------------- #
+# DoublePend, 3 actions, 300 Traj, 300 timesteps it holds the sticks far longer
+# (avg. 450) than if we have 200 timesteps with same config (avg. 200)
+
+# -------------------------------------- #
 
 # VARIABLES & CONSTANTS
 # Choosing the environment
 # For possible environments, please look at the assert check
-ENVIRONMENT = 'DoublePendulum-v0'
+ENVIRONMENT = 'Qube-v0'
 NUM_ACTIONS = None
-TIME_STEPS = 300  # how much time steps should be accumulated in a trajectory
+TIME_STEPS = 200  # how much time steps should be accumulated in a trajectory
 # Number of trajectories, where every is of length TIME_STEPS
 # Trajectories consist of one or several environment episodes (done = true)
 N_TRAJECTORIES = 300
 
 # Names of envs & default num of actions for discretization
 # If default value is 'None' the action space is already discretized
-env_dict = {'CartPole-v0': None, 'CartPole-v1': None,
-            'Pendulum-v0': 3, 'DoublePendulum-v0': 3}
+env_dict = {'CartPole-v0': None, 'Pendulum-v0': 3, 'DoublePendulum-v0': 3,
+            'CartpoleSwingShort-v0': 3, 'Qube-v0': 3}
 assert ENVIRONMENT in env_dict.keys()
 
 # GENERATE ENVIRONMENTS
