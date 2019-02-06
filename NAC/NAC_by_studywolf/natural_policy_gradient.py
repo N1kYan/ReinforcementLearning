@@ -161,6 +161,14 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
         observation = \
             [0.00001 if np.abs(x) < 0.00001 else x for x in observation]
 
+        if env.name == 'Qube-v0':
+            for rr in range(4):
+                ob = observation[rr]
+                if ob > 0.999:
+                    observation[rr] = 0.999
+                elif ob < -0.999:
+                    observation[rr] = -0.999
+
         # Expand state by one dimension
         # Before = [ ... , ... , ... ], After = [[ ... , ... , ... ]]
         obs_vector = np.expand_dims(observation, axis=0)
@@ -310,7 +318,7 @@ for ii in range(1):
     for i in range(N_TRAJECTORIES):
         start_time = time.time()
         reward, n_episodes = \
-            run_episode(env, policy_grad, value_grad, sess, i, printing=False)
+            run_episode(env, policy_grad, value_grad, sess, i, printing=True)
         max_rewards.append(np.max(reward))
         total_episodes.append(n_episodes)
         times.append(time.time() - start_time)

@@ -47,11 +47,15 @@ def evaluate(env, policy_grad, episodes, render, sleep, sess):
                     action_i = k
                     break
 
-            action = env.action_space[action_i]
-            if env.name == 'DoublePendulum-v0':
+            # Get the action (not only the index)
+            # and take the action in the environment
+            # Try/Except: Some env need action in an array
+            action = env.action_space[
+                action_i]  # TODO: Actions sind nicht immer 1D
+            try:
+                observation, reward, done, info = env.step(action)
+            except AssertionError:
                 action = np.array([action])
-
-            observation, reward, done, info = env.step(action)
-
+                observation, reward, done, info = env.step(action)
 
 
