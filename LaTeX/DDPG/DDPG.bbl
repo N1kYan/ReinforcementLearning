@@ -1,4 +1,4 @@
-\begin{thebibliography}{2}
+\begin{thebibliography}{4}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{{#1}}
 \providecommand{\urlprefix}{URL }
@@ -7,6 +7,12 @@
   \providecommand{\doi}{DOI~\discretionary{}{}{}\begingroup
   \urlstyle{rm}\Url}\fi
 \providecommand{\eprint}[2][]{\url{#2}}
+
+\bibitem[{Lillicrap et~al.(2015)Lillicrap, Hunt, Pritzel, Heess, Erez, Tassa,
+  Silver, and Wierstra}]{lillicrap2015continuous}
+Lillicrap TP, Hunt JJ, Pritzel A, Heess N, Erez T, Tassa Y, Silver D, Wierstra
+  D (2015) Continuous control with deep reinforcement learning. arXiv preprint
+  arXiv:150902971
 
 \bibitem[{Mnih et~al.(2013)Mnih, Kavukcuoglu, Silver, Graves, Antonoglou,
   Wierstra, and Riedmiller}]{mnih2013playing}
@@ -19,5 +25,10 @@ Mnih V, Kavukcuoglu K, Silver D, Graves A, Antonoglou I, Wierstra D, Riedmiller
 Mnih V, Kavukcuoglu K, Silver D, Rusu AA, Veness J, Bellemare MG, Graves A,
   Riedmiller M, Fidjeland AK, Ostrovski G, et~al. (2015) Human-level control
   through deep reinforcement learning. Nature 518(7540):529
+
+\bibitem[{Silver et~al.(2014)Silver, Lever, Heess, Degris, Wierstra, and
+  Riedmiller}]{silver2014deterministic}
+Silver D, Lever G, Heess N, Degris T, Wierstra D, Riedmiller M (2014)
+  Deterministic policy gradient algorithms. In: ICML
 
 \end{thebibliography}

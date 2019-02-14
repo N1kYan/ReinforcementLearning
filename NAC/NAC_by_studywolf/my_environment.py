@@ -3,6 +3,7 @@ import random
 import numpy as np
 import sys
 import quanser_robots
+from quanser_robots import GentlyTerminating
 
 
 class MyEnvironment(gym.Space):
@@ -13,7 +14,7 @@ class MyEnvironment(gym.Space):
         self.num_of_actions = num_of_actions
         self.time_steps = time_steps  # per trajectory
 
-        self.env = gym.make(env_name)
+        self.env = GentlyTerminating(gym.make(gym.make(env_name)))
         self.env = gym.wrappers.Monitor(
             env=self.env,
             directory=env_name + '/',

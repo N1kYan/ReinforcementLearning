@@ -53,6 +53,7 @@ grestore
 \renewcommand{\algorithmicrequire}{\textbf{Initialize:}}
 
 \usepackage{verbatim} %TODO delete before submission
+\usepackage[numbers]{natbib}%TODO delete before submission
 
 %TODO Zitierweise ändern, sieht schrecklich aus
 %
@@ -114,10 +115,38 @@ TODO
 Deep Deterministic Policy Gradients (DDPG) arises from Deterministic Policy 
 Gradients (DPG) and Deep Q-Learning (DQN). In the following we describe the 
 underlying algorithms DPG and DQN and which aspects DDPG uses of both of them. 
+
 \subsection{Deterministic Policy Gradient (DPG)}
 \label{sec:DPG}
+\nocite{lillicrap2015continuous}
+The most problems in reinforcement learning have an continuous action space, 
+which makes it very difficult to choose the best action given a policy. In a 
+stochastic point of view, there is a probability distribution which represents 
+the policy. The policy is obtained through $\pi_\theta(a|s) =P[a|s;\theta]$. 
+The goal is to achieve the best possible return and therefore choose the best 
+action by solving the problem with a gradient over the total reward. This is 
+only possible through solving an integral over all actions and actions. In the 
+deterministic view the policy is a discrete mapping from state to actions and 
+thus only one integration over the state space is sufficient. The integration 
+is done via importance sampling. As a result of 
+this, stochastic policy gradients need much more samples than deterministic 
+policy gradients. To handle the exploration-exploitation dilemma, the idea of 
+\citeauthor{silver2014deterministic} is to use a stochastic behaviour policy  
+and a deterministic target policy. The behaviour policy should ensure that the 
+exploration is big enough and the target policy should exploit enough based on 
+the policy gradient. The algorithm they used was an off-policy actor-critic 
+method. Thereby, the action-value function is estimated with a function 
+approximation. The policy parameters will be updated in direction of the 
+gradient of the action-value function. The direction of the gradient underlies 
+the \textit{policy gradient theorem}: 
 
-
+\begin{align*}
+\bigtriangledown_\theta 
+J(\pi_\theta)&=\int_{S}^{}\rho^\pi(s)\int_{A}\bigtriangledown_\theta 
+\pi_\theta(a|s)Q^\pi(s,a)\mathrm{d}a\mathrm{d}s\\
+ &=E_{s \sim \rho^\pi,\: a\sim\pi_\theta}[\bigtriangledown_\theta \log 
+ \pi_\theta (a|s)Q^\pi(s,a)]
+\end{align*}%TODO E richtig darstellen (\mathbb{})
 
 \subsection{Deep Q-Learning (DQN) }
 \nocite{mnih2015human}
@@ -145,7 +174,7 @@ training steps.\\
 The loss is calculated through the mean-squared-loss of the expected q-value 
 and the estimated q-value: \[L_i(\theta_i)=E_{(s,a,r,s^{'})}
 \left[\left(r+\gamma \max_{a^{'}} Q(s^{'}, 
-a^{'}|\theta_i^{'})-Q(s,a|\theta_i)\right)^2\right] \]
+a^{'};\theta_i^{'})-Q(s,a;\theta_i)\right)^2\right] \]
 %TODO E richtig machen
 DQN can only handle discrete and low-dimensional action spaces.
 
@@ -163,7 +192,7 @@ DQN can only handle discrete and low-dimensional action spaces.
 		\IF{random $i \le \epsilon$}
 		\STATE random action $a_t$
 		\ELSE
-		\STATE $a_t=\operatorname*{argmin}_a Q(s_t,a|\theta)$
+		\STATE $a_t=\operatorname*{argmin}_a Q(s_t,a;\theta)$
 		\ENDIF
 		\STATE execute $a_t \rightarrow$ reward $r_t$ and next state 
 		$s_{t+1}$
@@ -172,11 +201,11 @@ DQN can only handle discrete and low-dimensional action spaces.
 		\STATE $q_i =
 			\begin{cases}
 			r_i & \textit{if episode terminates at step i+1}\\
-			r_i+\gamma \max_{a^{'}}\hat{Q}(s_{i+1}, a_i|\theta^{-})& 
+			r_i+\gamma \max_{a^{'}}\hat{Q}(s_{i+1}, a_i;\theta^{-})& 
 			else\\			
 			\end{cases}$
 		\STATE perform gradient descent on $\left(q_i-Q\left(s_i, 
-		a_i|\theta\right)\right)^2_\theta$
+		a_i;\theta\right)\right)^2_\theta$
 		\STATE every $C$ steps update $\hat{Q}=Q$
 		\ENDFOR
 		\ENDFOR
