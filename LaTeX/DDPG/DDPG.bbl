@@ -1,4 +1,4 @@
-\begin{thebibliography}{4}
+\begin{thebibliography}{5}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{{#1}}
 \providecommand{\urlprefix}{URL }
@@ -30,5 +30,8 @@ Mnih V, Kavukcuoglu K, Silver D, Rusu AA, Veness J, Bellemare MG, Graves A,
   Riedmiller}]{silver2014deterministic}
 Silver D, Lever G, Heess N, Degris T, Wierstra D, Riedmiller M (2014)
   Deterministic policy gradient algorithms. In: ICML
+
+\bibitem[{Sutton and Barto(2018)}]{sutton2018reinforcement}
+Sutton RS, Barto AG (2018) Reinforcement learning: An introduction. MIT press
 
 \end{thebibliography}

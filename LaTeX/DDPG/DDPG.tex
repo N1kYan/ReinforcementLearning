@@ -115,39 +115,6 @@ TODO
 Deep Deterministic Policy Gradients (DDPG) arises from Deterministic Policy 
 Gradients (DPG) and Deep Q-Learning (DQN). In the following we describe the 
 underlying algorithms DPG and DQN and which aspects DDPG uses of both of them. 
-
-\subsection{Deterministic Policy Gradient (DPG)}
-\label{sec:DPG}
-\nocite{lillicrap2015continuous}
-The most problems in reinforcement learning have an continuous action space, 
-which makes it very difficult to choose the best action given a policy. In a 
-stochastic point of view, there is a probability distribution which represents 
-the policy. The policy is obtained through $\pi_\theta(a|s) =P[a|s;\theta]$. 
-The goal is to achieve the best possible return and therefore choose the best 
-action by solving the problem with a gradient over the total reward. This is 
-only possible through solving an integral over all actions and actions. In the 
-deterministic view the policy is a discrete mapping from state to actions and 
-thus only one integration over the state space is sufficient. The integration 
-is done via importance sampling. As a result of 
-this, stochastic policy gradients need much more samples than deterministic 
-policy gradients. To handle the exploration-exploitation dilemma, the idea of 
-\citeauthor{silver2014deterministic} is to use a stochastic behaviour policy  
-and a deterministic target policy. The behaviour policy should ensure that the 
-exploration is big enough and the target policy should exploit enough based on 
-the policy gradient. The algorithm they used was an off-policy actor-critic 
-method. Thereby, the action-value function is estimated with a function 
-approximation. The policy parameters will be updated in direction of the 
-gradient of the action-value function. The direction of the gradient underlies 
-the \textit{policy gradient theorem}: 
-
-\begin{align*}
-\bigtriangledown_\theta 
-J(\pi_\theta)&=\int_{S}^{}\rho^\pi(s)\int_{A}\bigtriangledown_\theta 
-\pi_\theta(a|s)Q^\pi(s,a)\mathrm{d}a\mathrm{d}s\\
- &=E_{s \sim \rho^\pi,\: a\sim\pi_\theta}[\bigtriangledown_\theta \log 
- \pi_\theta (a|s)Q^\pi(s,a)]
-\end{align*}%TODO E richtig darstellen (\mathbb{})
-
 \subsection{Deep Q-Learning (DQN) }
 \nocite{mnih2015human}
 \nocite{mnih2013playing}
@@ -211,7 +178,76 @@ DQN can only handle discrete and low-dimensional action spaces.
 		\ENDFOR
 	\end{algorithmic}
 \end{algorithm}
+\subsection{Deterministic Policy Gradient (DPG)}
+\label{sec:DPG}
+\nocite{lillicrap2015continuous}
+The most problems in reinforcement learning have an continuous action space, 
+which makes it very difficult to choose the best action given a policy. In a 
+stochastic point of view, there is a probability distribution which represents 
+the policy. The policy is obtained through $\pi_\theta(a|s) =P[a|s;\theta]$. 
+The goal is to achieve the best possible return and therefore choose the best 
+action by solving the problem with a gradient over the total reward. This is 
+only possible through solving an integral over all actions and actions. In the 
+deterministic view the policy is a discrete mapping from state to actions and 
+thus only one integration over the state space is sufficient. The integration 
+is done via importance sampling. As a result of 
+this, stochastic policy gradients need much more samples than deterministic 
+policy gradients. To handle the exploration-exploitation dilemma, the idea of 
+\citeauthor{silver2014deterministic} is to use a stochastic behaviour policy  
+and a deterministic target policy. The behaviour policy should ensure that the 
+exploration is big enough and the target policy should exploit enough based on 
+the policy gradient. The algorithm they used was an off-policy actor-critic 
+method. Thereby, the action-value function is estimated with a function 
+approximation. The policy parameters will be updated in direction of the 
+gradient of the action-value function. The direction of the gradient underlies 
+the \textit{policy gradient theorem}: 
 
+\begin{align*}
+\bigtriangledown_\theta 
+J(\pi_\theta)&=\int_{S}^{}\rho^\pi(s)\int_{A}\bigtriangledown_\theta 
+\pi_\theta(a|s)Q^\pi(s,a)\mathrm{d}a\mathrm{d}s\\
+&=E_{s \sim \rho^\pi,\: a\sim\pi_\theta}[\bigtriangledown_\theta \log 
+\pi_\theta (a|s)Q^\pi(s,a)]
+\end{align*}%TODO E richtig darstellen (\mathbb{})
+
+\subsection{Actor-Critic Methods}
+\label{sec:actor-critic}
+The advantage of actor-critic methods is that they learn policies as well as 
+value functions. To get an intuition about these methods the following figure 
+illustrates the update-cycle:
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\linewidth]{actor-critic}
+	\caption{Intuition about actor-critic methods (figure from 
+	\cite{sutton2018reinforcement})}
+	\label{fig:actor-critic}
+\end{figure}
+The actor is responsible for the change of the policies, the critic has to 
+update the parameter of the state-value function. Updating the actors' and the 
+critics' parameter follows the TD-error of the critic which is produced through 
+the reward and the current error of the estimated state values. As Fig. 
+\ref{fig:actor-critic} illustrates, the actor has no information about the 
+current reward and the critic has no direct influence on the actions.  
+%TODO direct influence richtig formuliert?
+The update of actor and critic can be formulated as follows:
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\linewidth]{actor-critic-algo}
+	\caption{Intuition about actor-critic methods (figure from 
+		\cite{sutton2018reinforcement})}
+	\label{fig:actor-critic-algo}
+\end{figure}
+%TODO if we want it, change it to self written
+
+\subsection{Deep Deterministic Policy Gradients (DDPG)
+\cite{lillicrap2015continuous}}
+DDPG is a model-free and off-policy algorithm which arises from the combination 
+of DQN and DPG. As a result of a continuous action space which leads to a not 
+possible application of Q-learning. Therefore, it is a policy gradient 
+algorithm which uses actor-critic methods with a deterministic target policy 
+and deep Q-learning. Both the actor and the critic will be done with neural 
+networks to represent the parameters. The actor will choose an action from a 
+continuous action space. 
 \begin{itemize}
 \item DQN uses deep networks to estimate the action-value function
 \begin{itemize}
@@ -228,7 +264,6 @@ DQN can only handle discrete and low-dimensional action spaces.
 \end{itemize}
 \item DDPG is able to learn from low dim observations (torques etc.), aswell as from high dim observations in pixel space
 \end{itemize}
-Your text comes here. Separate text sections with
 
 
 \section{Extensions to the Algorithm}

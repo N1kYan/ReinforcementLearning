@@ -4,44 +4,44 @@ The top-level auxiliary file: DDPG.aux
 The style file: spbasic.bst
 Database file #1: ddpg.bib
 Reallocated wiz_functions (elt_size=8) to 6000 items from 3000.
-You've used 4 entries,
+You've used 5 entries,
             3269 wiz_defined-function locations,
-            689 strings with 5762 characters,
-and the built_in function-call counts, 6843 in all, are:
-= -- 590
-> -- 294
-< -- 0
-+ -- 100
-- -- 96
-* -- 650
-:= -- 937
-add.period$ -- 4
-call.type$ -- 4
-change.case$ -- 53
-chr.to.int$ -- 4
-cite$ -- 4
-duplicate$ -- 584
-empty$ -- 587
-format.name$ -- 108
-if$ -- 1421
+            694 strings with 5874 characters,
+and the built_in function-call counts, 7486 in all, are:
+= -- 644
+> -- 314
+< -- 1
++ -- 107
+- -- 102
+* -- 699
+:= -- 1032
+add.period$ -- 5
+call.type$ -- 5
+change.case$ -- 59
+chr.to.int$ -- 5
+cite$ -- 5
+duplicate$ -- 639
+empty$ -- 648
+format.name$ -- 119
+if$ -- 1556
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 58
-newline$ -- 22
-num.names$ -- 16
-pop$ -- 155
+missing$ -- 66
+newline$ -- 25
+num.names$ -- 20
+pop$ -- 176
 preamble$ -- 1
-purify$ -- 47
+purify$ -- 53
 quote$ -- 0
-skip$ -- 91
+skip$ -- 108
 stack$ -- 0
-substring$ -- 767
-swap$ -- 114
+substring$ -- 812
+swap$ -- 128
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 36
+type$ -- 42
 warning$ -- 0
-while$ -- 48
+while$ -- 53
 width$ -- 0
-write$ -- 50
+write$ -- 60
