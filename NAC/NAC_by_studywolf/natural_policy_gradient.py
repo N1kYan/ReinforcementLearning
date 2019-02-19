@@ -279,7 +279,7 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
 # VARIABLES & CONSTANTS
 # Choosing the environment
 # For possible environments, please look at the assert check
-ENVIRONMENT = 'Qube-v0'
+ENVIRONMENT = 'CartpoleStabRR-v0'
 NUM_ACTIONS = None
 TIME_STEPS = 200  # how much time steps should be accumulated in a trajectory
 # Number of trajectories, where every is of length TIME_STEPS
@@ -289,7 +289,7 @@ N_TRAJECTORIES = 300
 # Names of envs & default num of actions for discretization
 # If default value is 'None' the action space is already discretized
 env_dict = {'CartPole-v0': None, 'Pendulum-v0': 3, 'DoublePendulum-v0': 3,
-            'CartpoleSwingShort-v0': 3, 'Qube-v0': 3}
+            'CartpoleSwingShort-v0': 3, 'Qube-v0': 3, 'CartpoleStabRR-v0': 3}
 assert ENVIRONMENT in env_dict.keys()
 
 # GENERATE ENVIRONMENTS
@@ -318,7 +318,7 @@ for ii in range(1):
     for i in range(N_TRAJECTORIES):
         start_time = time.time()
         reward, n_episodes = \
-            run_episode(env, policy_grad, value_grad, sess, i, printing=True)
+            run_episode(env, policy_grad, value_grad, sess, i, printing=False)
         max_rewards.append(np.max(reward))
         total_episodes.append(n_episodes)
         times.append(time.time() - start_time)
