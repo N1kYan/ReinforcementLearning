@@ -16,12 +16,10 @@ from ActionNoise import OUNoise, Gaussian
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-def evaluation(load_flag, actor, epochs, render):
+def evaluation(actor, epochs, render):
     """
-    Loads saved actor/agent if available.
     Evaluates the trained agent on the environment (both declaired above).
     Plots the reward per timestep for every episode.
-    :param load_flag: Declines whether to load the actor from a saved pytorch object
     :param actor: Path leading to saved pytorch actor object
     :param epochs: Episodes for evaluation
     :param render: Set true to render the evaluation episodes
@@ -32,10 +30,7 @@ def evaluation(load_flag, actor, epochs, render):
     plt.xlabel("Time-step")
     plt.ylabel("Current reward")
 
-    # TODO: Load actor if load_flag=True and actor path available
-    if load_flag:
-        actor = ...
-
+    all_rewards = []
     for e in range(1, epochs + 1):
         state = env.reset()
         rewards = []
@@ -59,13 +54,15 @@ def evaluation(load_flag, actor, epochs, render):
             state = np.copy(next_state)
             if done:
                 break
-            plt.plot(rewards)
+        all_rewards.append(np.array(rewards))
         env.close()
-        plt.show()
+    for r in all_rewards:
+        plt.plot(r)
+    plt.show()
 
 
 def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr_critic, weight_decay, memory, gamma,
-             tau, seed, render):
+             tau, seed, load_flag, load_path, render):
     """
     Creates neural networks and runs the training process on the gym environment.
     Then plots the cumulative reward per episode.
@@ -75,6 +72,7 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
      Does end epochs for environments, which epochs are not time limited
     :param epoch_checkpoint: Checkpoint for printing the learning progress and rendering the environment
     :param noise: The noise generating process; added to the action output of the actor network
+    :param add_noise: Set true to add noise to enable action exploration
     :param lr_actor: Learning rate for actor network
     :param lr_critic: Learning rate for critic network
     :param weight_decay: Weight decay for critic network
@@ -82,9 +80,17 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
     :param gamma: Discount factor for DDPG Learning
     :param tau: Parameter for 'soft' target updates
     :param seed: Random seed for repeatability
+    :param load_flag: Set true to load pretrained model instead of training a new one
+    :param load_path: Path to load pretrained model from
     :param render: Set true for rendering every 'epoch_checkpoint' episode
     :return: None
     """
+
+    if load_flag:
+        loaded_actor = Actor(state_size=env_specs[0], action_size=env_specs[1], seed=seed).to(device)
+        savepoint = torch.load('./{}/{}'.format(env.spec.id, load_path))
+        loaded_actor.load_state_dict(savepoint)
+        return loaded_actor
 
     def learn(experiences):
         """
@@ -154,16 +160,18 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
 
     # ----------------------- Main Training Loop ----------------------- #
     scores_deque = deque(maxlen=epoch_checkpoint)
-    e_cumulative_rewards = []
+    average_episode_reward = []
     for e in range(1, epochs + 1):
         state = env.reset()
         noise.reset()
         cumulative_reward = 0
+        episode_rewards = []
         t = 0
         for t_i in range(max_steps):
             t += 1
             # Save average cumulative reward prints every 'epoch_checkpoint'
             if e % epoch_checkpoint == 0:
+                """
                 # Plot the cumulative reward per episode during training process
                 fig = plt.figure()
                 plt.title("Cumulative reward during training")
@@ -174,6 +182,7 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
                 save_time = datetime.datetime.now()
                 plt.savefig('./{}/{}-{}-{}-Episode-{}'.format(env.spec.id, save_time.day,
                                                               save_time.month, save_time.hour, e))
+                """
                 # Render the 'epoch_checkpoint'
                 if render:
                     env.render()
@@ -192,6 +201,7 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
 
             # Perform the action
             next_state, reward, done, _ = env.step(action)
+            episode_rewards.append(reward)
 
             # Add experience to replay buffer
             memory.add(state, action, reward, next_state, done)
@@ -207,7 +217,7 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
                 break
         env.close()
         scores_deque.append(cumulative_reward)
-        e_cumulative_rewards.append(cumulative_reward)
+        average_episode_reward.append(np.mean(episode_rewards))
         print('\rEpisode {}\tAverage Reward: {}\tSteps: {}\t({:.2f} min elapsed)'.
               format(e, np.mean(scores_deque), t, (time.time() - time_start) / 60), end="")
         if e % epoch_checkpoint == 0:
@@ -215,12 +225,20 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
             print('\rEpisode {}\tAverage Reward: {:.3f}\t({:.2f} min elapsed)'.
                   format(e, np.mean(scores_deque), (time.time() - time_start) / 60))
 
+    # Plot average reward per episode
+    plt.figure()
+    plt.title("Average reward per episode")
+    plt.xlabel("Episode")
+    plt.ylabel("Average reward")
+    plt.plot(average_episode_reward)
+    plt.show()
+
     # Save torch model of actor and critic
     save_time = datetime.datetime.now()
     # Saving in format day-month-hour-episode
-    torch.save(actor_local.state_dict(), './{}/actor-{}-{}-{}-{}'.
+    torch.save(actor_local.state_dict(), './{}/actor-{}-{}-{}'.
                format(env.spec.id, save_time.day, save_time.month, save_time.hour))
-    torch.save(critic_local.state_dict(), './{}/critic-{}-{}-{}-{}'.
+    torch.save(critic_local.state_dict(), './{}/critic-{}-{}-{}'.
                format(env.spec.id, save_time.day, save_time.month, save_time.hour))
 
     # Return learned policy / actor network
@@ -236,14 +254,14 @@ def main():
     """
 
     global env
-    env = gym.make('Qube-v0')
+    # env = gym.make('Qube-v0')
     # env = gym.make('Pendulum-v0')
-    # env = gym.make('BallBalancerSim-v0')
-    print(env.spec)
-    print("State Space Shape: {}\nLow: {}\nHigh: {}".format(np.shape(env.reset()),
+    env = gym.make('BallBalancerSim-v0')
+    print(env.spec.id)
+    print("State Space:\tShape:{}\tLow:{}\tHigh:{}".format(np.shape(env.reset()),
                                                             env.observation_space.low,
                                                             env.observation_space.high))
-    print("Action Space Shape: {}\nLow: {}\nHigh: {}".format(np.shape(env.action_space.sample()),
+    print("Action Space:\tShape:{}\tLow:{}\tHigh:{}".format(np.shape(env.action_space.sample()),
                                                              env.action_space.low,
                                                              env.action_space.high))
     env_observation_size = len(env.reset())
@@ -261,17 +279,17 @@ def main():
     GAUSS_NOISE = Gaussian(size=env_action_size, seed=random_seed, mu=0.0, sigma=5.0, decay=0.5)
 
     # Replay memory
-    MEMORY = ReplayBuffer(action_size=env_specs[1], buffer_size=int(1e6), batch_size=1024,
+    MEMORY = ReplayBuffer(action_size=env_specs[1], buffer_size=int(1e6), batch_size=64,
                           seed=random_seed)
 
     # Run training procedure with defined hyperparameters
-    ACTOR = training(epochs=20000, max_steps=300, epoch_checkpoint=500, noise=OU_NOISE, add_noise=True,
-                     lr_actor=1e-4, lr_critic=1e-3, weight_decay=0.01, gamma=0.99, memory=MEMORY, tau=1e-3,
-                     seed=random_seed, render=False)
+    ACTOR = training(epochs=10, max_steps=1000, epoch_checkpoint=50, noise=OU_NOISE, add_noise=True,
+                     lr_actor=1e-4, lr_critic=1e-3, weight_decay=0.001, gamma=0.99, memory=MEMORY, tau=1e-3,
+                     seed=random_seed, load_flag=True, load_path='actor22-1-18', render=False)
 
     # Run evaluation
-    # evaluation(load_flag=False, actor='./actor22-1-18', epochs=25, render=False)
-    evaluation(load_flag=False, actor=ACTOR, epochs=25, render=False)
+    # evaluation(load_flag=False, actor='./actor-21-2-16', epochs=25, render=False)
+    evaluation(actor=ACTOR, epochs=25, render=False)
 
 
 if __name__ == "__main__":
