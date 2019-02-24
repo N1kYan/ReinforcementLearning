@@ -8,7 +8,7 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
 
     # unpack the policy network (generates control policy)
     (pl_state, pl_actions, pl_advantages,
-        pl_calculated, pl_optimizer) = policy_grad
+        pl_probabilities, pl_train_vars) = policy_grad
 
     # unpack the value network (estimates expected reward)
     (vfa_state_input, vfa_true_vf_input,
@@ -53,7 +53,7 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
 
         # Probabilities
         probs = sess.run(
-            pl_calculated,
+            pl_probabilities,
             feed_dict={pl_state: obs_vector})
 
         print(", PROBS:", probs, end='') if printing else ...
@@ -115,11 +115,13 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
                 obs_vector = np.expand_dims(obs, axis=0)
                 # compare the calculated expected reward to the average
                 # expected reward, as estimated by the value network
-                currentval = sess.run(
-                    vfa_nn_output, feed_dict={vfa_state_input: obs_vector})[0][0]
+                current_val = sess.run(
+                    vfa_nn_output,
+                    feed_dict={vfa_state_input: obs_vector}
+                )[0][0]
 
                 # advantage: how much better was this action than normal
-                advantages.append(future_reward - currentval)
+                advantages.append(future_reward - current_val)
 
                 # update the value function towards new return
                 update_vals.append(future_reward)
@@ -148,7 +150,7 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
     print("States shape:", len(states))
 
     # update control policy
-    sess.run(pl_optimizer,
+    sess.run(pl_train_vars,
              feed_dict={pl_state: states,
                         pl_advantages: advantages,
                         pl_actions: actions})
