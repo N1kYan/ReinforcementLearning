@@ -25,6 +25,8 @@ def evaluation(actor, epochs, render):
     :param render: Set true to render the evaluation episodes
     :return: None
     """
+    print("Evaluating ...")
+
     plt.figure()
     plt.title("Rewards during evaluation")
     plt.xlabel("Time-step")
@@ -58,6 +60,7 @@ def evaluation(actor, epochs, render):
         env.close()
     for r in all_rewards:
         plt.plot(r)
+    print("... done!")
     plt.show()
 
 
@@ -283,9 +286,9 @@ def main():
                           seed=random_seed)
 
     # Run training procedure with defined hyperparameters
-    ACTOR = training(epochs=10, max_steps=1000, epoch_checkpoint=50, noise=OU_NOISE, add_noise=True,
+    ACTOR = training(epochs=1000, max_steps=1000, epoch_checkpoint=50, noise=OU_NOISE, add_noise=True,
                      lr_actor=1e-4, lr_critic=1e-3, weight_decay=0.001, gamma=0.99, memory=MEMORY, tau=1e-3,
-                     seed=random_seed, load_flag=True, load_path='actor22-1-18', render=False)
+                     seed=random_seed, load_flag=False, load_path='actor22-1-18', render=False)
 
     # Run evaluation
     # evaluation(load_flag=False, actor='./actor-21-2-16', epochs=25, render=False)
