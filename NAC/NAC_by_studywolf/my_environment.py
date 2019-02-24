@@ -1,8 +1,8 @@
-import gym
 import random
 import numpy as np
 import sys
-import quanser_robots
+import gym
+# import quanser_robots
 from quanser_robots import GentlyTerminating
 
 
@@ -14,7 +14,8 @@ class MyEnvironment(gym.Space):
         self.num_of_actions = num_of_actions
         self.time_steps = time_steps  # per trajectory
 
-        self.env = GentlyTerminating(gym.make(gym.make(env_name)))
+        # self.env = GentlyTerminating(gym.make(env_name))  # doesnt work
+        self.env = gym.make(env_name)
         self.env = gym.wrappers.Monitor(
             env=self.env,
             directory=env_name + '/',
@@ -40,7 +41,7 @@ class MyEnvironment(gym.Space):
                                             self.env.action_space.high,
                                             self.num_of_actions)
         else:
-            raise ValueError("Env Action Spaces should be of type Discrete "
+            raise ValueError("Env Action Space should be of type Discrete "
                              "or Box, but is of Type {}.".format(type(self.env.action_space)))
 
         self.env.action_space = self.action_space
