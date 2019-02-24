@@ -1,2 +1,4 @@
 - L2 weight decay should be <=0.01 (0.1 does not learn)
 - Discounting should be high (0.99)
+- Higher batch size (1024) seems to be more stable and gives more reliable results [?]
+	- Not always good results with small mini-batches (64)

@@ -5,6 +5,7 @@ from collections import deque
 import matplotlib.pyplot as plt
 import time
 import datetime
+import os
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
@@ -13,6 +14,7 @@ from ReplayBuffer import ReplayBuffer
 from ActionNoise import OUNoise, Gaussian
 
 # Use cuda if available
+print("Torch Cuda available: {}".format(torch.cuda.is_available()))
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
@@ -25,7 +27,7 @@ def evaluation(actor, epochs, render):
     :param render: Set true to render the evaluation episodes
     :return: None
     """
-    print("Evaluating ...")
+    print("\nEvaluating ...")
 
     plt.figure()
     plt.title("Rewards during evaluation")
@@ -65,7 +67,7 @@ def evaluation(actor, epochs, render):
 
 
 def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr_critic, weight_decay, memory, gamma,
-             tau, seed, load_flag, load_path, render):
+             tau, seed, save_flag, load_flag, load_path, render):
     """
     Creates neural networks and runs the training process on the gym environment.
     Then plots the cumulative reward per episode.
@@ -83,6 +85,7 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
     :param gamma: Discount factor for DDPG Learning
     :param tau: Parameter for 'soft' target updates
     :param seed: Random seed for repeatability
+    :param save_flag: Set true to save the models, plots and parameters in text file; otherwise display plots directly
     :param load_flag: Set true to load pretrained model instead of training a new one
     :param load_path: Path to load pretrained model from
     :param render: Set true for rendering every 'epoch_checkpoint' episode
@@ -104,7 +107,6 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
             Q_targets = r + γ * critic_target(next_state, actor_target(next_state))
 
         :param experiences: Mini-batch of random samples for the replay buffer
-        :param gamma: Discount factor
         :return: None
         """
         states, actions, rewards, next_states, dones = experiences
@@ -164,6 +166,7 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
     # ----------------------- Main Training Loop ----------------------- #
     scores_deque = deque(maxlen=epoch_checkpoint)
     average_episode_reward = []
+    cumulative_episode_reward = []
     for e in range(1, epochs + 1):
         state = env.reset()
         noise.reset()
@@ -172,20 +175,7 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
         t = 0
         for t_i in range(max_steps):
             t += 1
-            # Save average cumulative reward prints every 'epoch_checkpoint'
             if e % epoch_checkpoint == 0:
-                """
-                # Plot the cumulative reward per episode during training process
-                fig = plt.figure()
-                plt.title("Cumulative reward during training")
-                ax = fig.add_subplot(111)
-                plt.plot(np.arange(1, len(e_cumulative_rewards) + 1), e_cumulative_rewards)
-                plt.ylabel('Cumulative reward')
-                plt.xlabel('Episode #')
-                save_time = datetime.datetime.now()
-                plt.savefig('./{}/{}-{}-{}-Episode-{}'.format(env.spec.id, save_time.day,
-                                                              save_time.month, save_time.hour, e))
-                """
                 # Render the 'epoch_checkpoint'
                 if render:
                     env.render()
@@ -217,6 +207,7 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
             state = next_state
             cumulative_reward += reward
             if done:
+                cumulative_episode_reward.append(cumulative_reward)
                 break
         env.close()
         scores_deque.append(cumulative_reward)
@@ -228,21 +219,59 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
             print('\rEpisode {}\tAverage Reward: {:.3f}\t({:.2f} min elapsed)'.
                   format(e, np.mean(scores_deque), (time.time() - time_start) / 60))
 
-    # Plot average reward per episode
+    # ----------------------- Plotting, Saving, etc. ----------------------- #
+
+    # Get current time
+    save_time = datetime.datetime.now()
+
+    # Create folder from current time
+    try:
+        os.makedirs("{}/{}-{}-{}".format(env.spec.id, save_time.day, save_time.month, save_time.hour))
+    except FileExistsError:
+        pass
+
+    # Plot/Save average reward per episode
     plt.figure()
     plt.title("Average reward per episode")
     plt.xlabel("Episode")
     plt.ylabel("Average reward")
     plt.plot(average_episode_reward)
-    plt.show()
+    if save_flag:
+        plt.savefig("./{}/{}-{}-{}/avg_reward.png".format(env.spec.id, save_time.day, save_time.month, save_time.hour))
+        plt.close()
 
-    # Save torch model of actor and critic
-    save_time = datetime.datetime.now()
-    # Saving in format day-month-hour-episode
-    torch.save(actor_local.state_dict(), './{}/actor-{}-{}-{}'.
-               format(env.spec.id, save_time.day, save_time.month, save_time.hour))
-    torch.save(critic_local.state_dict(), './{}/critic-{}-{}-{}'.
-               format(env.spec.id, save_time.day, save_time.month, save_time.hour))
+    # Plot/Save cumulative reward per episode
+    plt.figure()
+    plt.title("Cumulative reward per episode")
+    plt.xlabel("Episode")
+    plt.ylabel("Cumulative reward")
+    plt.plot(cumulative_episode_reward)
+    if save_flag:
+        plt.savefig("./{}/{}-{}-{}/cum_reward.png".format(env.spec.id, save_time.day, save_time.month, save_time.hour))
+        plt.close()
+
+    if save_flag:
+        # Save hyperparameters in text file
+        parameter_file = open("./{}/{}-{}-{}/parameters".format(env.spec.id, save_time.day, save_time.month, save_time.hour),
+                              'w')
+        parameter_string = "Learning Epochs:{}\nMax Steps:{}\nActor:{}\nActor LR:{}\nCritic:{}\nCritic LR:{}" \
+                           "\nGamma:{}\nTau:{}\nL2 Weight Decay:{}\nReplay Batch Size:{}\n Replay Total Size\n" \
+                           "OU Theta:{}\nOU Sigma:{}".\
+            format(epochs, max_steps, actor_local.num_layers, lr_actor, critic_local.num_layers, lr_critic, gamma, tau,
+                   weight_decay, memory.memory.maxlen, memory.batch_size, noise.theta, noise.sigma)
+        parameter_file.write(parameter_string)
+        parameter_file.close()
+
+    # Show plots
+    if save_flag:
+        # Save torch model of actor and critic
+        # Saving in format day-month-hour-episode
+        torch.save(actor_local.state_dict(), './{}/{}-{}-{}/actor'.
+                   format(env.spec.id, save_time.day, save_time.month, save_time.hour))
+        torch.save(critic_local.state_dict(), './{}/{}-{}-{}/critic'.
+                   format(env.spec.id, save_time.day, save_time.month, save_time.hour))
+    else:
+        plt.show()
 
     # Return learned policy / actor network
     return actor_local
@@ -286,9 +315,9 @@ def main():
                           seed=random_seed)
 
     # Run training procedure with defined hyperparameters
-    ACTOR = training(epochs=1000, max_steps=1000, epoch_checkpoint=50, noise=OU_NOISE, add_noise=True,
+    ACTOR = training(epochs=10, max_steps=1000, epoch_checkpoint=50, noise=OU_NOISE, add_noise=True,
                      lr_actor=1e-4, lr_critic=1e-3, weight_decay=0.001, gamma=0.99, memory=MEMORY, tau=1e-3,
-                     seed=random_seed, load_flag=False, load_path='actor22-1-18', render=False)
+                     seed=random_seed, save_flag=True, load_flag=False, load_path='actor22-1-18', render=False)
 
     # Run evaluation
     # evaluation(load_flag=False, actor='./actor-21-2-16', epochs=25, render=False)
