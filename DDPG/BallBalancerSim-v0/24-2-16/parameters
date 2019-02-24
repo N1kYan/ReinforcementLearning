@@ -1,4 +1,4 @@
-Learning Epochs:10
+Learning Epochs:1000
 Max Steps:1000
 Actor:1
 Actor LR:0.0001
