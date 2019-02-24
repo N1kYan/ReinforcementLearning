@@ -1,0 +1,2 @@
+- L2 weight decay should be <=0.01 (0.1 does not learn)
+- Discounting should be high (0.99)
