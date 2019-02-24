@@ -13,8 +13,8 @@ def evaluate(env, policy_grad, episodes, render, sleep, sess):
           .format(episodes, time_steps))
 
     # unpack the policy network (generates control policy)
-    (pl_calculated, pl_state, pl_actions,
-        pl_advantages, pl_optimizer) = policy_grad
+    (pl_state, pl_actions, pl_advantages,
+        pl_calculated, pl_optimizer) = policy_grad
 
     for e in range(episodes):
         print("Episode {} ... ".format(e), end='')
@@ -28,7 +28,7 @@ def evaluate(env, policy_grad, episodes, render, sleep, sess):
                 time.sleep(sleep)
 
             if done:
-                print("held stick for {} time steps!".format(t))
+                print("Held stick for {} time steps!".format(t))
                 break
 
             obs_vector = np.expand_dims(observation, axis=0)
@@ -44,6 +44,9 @@ def evaluate(env, policy_grad, episodes, render, sleep, sess):
             for k in range(len(env.action_space)):
                 probs_sum += probs[0][k]
                 if rnd < probs_sum:
+                    action_i = k
+                    break
+                elif k == (len(env.action_space) - 1):
                     action_i = k
                     break
 

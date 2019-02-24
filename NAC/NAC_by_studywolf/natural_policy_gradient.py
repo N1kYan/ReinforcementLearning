@@ -1,142 +1,18 @@
-""" Copyright (C) 2018 Travis DeWolf
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
-Learning cart-pole with a policy network and value network.
-The policy network learns the actions to take, and the value network learns
-the expected reward from a given state, for use in calculating the advantage
-function.
-
-The value network is updated with a 2 norm loss * .5 without the sqrt on the
-difference from the calculated expected cost. The value network is used to
-calculated the advantage function at each point in time.
-
-The policy network is updated by calculating the natural policy gradient and
-advantage function, with a learning rate calculated to normalize the KL
-divergence of the policy network output. This works to prevent any parameter
-updates from drastically changing behaviour of the system.
-
-Adapted from KVFrans:
-github.com/kvfrans/openai-cartpole/blob/master/cartpole-policygradient.py
-"""
-
-import tensorflow as tf
 import numpy as np
 import random
 import gym
-from NAC_by_studywolf import Evaluation
-import sys
-from NAC_by_studywolf.my_environment import MyEnvironment
-
-
-def policy_gradient(env):
-    with tf.variable_scope("policy"):
-
-        state_size = env.observation_space.shape[0] # dim of one state
-        poss_actions = len(env.action_space)  # TODO: Actions can have several dimensions
-
-        params = tf.get_variable(
-            "policy_parameters",
-            [state_size, poss_actions]
-        )
-        state = tf.placeholder("float", [None, state_size], name="state")
-        # NOTE: have to specify shape of actions so we can call
-        # get_shape when calculating g_log_prob below
-        actions = tf.placeholder("float", [env.time_steps, poss_actions], name="actions")
-        advantages = tf.placeholder("float", [None, ], name="advantages")
-        linear = tf.matmul(state, params)
-        probabilities = tf.nn.softmax(linear)
-        my_variables = tf.trainable_variables()
-
-        # calculate the probability of the chosen action given the state
-        action_log_prob = tf.log(tf.reduce_sum(
-            tf.multiply(probabilities, actions), reduction_indices=[1]))
-
-        # calculate the gradient of the log probability at each point in time
-        # NOTE: doing this because tf.gradients only returns a summed version
-        action_log_prob_flat = tf.reshape(action_log_prob, (-1,))
-
-        g_log_prob = tf.stack(
-            [tf.gradients(action_log_prob_flat[i], my_variables)[0]
-                for i in range(action_log_prob_flat.get_shape()[0])])
-        g_log_prob = tf.reshape(g_log_prob, (env.time_steps, poss_actions * state_size, 1))
-
-        # calculate the policy gradient by multiplying by the advantage fct.
-        g = tf.multiply(g_log_prob, tf.reshape(advantages, (env.time_steps, 1, 1)))
-        # sum over time
-        g = 1.00 / env.time_steps * tf.reduce_sum(g, reduction_indices=[0])
-
-        # calculate the Fischer information matrix and its inverse
-        F2 = tf.map_fn(lambda x: tf.matmul(x, tf.transpose(x)), g_log_prob)
-        F = 1.0 / env.time_steps * tf.reduce_sum(F2, reduction_indices=[0])
-
-        # calculate inverse of positive definite clipped F
-        # NOTE: have noticed small eigenvalues (1e-10) that are negative,
-        # using SVD to clip those out, assuming they're rounding errors
-        S, U, V = tf.svd(F)
-        atol = tf.reduce_max(S) * 1e-6
-        S_inv = tf.divide(1.0, S)
-        S_inv = tf.where(S < atol, tf.zeros_like(S), S_inv)
-        S_inv = tf.diag(S_inv)
-        F_inv = tf.matmul(S_inv, tf.transpose(U))
-        F_inv = tf.matmul(V, F_inv)
-
-        # calculate natural policy gradient ascent update
-        F_inv_g = tf.matmul(F_inv, g)
-        # calculate a learning rate normalized such that a constant change
-        # in the output control policy is achieved each update, preventing
-        # any parameter changes that hugely change the output
-        learning_rate = tf.sqrt(
-            tf.divide(0.001, tf.matmul(tf.transpose(g), F_inv_g)))
-
-        update = tf.multiply(learning_rate, F_inv_g)
-        update = tf.reshape(update, (state_size, poss_actions))
-
-        # update trainable parameters
-        # NOTE: whenever my_variables is fetched they're also updated
-        my_variables[0] = tf.assign_add(my_variables[0], update)
-
-        return probabilities, state, actions, advantages, my_variables
-
-def value_gradient(env):
-    with tf.variable_scope("value"):
-        state_size = env.observation_space.shape[0]
-        state = tf.placeholder("float", [None, state_size])
-        newvals = tf.placeholder("float", [None, 1])
-        w1 = tf.get_variable("w1", [state_size, 10])
-        b1 = tf.get_variable("b1", [10])
-        h1 = tf.nn.relu(tf.matmul(state, w1) + b1)
-        w2 = tf.get_variable("w2", [10, 1])
-        b2 = tf.get_variable("b2", [1])
-        calculated = tf.matmul(h1, w2) + b2
-
-        # minimize the difference between predicted and actual
-        diffs = calculated - newvals
-        loss = tf.nn.l2_loss(diffs)
-        optimizer = tf.train.AdamOptimizer(0.1).minimize(loss)
-
-        return calculated, state, newvals, optimizer, loss
+# import quanser_robots
 
 
 def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
+
     # unpack the policy network (generates control policy)
-    (pl_calculated, pl_state, pl_actions,
-        pl_advantages, pl_optimizer) = policy_grad
+    (pl_state, pl_actions, pl_advantages,
+        pl_calculated, pl_optimizer) = policy_grad
+
     # unpack the value network (estimates expected reward)
-    (vl_calculated, vl_state, vl_newvals,
-        vl_optimizer, vl_loss) = value_grad
+    (vfa_state_input, vfa_true_vf_input,
+        vfa_nn_output, vfa_optimizer, vfa_loss) = value_grad
 
     # set up the environment
     observation = env.reset()
@@ -189,7 +65,10 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
         rnd = random.uniform(0, 1)
         for k in range(len(env.action_space)):
             probs_sum += probs[0][k]
-            if rnd < probs_sum:  # TODO: Has it to be a <=
+            if rnd < probs_sum:
+                action_i = k
+                break
+            elif k == (len(env.action_space) - 1):
                 action_i = k
                 break
 
@@ -207,13 +86,16 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
         # and take the action in the environment
         # Try/Except: Some env need action in an array
         action = env.action_space[action_i]  # TODO: Actions sind nicht immer 1D
+
+        print(", ACTION-1:", action, end='') if printing else ...
+
         try:
             observation, reward, done, info = env.step(action)
         except AssertionError:
             action = np.array([action])
             observation, reward, done, info = env.step(action)
 
-        print(", ACTION: ", action) if printing else ...
+        print(", ACTION-2: ", action) if printing else ...
 
         transitions.append((old_observation, action, reward))
         episode_reward += reward
@@ -234,7 +116,7 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
                 # compare the calculated expected reward to the average
                 # expected reward, as estimated by the value network
                 currentval = sess.run(
-                    vl_calculated, feed_dict={vl_state: obs_vector})[0][0]
+                    vfa_nn_output, feed_dict={vfa_state_input: obs_vector})[0][0]
 
                 # advantage: how much better was this action than normal
                 advantages.append(future_reward - currentval)
@@ -259,9 +141,12 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
 
     # update value function
     update_vals_vector = np.expand_dims(update_vals, axis=1)
-    sess.run(vl_optimizer,
-             feed_dict={vl_state: states,
-                        vl_newvals: update_vals_vector})
+    sess.run(vfa_optimizer,
+             feed_dict={vfa_state_input: states,
+                        vfa_true_vf_input: update_vals_vector})
+
+    print("States shape:", len(states))
+
     # update control policy
     sess.run(pl_optimizer,
              feed_dict={pl_state: states,
@@ -269,65 +154,3 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
                         pl_actions: actions})
 
     return total_rewards, n_episodes
-
-# -------------------------------------- #
-# DoublePend, 3 actions, 300 Traj, 300 timesteps it holds the sticks far longer
-# (avg. 450) than if we have 200 timesteps with same config (avg. 200)
-
-# -------------------------------------- #
-
-# VARIABLES & CONSTANTS
-# Choosing the environment
-# For possible environments, please look at the assert check
-ENVIRONMENT = 'CartpoleStabRR-v0'
-NUM_ACTIONS = None
-TIME_STEPS = 200  # how much time steps should be accumulated in a trajectory
-# Number of trajectories, where every is of length TIME_STEPS
-# Trajectories consist of one or several environment episodes (done = true)
-N_TRAJECTORIES = 300
-
-# Names of envs & default num of actions for discretization
-# If default value is 'None' the action space is already discretized
-env_dict = {'CartPole-v0': None, 'Pendulum-v0': 3, 'DoublePendulum-v0': 3,
-            'CartpoleSwingShort-v0': 3, 'Qube-v0': 3, 'CartpoleStabRR-v0': 3}
-assert ENVIRONMENT in env_dict.keys()
-
-# GENERATE ENVIRONMENTS
-print("Generating {} environment:".format(ENVIRONMENT), end="")
-num_actions = env_dict[ENVIRONMENT]
-if NUM_ACTIONS is not None and num_actions is not None:
-    num_actions = NUM_ACTIONS
-env = MyEnvironment(ENVIRONMENT, num_actions, TIME_STEPS)
-
-# GENERATE NETWORKS
-print("Generating Neural Networks ... ", end="")
-sys.stdout.flush()
-policy_grad = policy_gradient(env)
-value_grad = value_gradient(env)
-print("Done!")
-
-# run the training from scratch 10 times, record results
-for ii in range(1):
-    sess = tf.InteractiveSession()
-    sess.run(tf.global_variables_initializer())
-
-    max_rewards = []
-    total_episodes = []
-    import time
-    times = []
-    for i in range(N_TRAJECTORIES):
-        start_time = time.time()
-        reward, n_episodes = \
-            run_episode(env, policy_grad, value_grad, sess, i, printing=False)
-        max_rewards.append(np.max(reward))
-        total_episodes.append(n_episodes)
-        times.append(time.time() - start_time)
-    print('average time: %.3f' % (np.sum(times) / N_TRAJECTORIES))
-
-    np.savez_compressed('data/natural_policy_gradient_%i' % ii,
-                        max_rewards=max_rewards, total_episodes=total_episodes)
-
-    # Render the result
-    Evaluation.evaluate(env, policy_grad, 50, True, 0.1, sess)
-
-    sess.close()
