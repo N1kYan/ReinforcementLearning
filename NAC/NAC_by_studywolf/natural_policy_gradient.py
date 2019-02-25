@@ -1,7 +1,7 @@
 import numpy as np
 import random
 import gym
-# import quanser_robots
+import quanser_robots
 
 
 def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
@@ -146,8 +146,6 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
     sess.run(vfa_optimizer,
              feed_dict={vfa_state_input: states,
                         vfa_true_vf_input: update_vals_vector})
-
-    print("States shape:", len(states))
 
     # update control policy
     sess.run(pl_train_vars,

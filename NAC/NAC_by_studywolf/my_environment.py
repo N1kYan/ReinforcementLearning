@@ -2,7 +2,7 @@ import random
 import numpy as np
 import sys
 import gym
-# import quanser_robots
+import quanser_robots
 from quanser_robots import GentlyTerminating
 
 

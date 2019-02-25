@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 import gym
-# import quanser_robots
+import quanser_robots
 
 def policy_gradient(env):
     """
@@ -176,8 +176,12 @@ def policy_gradient(env):
         # NOTE: have noticed small eigenvalues (1e-10) that are negative,
         # using SVD to clip those out, assuming they're rounding errors
         S, U, V = tf.svd(fisher)
+
         atol = tf.reduce_max(S) * 1e-6
         S_inv = tf.divide(1.0, S)
+
+        # If the element in S(!) is smaller than the lower bound 'atol', we
+        # write a 0, otherwise we take the number we calculated as inverse.
         S_inv = tf.where(S < atol, tf.zeros_like(S), S_inv)
         S_inv = tf.diag(S_inv)
         fisher_inv = tf.matmul(S_inv, tf.transpose(U))

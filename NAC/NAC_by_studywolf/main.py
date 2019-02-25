@@ -53,10 +53,10 @@ from NAC_by_studywolf import Evaluation
 # VARIABLES & CONSTANTS
 # Choosing the environment
 # For possible environments, please look at the assert check
-ENVIRONMENT = 'CartPole-v0'
+ENVIRONMENT = 'DoublePendulum-v0'
 NUM_ACTIONS = None
 PRINTING = False
-TIME_STEPS = 200  # how much time steps should be accumulated in a trajectory
+TIME_STEPS = 1500  # how much time steps should be accumulated in a trajectory
 # Number of trajectories, where each is of length TIME_STEPS
 # Trajectories consist of one or several environment episodes (done = true)
 N_TRAJECTORIES = 300
