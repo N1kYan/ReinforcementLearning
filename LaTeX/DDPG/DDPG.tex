@@ -120,7 +120,7 @@ underlying algorithms DPG and DQN and which aspects DDPG uses of both of them.
 \nocite{mnih2013playing}
 \label{sec:DQN}
 The DQN approach combines the approximation power of Neural Networks with traditional Q-learning.
-It enables solving the classic Reinforcement Learning problem of achieving the maximum expected reward over time, even for large state spaces. The algorithm is able to find a close to optimal action-value function for many cases [x] and from this a close to optimal deterministic policy. In terms of a formula the action-value function is represented by 
+It enables solving the classic Reinforcement Learning problem of achieving the maximum expected reward over time, even for large state spaces. The algorithm is able to find a close to optimal action-value function for many cases [x] and from this a close to optimal deterministic policy. In terms of a formula the action-value function is represented by
 \[ 
 Q^*(s_t,a_t)=\max_\pi E \left[
 \sum_{t^{'}=t}^{T}\gamma^{t^{'}-t}r_{t^{'}}|s_t=s,
