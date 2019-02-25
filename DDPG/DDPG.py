@@ -63,6 +63,7 @@ def evaluation(actor, epochs, render):
     for r in all_rewards:
         plt.plot(r)
     print("... done!")
+    print("Average cumulative reward:", np.average([np.sum(r) for r in all_rewards]))
     plt.show()
 
 
@@ -306,17 +307,17 @@ def main():
     env.seed(3)
 
     # Noise generating process
-    OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.6, sigma=4.0)
+    OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.15, sigma=0.2)
 
     GAUSS_NOISE = Gaussian(size=env_action_size, seed=random_seed, mu=0.0, sigma=5.0, decay=0.5)
 
     # Replay memory
-    MEMORY = ReplayBuffer(action_size=env_specs[1], buffer_size=int(1e6), batch_size=64,
+    MEMORY = ReplayBuffer(action_size=env_specs[1], buffer_size=int(1e6), batch_size=128,
                           seed=random_seed)
 
     # Run training procedure with defined hyperparameters
-    ACTOR = training(epochs=10, max_steps=1000, epoch_checkpoint=50, noise=OU_NOISE, add_noise=True,
-                     lr_actor=1e-4, lr_critic=1e-3, weight_decay=0.001, gamma=0.99, memory=MEMORY, tau=1e-3,
+    ACTOR = training(epochs=500, max_steps=1000, epoch_checkpoint=50, noise=OU_NOISE, add_noise=True,
+                     lr_actor=1e-4, lr_critic=1e-3, weight_decay=0, gamma=0.99, memory=MEMORY, tau=1e-3,
                      seed=random_seed, save_flag=True, load_flag=False, load_path='actor22-1-18', render=False)
 
     # Run evaluation
