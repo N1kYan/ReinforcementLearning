@@ -120,7 +120,7 @@ underlying algorithms DPG and DQN and which aspects DDPG uses of both of them.
 \nocite{mnih2013playing}
 \label{sec:DQN}
 The DQN approach combines the approximation power of Neural Networks with traditional Q-learning.
-It enables solving the classic Reinforcement Learning problem of achieving the maximum expected reward over time, even for large state spaces. The algorithm is able to find a close to optimal action-value function for many cases [x] and from this a close to optimal deterministic policy. In terms of a formula the action-value function is represented by
+It enables solving the classic Reinforcement Learning problem of achieving the maximum expected reward over time, even for large state spaces (e.g. image frames). The algorithm is an off-policy, model-free approach and is able to find a close to optimal action-value function for many cases [x] and from this a close to optimal deterministic policy by greedily selecting the action: $\pi(s)=\max_{a}Q^*(s,a)$. In terms of a formula the optimal action-value function is represented by
 \[ 
 Q^*(s_t,a_t)=\max_\pi E \left[
 \sum_{t^{'}=t}^{T}\gamma^{t^{'}-t}r_{t^{'}}|s_t=s,
@@ -128,19 +128,33 @@ a_t=a, \pi \right]
 \]
 %TODO E richtig darstellen
  where $\gamma\in[0,1)$ is called the discount factor, controlling the agents preference for rewards closer or further away in time. Rewards later on in an episode will still have impact on the result but their influence decreases by the amount of time-steps required to reach them in the future.
-For approximating the action-value function the approach uses a deep neural network.
-Furthermore, a replay buffer is used which stores samples of the environment.
-This allows random mini-batch sampling, what decorrelates the samples and is proven to improve the performance [x]. The mini-batch sampling also enable the use of improved derivatives of vanilla stochastic gradient descent, e.g. the ADAM update [x].
-There are different ways of estimating the expected q-values. Either with a target network with the same 
-structure as the network for the action-value function or the normal network. 
-If a target network is used, the target weights need to be updated after some 
-training steps.\\
-The loss is calculated through the mean-squared-loss of the expected q-value 
-and the estimated q-value: \[L_i(\theta_i)=E_{(s,a,r,s^{'})}
-\left[\left(r+\gamma \max_{a^{'}} Q(s^{'}, 
-a^{'};\theta_i^{'})-Q(s,a;\theta_i)\right)^2\right] \]
+By definition this optimal value function yields the Bellman equation [x] and can be reinterpreted as maximizing the current reward and the discounted action-value of the resulting state. In formula this gives:
+\[
+Q^*(s,a) = E_{s'\sim\epsilon}\left[
+r + \gamma \max_{a'}Q^*(s',a')|s,a \right]
+\]
+%TODO E
+For approximating the action-value function $Q(s,a|\theta)\approx Q^*(s,a)$ the approach uses a deep neural network, called the Q-Network.
+The Q-Network can be trained by minimizing a sequence of loss functions $L_i(\theta_i)$, depending on it's weights:
+\[
+L_i(\theta_i)=E_{s,a\sim\rho(.),s'\sim\epsilon}
+\left[\left(r+\gamma \max_{a'} Q(s', 
+a'|\theta_{i-1})-Q(s,a|\theta_i)\right)^2\right] 
+\]
 %TODO E richtig machen
-DQN can only handle discrete and low-dimensional action spaces.
+This loss function is similiar to the classical temporal-difference loss used in Q-Learning, but with approximated action-value functions instead of lookup-tables. Derivating this loss w.r.t. the approximation's weights gives:
+\[
+\nabla_{\theta_i}L_i(\theta_i)=E_{s,a\sim\rho(.),s'\sim\epsilon}
+\left[\left(r+\gamma \max_{a'} Q(s', 
+a'|\theta_{i-1})-Q(s,a|\theta_i)\right)\nabla_{\theta_i}Q(s,a|\theta_i)\right] 
+\]
+This gradient can be used to optimize the loss function by using stochastic gradient descent.\\
+Furthermore, a replay buffer is used which stores samples of the environment. This allows random mini-batch sampling, which decorrelates the samples and is proven to improve the performance by greater data efficiency [x]. The mini-batch sampling also enables the use of improved derivatives of vanilla stochastic gradient descent, e.g. RPROP as in the 'neural fitted Q-Learning (NFQ)' [x] approach or ADAM update [x].\\
+%TODO Rewrite the target network stuff
+There are different ways of estimating the expected Q-values. Either with a target network with the same structure as the network for the action-value function or the normal network. If a target network is used, the target weights need to be updated after some 
+training steps.\\
+A pseudocode for the DQN approach can be found in \ref{DQN-algo}.
+The DQN approach was able to significantly outperform earlier learning methods despite incorporating almost no prior knowledge about the inputs [x], but is limited by the disabilty to cope with continous and high-dimensional action spaces due to the max operator in the action selection [x]. This limitations can be adressed by combining the approach with the Deterministic Policy Gradient, which is described in the following section.
 
 \begin{algorithm}
 	\caption{Deep Q-Learning (DQN)}\label{DQN-algo}
@@ -156,7 +170,7 @@ DQN can only handle discrete and low-dimensional action spaces.
 		\IF{random $i \le \epsilon$}
 		\STATE random action $a_t$
 		\ELSE
-		\STATE $a_t=\operatorname*{argmin}_a Q(s_t,a;\theta)$
+		\STATE $a_t=\operatorname*{argmin}_a Q(s_t,a|\theta)$
 		\ENDIF
 		\STATE execute $a_t \rightarrow$ reward $r_t$ and next state 
 		$s_{t+1}$
@@ -165,16 +179,18 @@ DQN can only handle discrete and low-dimensional action spaces.
 		\STATE $q_i =
 			\begin{cases}
 			r_i & \textit{if episode terminates at step i+1}\\
-			r_i+\gamma \max_{a^{'}}\hat{Q}(s_{i+1}, a_i;\theta^{-})& 
+			r_i+\gamma \max_{a'}\hat{Q}(s_{i+1}, a'|\theta^{-})& 
 			else\\			
 			\end{cases}$
 		\STATE perform gradient descent on $\left(q_i-Q\left(s_i, 
-		a_i;\theta\right)\right)^2_\theta$
+		a_i|\theta\right)\right)^2_\theta$
 		\STATE every $C$ steps update $\hat{Q}=Q$
 		\ENDFOR
 		\ENDFOR
 	\end{algorithmic}
 \end{algorithm}
+
+
 \subsection{Deterministic Policy Gradient (DPG)}
 \label{sec:DPG}
 \nocite{lillicrap2015continuous}
