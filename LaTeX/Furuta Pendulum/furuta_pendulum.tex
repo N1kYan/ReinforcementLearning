@@ -46,6 +46,7 @@ grestore
 \smartqed  % flush right qed marks, e.g. at end of proof
 %
 \usepackage{graphicx}
+\usepackage[numbers]{natbib}%TODO delete before submission
 %
 % \usepackage{mathptmx}      % use Times fonts if available on your TeX system
 %
@@ -93,21 +94,67 @@ grestore
 \maketitle
 
 \begin{abstract}
-The Furuta Pendulum is an example of a complex non-linear system and therefore of big interest in control system theory. It consists of one controllable arm rotating in the horizontal plane and one pendulum unconntrollably moving in the vertical plane, which is attached to the end of this arm.\\
+The Furuta Pendulum is an example of a complex non-linear system and therefore 
+of big interest in control system theory. It consists of one controllable arm 
+rotating in the horizontal plane and one pendulum uncontrollably moving in the 
+vertical plane, which is attached to the end of this arm.\\
 The non-linearities result from an interplay between gravitational, Coriolis and centripetal forces. \\
 XX We present an overview over it's technical details and proposed algorithms to solve the control problem. XX
 \keywords{First keyword \and Second keyword \and More}
 % \PACS{PACS code1 \and PACS code2 \and more}
 % \subclass{MSC code1 \and MSC code2 \and more}
 \end{abstract}
+\section{Introduction}
+Many examples of the field of control engineering like aircraft landing, 
+aircraft stabilizing and many more can be very well modelled by an inverted 
+pendulum \cite{akhtaruzzaman2010modeling}. As a reaction to problems with the 
+limited movement of the cart from 
+the inverted pendulum, the furuta pendulum (also called rotary inverted 
+pendulum) 
+has been developed by 
+\citeauthor{furuta1992swing}. The advantages of the furuta pendulum are that it 
+needs less space and one moving arm is directly linked to the motor, therefore, 
+the dynamics is less unmodeled thanks to a power transmission mechanism 
+\cite{furuta1992swing}. The furuta pendulum is an underactuated problem, this 
+means that there two degrees of freedom ($\phi,\ \theta$), 
+but only one arm is directly controlled by the motor. This is the one which 
+changes the angle $\phi$ in the horizontal plane. The other arm called pendulum 
+is attached to 
+the end of the controlled arm and therefore is moved indirectly by it in the 
+vertical plane with angle $\theta$ 
+\cite{spong1998underactuated,tedrake2009underactuated}. The whole system is 
+highly non-linear as a result of an interplay between gravitational, coriolis 
+and centripetal forces.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.5\linewidth]{pendulum}
+	\caption{The furuta pendulum, figure from \cite{la2009new}}
+	\label{fig:pendulum}
+\end{figure}
+Finally, there are two different types of control problems. First, bringing the 
+flexible arm from a hanging position to a position which is nearly upright, 
+further called "swing-up". Second, if the arm is nearly upright with low enough 
+speed, balancing it to hold this state stable, called "stabilization". 
+\subsection{Definitions}
+The system consists of an arm with length $L_r$ mounted to a DC motor, which is 
+able to apply a torque of $\tau_1$ to it. It has a mass of $m_1$ which is 
+located at $l_1$ alongside the arm. Another arm with length $L_p$ and mass 
+$m_2$ located at $\frac{L_p}{2}$ is attached to the remaining side of the 
+first arm. Both arms have a moment of inertia $J_r$ and $J_p$ respectively.% 
+%and each rotational joint is damped viscously with damping coefficients $b_1$ 
+%and $b_2$, where the first coefficient is given by the bearings of the motor 
+%and the second one by the coupling between both arms.%TODO rewrite wiki, do we 
+%%need this?
+The angle $\theta$ is zero if the pendulum is in an perfectly upright position.
 
-\section{Definitions}
-The system consists of an arm with lenght $L_1$ mounted to a DC motor, which is able to apply a torque of $\tau_1$ to it. It has a mass of $m_1$ which is located at $l_1$ alongside the arm. Another arm with length $L_2$ and mass $m_2$ located at $l_2$ along itself is attached to the remaining side of the first arm. Both arms have inertia tensors $J_1$ and $J_2$ respectively and each rotational joint is damped viscously with damping coefficients $b_1$ and $b_2$, where the first coefficient is given by the bearings of the motor and the second one by the coupling between both arms.
-
-\bibliography{furuta}   % name your BibTeX data base
+\section{Mathematical Modelling}
 
 
-\end{thebibliography}
+\bibliographystyle{spbasic}      % basic style, author-year citations
+\bibliography{furuta.bib}   % name your BibTeX data base
+
+
+
 
 \end{document}
 % end of file template.tex
