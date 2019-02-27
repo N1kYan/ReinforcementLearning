@@ -80,7 +80,7 @@ grestore
 
 %\titlerunning{Short form of title}        % if too long for running head
 
-\author{Maximilian Gehrke \and Tabea Wilke \and Yannik Frisch %etc.
+\author{Yannik Frisch \and Tabea Wilke \and Maximilian Gehrke %etc.
 }
 
 %\authorrunning{Short form of author list} % if too long for running head
@@ -194,25 +194,19 @@ The DQN approach was able to significantly outperform earlier learning methods d
 \subsection{Deterministic Policy Gradient (DPG)}
 \label{sec:DPG}
 \nocite{lillicrap2015continuous}
-The most problems in reinforcement learning have a continuous action space, 
-which makes it very difficult to choose the best action given a policy. In a 
-stochastic point of view, there is a probability distribution which represents 
-the policy. The policy is obtained through $\pi_\theta(a|s) =P[a|s;\theta]$. 
-The goal is to achieve the best possible return and therefore choose the best 
-action by solving the problem with a gradient over the total reward. This is 
-only possible through solving an integral over all actions and actions. In the 
-deterministic view the policy is a discrete mapping from state to actions and 
-thus only one integration over the state space is sufficient. The integration 
-is done via importance sampling. As a result of 
-this, stochastic policy gradients need much more samples than deterministic 
-policy gradients. To handle the exploration-exploitation dilemma, the idea of 
-\citeauthor{silver2014deterministic} is to use a stochastic behaviour policy  
-and a deterministic target policy. The behaviour policy should ensure that the 
-exploration is big enough and the target policy should exploit enough based on 
-the policy gradient. The algorithm they used was an off-policy actor-critic 
-method. Thereby, the action-value function is estimated with a function 
-approximation. The policy parameters will be updated in direction of the 
-gradient of the action-value function. The direction of the gradient underlies 
+Most problems in reinforcement learning consist of a continuous action space which makes it very difficult to greedily choose the best action given a policy, due to the max operator. From a stochastic point of view, the policy is a probability distribution $a\sim\pi(a|s)$ over all actions. In order to calculate the gradient of a parameterized policy $\pi(a,s|\theta)$ over the total reward w.r.t. the weights, one needs to solve an integral over all actions, which becomes untractable for large action spaces.\\
+From a deterministic view the policy is a discrete mapping from states to actions $a=\pi(s)$ and thus only one integration over the state space is sufficient. The \textit{policy gradient theorem} [x] gives the update rule for a parameterized deterministic policy function $\pi(s|\theta)$:
+%TODO Get from DPG paper to this update rule
+\begin{align*}
+\nabla_{\theta^\pi}J
+&\approx E_{s_t\sim\rho^\beta}\left[\nabla_{\theta^\pi}Q(s,a|\theta^Q)\right] \\
+&= E_{s_t\sim\rho^\beta}\left[\nabla_aQ(s,a|\theta^Q)|_{s=s_t,a=\pi(st)} \nabla_{\theta^\pi}\pi(s|\theta^\pi)|_{s=s_t}\right]
+\end{align*}
+where the expectation can again be obtained from sampling from an environment.
+
+
+The integration is done via importance sampling. As a result of this, stochastic policy gradients need much more samples than deterministic policy gradients. To handle the exploration-exploitation dilemma, the idea of \citeauthor{silver2014deterministic} is to use a stochastic behaviour policy and a deterministic target policy. The behaviour policy should ensure that the exploration is big enough and the target policy should exploit enough based on 
+the policy gradient. The algorithm they used was an off-policy actor-critic method. Thereby, the action-value function is estimated with a function approximation. The policy parameters will be updated in direction of the gradient of the action-value function. The direction of the gradient underlies 
 the \textit{policy gradient theorem}: 
 
 \begin{align*}
@@ -252,15 +246,38 @@ The update of actor and critic can be formulated as follows:
 \end{figure}
 %TODO if we want it, change it to self written
 
-\subsection{Deep Deterministic Policy Gradients (DDPG)
-\cite{lillicrap2015continuous}}
-DDPG is a model-free and off-policy algorithm which arises from the combination 
-of DQN and DPG. As a result of a continuous action space which leads to a not 
-possible application of Q-learning. Therefore, it is a policy gradient 
-algorithm which uses actor-critic methods with a deterministic target policy 
-and deep Q-learning. Both the actor and the critic will be done with neural 
-networks to represent the parameters. The actor will choose an action from a 
-continuous action space. 
+\subsection{Deep Deterministic Policy Gradient (DDPG)}
+\nocite{lillicrap2015continuous}
+The combination of above approaches leds to the \textit{Deep Deterministic Policy Gradient (DDPG)} approach, which is a model-free and off-policy algorithm. It can be grouped into the class of policy gradient algorithms and uses actor-critic methods with a deterministic target policy and deep Q-learning. Both, the actor and the critic, are realized by deep neural networks. The pseudocode for DDPG can be found in \ref{DDPG-algo}.
+%TODO Add refference
+\begin{algorithm}
+	\caption{Deep Deterministic Policy Gradient (DDPG)}\label{DDPG-algo}
+	\begin{algorithmic}
+		\REQUIRE Replay buffer $\mathit{D}$ with high capacity
+		\REQUIRE Initialize critic network $Q(s,a|\theta^Q)$ and actor network $\pi(s|\theta^\pi)$ with random weights $\theta^Q$ and $\theta^\pi$
+		\REQUIRE Initialize target networks $Q'$ and $\pi'$ with weights $\theta^{Q'}\leftarrow\theta^Q$ and $\theta^{\pi'}\leftarrow\theta^\pi$
+		\FOR{episode $1$ \TO $M$}
+		\STATE Initialize random process $\mathit{N}$ for action exploration
+		\STATE Reset environment to state $s_1$
+		\FOR{$t=1$ \TO $T$}
+		\STATE Select action $a_t = \pi(s_t|\theta^\pi) + \mathit{N}_t$ from local actor
+		\STATE Execute action $a_t$ and observe reward $r_t$ and next state $s_{t+1}$
+		\STATE Save $(s_t, a_t, r_t,s_{t+1})$ in replay buffer $D$
+		\STATE Sample minibatch $(s_i, a_i, r_i,s_{i+1})$ from $D$
+		\STATE Set TD-target from target networks:\\
+		\qquad $y_i = r_i + \gamma Q'(s_{i+1}, \pi'(s_{i+1}|\theta^{\pi'})|\theta^{Q'})$
+		\STATE Update the critic by minimizing the loss:\\
+		\qquad $L=\frac{1}{N}\sum_i(y_i - Q(s_i,a_i|\theta^Q))^2$
+		\STATE Update the actor using the sampled policy gradient:\\ 			\qquad $\nabla_{\theta^\pi}J \approx \frac{1}{N} \sum_i \nabla_a Q(s,a|\theta^Q)|_{s=s_i, a=\pi(s_i)}\nabla_{\theta^\pi}\pi(s|\theta^\pi)|_{s=s_i}$
+		\STATE Update the target networks:\\
+		\qquad $\theta^{Q'}\leftarrow \tau \theta^Q + (1-\tau)\theta^{Q'}$\\
+		\qquad $\theta^{\pi'}\leftarrow \tau \theta^\pi + (1-\tau)\theta^{\pi'}$
+		\ENDFOR
+		\ENDFOR
+	\end{algorithmic}
+\end{algorithm}
+\\
+\\
 \begin{itemize}
 \item DQN uses deep networks to estimate the action-value function
 \begin{itemize}
