@@ -287,9 +287,9 @@ def main():
     """
 
     global env
-    # env = gym.make('Qube-v0')
+    env = gym.make('Qube-v0')
     # env = gym.make('Pendulum-v0')
-    env = gym.make('BallBalancerSim-v0')
+    # env = gym.make('BallBalancerSim-v0')
     print(env.spec.id)
     print("State Space:\tShape:{}\tLow:{}\tHigh:{}".format(np.shape(env.reset()),
                                                             env.observation_space.low,
@@ -316,7 +316,7 @@ def main():
                           seed=random_seed)
 
     # Run training procedure with defined hyperparameters
-    ACTOR = training(epochs=500, max_steps=1000, epoch_checkpoint=50, noise=OU_NOISE, add_noise=True,
+    ACTOR = training(epochs=10000, max_steps=1000, epoch_checkpoint=50, noise=OU_NOISE, add_noise=True,
                      lr_actor=1e-4, lr_critic=1e-3, weight_decay=0, gamma=0.99, memory=MEMORY, tau=1e-3,
                      seed=random_seed, save_flag=True, load_flag=False, load_path='actor22-1-18', render=False)
 

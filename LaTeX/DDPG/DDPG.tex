@@ -127,8 +127,8 @@ Q^*(s_t,a_t)=\max_\pi E \left[
 a_t=a, \pi \right] 
 \]
 %TODO E richtig darstellen
- where $\gamma\in[0,1)$ is called the discount factor, controlling the agents preference for rewards closer or further away in time. Rewards later on in an episode will still have impact on the result but their influence decreases by the amount of time-steps required to reach them in the future.
-By definition this optimal value function yields the Bellman equation [x] and can be reinterpreted as maximizing the current reward and the discounted action-value of the resulting state. In formula this gives:
+ where $\gamma\in[0,1)$ is called the \textit{Discount Factor}, controlling the agents preference for rewards closer or further away in time. Rewards later on in an episode will still have impact on the result but their influence decreases by the amount of time-steps required to reach them in the future.
+By definition this optimal value function yields the \textit{Bellman Equation} [x] and can be reinterpreted as maximizing the current reward and the discounted action-value of the resulting state. In formula this gives:
 \[
 Q^*(s,a) = E_{s'\sim\epsilon}\left[
 r + \gamma \max_{a'}Q^*(s',a')|s,a \right]
@@ -148,8 +148,8 @@ This loss function is similiar to the classical temporal-difference loss used in
 \left[\left(r+\gamma \max_{a'} Q(s', 
 a'|\theta_{i-1})-Q(s,a|\theta_i)\right)\nabla_{\theta_i}Q(s,a|\theta_i)\right] 
 \]
-This gradient can be used to optimize the loss function by using stochastic gradient descent.\\
-Furthermore, a replay buffer is used which stores samples of the environment. This allows random mini-batch sampling, which decorrelates the samples and is proven to improve the performance by greater data efficiency [x]. The mini-batch sampling also enables the use of improved derivatives of vanilla stochastic gradient descent, e.g. RPROP as in the 'neural fitted Q-Learning (NFQ)' [x] approach or ADAM update [x].\\
+The expectation can be obtained by samling and this gradient can be used to optimize the loss function by using stochastic gradient descent.\\
+Furthermore, a replay buffer is used which stores samples of the environment. This allows random mini-batch sampling, which decorrelates the samples and is proven to improve the performance by greater data efficiency [x]. The mini-batch sampling also enables the use of improved derivatives of vanilla stochastic gradient descent, e.g. \textit{RPROP} as in the \textit{neural fitted Q-Learning (NFQ)} [x] approach or \textit{ADAM update} [x].\\
 %TODO Rewrite the target network stuff
 There are different ways of estimating the expected Q-values. Either with a target network with the same structure as the network for the action-value function or the normal network. If a target network is used, the target weights need to be updated after some 
 training steps.\\
@@ -194,29 +194,27 @@ The DQN approach was able to significantly outperform earlier learning methods d
 \subsection{Deterministic Policy Gradient (DPG)}
 \label{sec:DPG}
 \nocite{lillicrap2015continuous}
-Most problems in reinforcement learning consist of a continuous action space which makes it very difficult to greedily choose the best action given a policy, due to the max operator. From a stochastic point of view, the policy is a probability distribution $a\sim\pi(a|s)$ over all actions. In order to calculate the gradient of a parameterized policy $\pi(a,s|\theta)$ over the total reward w.r.t. the weights, one needs to solve an integral over all actions, which becomes untractable for large action spaces.\\
-From a deterministic view the policy is a discrete mapping from states to actions $a=\pi(s)$ and thus only one integration over the state space is sufficient. The \textit{policy gradient theorem} [x] gives the update rule for a parameterized deterministic policy function $\pi(s|\theta)$:
-%TODO Get from DPG paper to this update rule
+As [x] stated correctly, most problems in reinforcement learning consist of a continuous action space which makes it very difficult to greedily choose the best action given a policy, due to the max operator. From a stochastic point of view, the policy is a probability distribution $a\sim\pi(a|s)$ over all actions. In order to calculate the gradient of a parameterized policy $\pi(a,s|\theta)$ over the total reward w.r.t. the weights, one needs to solve an integral over all actions and states, which becomes untractable for large state-action spaces.
+From a deterministic view the policy is a discrete mapping from states to actions $a=\pi(s)$ and thus only one integration over the state space is sufficient.\\ 
+%TODO Explain likelihood ratio gradients?
+The \textit{policy gradient theorem} [EDIT: QUELLE] gives the update rule for a parameterized policy, optimizing the loss function: 
+\[
+\nabla_{\theta}J(\theta)=E_{s\sim\rho^\pi,a\sim\pi_\theta}
+\left[\nabla_\theta log \pi_\theta(a|s)Q^\pi(s,a)\right] 
+\]
+From this, a deterministic approach is derived in [EDIT: by?] [x], which gives the update rule for a parameterized deterministic policy function $\pi(s|\theta)$. Rather than trying to maximize the action-value function $Q(s,a)$ globally by greedy improvements of the policy, the authors move the policy in the direction of the gradient of $Q(s,a)$:
+\[
+\nabla_{\theta^\pi}J\approx E_{s_t\sim\rho^\beta}\left[\nabla_{\theta^\pi}Q(s,a|\theta^Q)\right]
+\]
+%TODO s  ... Beta or Pi?
+Applying the chain rule to this equation gives the \textit{deterministic policy gradient theorem}:
 \begin{align*}
-\nabla_{\theta^\pi}J
-&\approx E_{s_t\sim\rho^\beta}\left[\nabla_{\theta^\pi}Q(s,a|\theta^Q)\right] \\
-&= E_{s_t\sim\rho^\beta}\left[\nabla_aQ(s,a|\theta^Q)|_{s=s_t,a=\pi(st)} \nabla_{\theta^\pi}\pi(s|\theta^\pi)|_{s=s_t}\right]
+\nabla_{\theta^\pi}J\approx E_{s_t\sim\rho^\beta}\left[\nabla_aQ(s,a|\theta^Q)|_{s=s_t,a=\pi(st)} \nabla_{\theta^\pi}\pi(s|\theta^\pi)|_{s=s_t}\right]
 \end{align*}
 where the expectation can again be obtained from sampling from an environment.
-
-
-The integration is done via importance sampling. As a result of this, stochastic policy gradients need much more samples than deterministic policy gradients. To handle the exploration-exploitation dilemma, the idea of \citeauthor{silver2014deterministic} is to use a stochastic behaviour policy and a deterministic target policy. The behaviour policy should ensure that the exploration is big enough and the target policy should exploit enough based on 
-the policy gradient. The algorithm they used was an off-policy actor-critic method. Thereby, the action-value function is estimated with a function approximation. The policy parameters will be updated in direction of the gradient of the action-value function. The direction of the gradient underlies 
-the \textit{policy gradient theorem}: 
-
-\begin{align*}
-\bigtriangledown_\theta 
-J(\pi_\theta)&=\int_{S}^{}\rho^\pi(s)\int_{A}\bigtriangledown_\theta 
-\pi_\theta(a|s)Q^\pi(s,a)\mathrm{d}a\mathrm{d}s\\
-&=E_{s \sim \rho^\pi,\: a\sim\pi_\theta}[\bigtriangledown_\theta \log 
-\pi_\theta (a|s)Q^\pi(s,a)]
-\end{align*}%TODO E richtig darstellen (\mathbb{})
-
+Only using deterministic action outputs will vanish the algorithms exploration, so one needs to make sure there still is exploration [EDIT: WORTWAHL]. This is realized by using an off-policy approach which follows a stochastic behavior policy while learning about a deterministic target policy. The authors also introduce the notion of \textit{compatible function approximation}. Using these to extimate the gradient, an unbiased approximation is guaranteed.\\
+%TODO Explain compatible FA
+%TODO Probleme mit DPG und nns beschreiben -> DDPG
 \subsection{Actor-Critic Methods}
 \label{sec:actor-critic}
 The advantage of actor-critic methods is that they learn policies as well as 
@@ -246,15 +244,16 @@ The update of actor and critic can be formulated as follows:
 \end{figure}
 %TODO if we want it, change it to self written
 
-\subsection{Deep Deterministic Policy Gradient (DDPG)}
+\section{Deep Deterministic Policy Gradient (DDPG)}
+\label{sec:DDPG}
 \nocite{lillicrap2015continuous}
-The combination of above approaches leds to the \textit{Deep Deterministic Policy Gradient (DDPG)} approach, which is a model-free and off-policy algorithm. It can be grouped into the class of policy gradient algorithms and uses actor-critic methods with a deterministic target policy and deep Q-learning. Both, the actor and the critic, are realized by deep neural networks. The pseudocode for DDPG can be found in \ref{DDPG-algo}.
+The combination of above approaches led to the \textit{Deep Deterministic Policy Gradient (DDPG)} approach [x], which is a model-free and off-policy algorithm. It can be grouped into the class of policy gradient algorithms and uses actor-critic methods with a deterministic target policy and deep Q-learning. Both, the actor and the critic, are realized by deep neural networks. The pseudocode for DDPG can be found in \ref{DDPG-algo}.
 %TODO Add refference
 \begin{algorithm}
 	\caption{Deep Deterministic Policy Gradient (DDPG)}\label{DDPG-algo}
 	\begin{algorithmic}
 		\REQUIRE Replay buffer $\mathit{D}$ with high capacity
-		\REQUIRE Initialize critic network $Q(s,a|\theta^Q)$ and actor network $\pi(s|\theta^\pi)$ with random weights $\theta^Q$ and $\theta^\pi$
+		\REQUIRE Critic network $Q(s,a|\theta^Q)$ and actor network $\pi(s|\theta^\pi)$ with random weights $\theta^Q$ and $\theta^\pi$
 		\REQUIRE Initialize target networks $Q'$ and $\pi'$ with weights $\theta^{Q'}\leftarrow\theta^Q$ and $\theta^{\pi'}\leftarrow\theta^\pi$
 		\FOR{episode $1$ \TO $M$}
 		\STATE Initialize random process $\mathit{N}$ for action exploration
@@ -278,6 +277,8 @@ The combination of above approaches leds to the \textit{Deep Deterministic Polic
 \end{algorithm}
 \\
 \\
+%TODO Write smth about performance, show some examples
+\\
 \begin{itemize}
 \item DQN uses deep networks to estimate the action-value function
 \begin{itemize}
@@ -296,8 +297,14 @@ The combination of above approaches leds to the \textit{Deep Deterministic Polic
 \end{itemize}
 
 
-\section{Extensions to the Algorithm}
+\section{Improvements for DDPG}
 \label{sec:1}
+
+\section{Limitations and future work}
+\label{sec:limfut}
+
+\section{Conclusion}
+\label{sec:conclusion}
 \begin{comment}
 
 We propose several possible extensions and show their performance on a task.\\
