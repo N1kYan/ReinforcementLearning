@@ -194,7 +194,7 @@ The DQN approach was able to significantly outperform earlier learning methods d
 \subsection{Deterministic Policy Gradient (DPG)}
 \label{sec:DPG}
 \nocite{lillicrap2015continuous}
-The most problems in reinforcement learning have an continuous action space, 
+The most problems in reinforcement learning have a continuous action space, 
 which makes it very difficult to choose the best action given a policy. In a 
 stochastic point of view, there is a probability distribution which represents 
 the policy. The policy is obtained through $\pi_\theta(a|s) =P[a|s;\theta]$. 
@@ -230,7 +230,7 @@ value functions. To get an intuition about these methods the following figure
 illustrates the update-cycle:
 \begin{figure}[H]
 	\centering
-	% \includegraphics[width=0.4\linewidth]{actor-critic}
+	\includegraphics[width=0.4\linewidth]{actor-critic}
 	\caption{Intuition about actor-critic methods (figure from 
 	\cite{sutton2018reinforcement})}
 	\label{fig:actor-critic}
@@ -245,7 +245,7 @@ current reward and the critic has no direct influence on the actions.
 The update of actor and critic can be formulated as follows:
 \begin{figure}[H]
 	\centering
-	% \includegraphics[width=0.6\linewidth]{actor-critic-algo}
+	\includegraphics[width=0.6\linewidth]{actor-critic-algo}
 	\caption{Intuition about actor-critic methods (figure from 
 		\cite{sutton2018reinforcement})}
 	\label{fig:actor-critic-algo}
