@@ -47,6 +47,7 @@ grestore
 %
 \usepackage{graphicx}
 \usepackage[numbers]{natbib}%TODO delete before submission
+\usepackage{amsmath}
 %
 % \usepackage{mathptmx}      % use Times fonts if available on your TeX system
 %
@@ -136,20 +137,64 @@ flexible arm from a hanging position to a position which is nearly upright,
 further called "swing-up". Second, if the arm is nearly upright with low enough 
 speed, balancing it to hold this state stable, called "stabilization". 
 \subsection{Definitions}
-The system consists of an arm with length $L_r$ mounted to a DC motor, which is 
-able to apply a torque of $\tau_1$ to it. It has a mass of $m_1$ which is 
-located at $l_1$ alongside the arm. Another arm with length $L_p$ and mass 
-$m_2$ located at $\frac{L_p}{2}$ is attached to the remaining side of the 
-first arm. Both arms have a moment of inertia $J_r$ and $J_p$ respectively.% 
-%and each rotational joint is damped viscously with damping coefficients $b_1$ 
-%and $b_2$, where the first coefficient is given by the bearings of the motor 
-%and the second one by the coupling between both arms.%TODO rewrite wiki, do we 
-%%need this?
-The angle $\theta$ is zero if the pendulum is in an perfectly upright position.
-
-\section{Mathematical Modelling}
-
-
+The system consists of an arm with length $l_r$ mounted to a DC motor, which is 
+able to apply a torque of $\tau$ to it. It has a mass of $m_r$ which is 
+located at $l_1$ alongside the arm. Another arm with length $l_p$ and mass 
+$m_p$ %located at $\frac{l_p}{2}$ 
+is attached to the remaining side of the 
+first arm. Both arms have a moment of inertia $J_r$ and $J_p$ respectively. The 
+counter force to the input torque is the viscous damping $B_r$ because of the 
+bearings of the motor. As the pendulum is not controlled directly, the only 
+force it is applied to is damping at the connection to the arm $B_p$. The angle 
+$\theta$ is zero if the pendulum is in an perfectly upright position.
+The only influence we can take on the system is the voltage $V_m$ we give to 
+the DC motor.
+\section{Mathematical Modelling 
+\cite{furuta1992swing,gafvert2016modelling,ozbek2010swing,zhang2011optimal}}
+For later derivation of the Lagrangian, the kinetic and potential engergies of 
+the furuta pendulum are needed. Therefore, the kinematics of the pendulums 
+center of gravity can be described by 
+\[\begin{cases}
+x&=l_r\cos\phi-l_{p}\sin\theta\sin\phi \\ 
+y&=l_r\sin\phi+l_{p}\sin\theta\cos\phi \\ 
+z&=l_{p}\cos\theta
+\end{cases} \] 
+The relative velocity of the pendulum to the arm can be represented by 
+\[ \begin{cases}
+\dot{x}&=-l_a\ \sin \phi \dot{\phi}-l_{p}\ \cos\phi \sin\theta\dot{\phi}-l_{p} 
+\ \sin\phi \cos\theta\dot{\theta} \\ 
+\dot{y} &=l_a\ \cos\phi\dot{\phi}-l_{p} \ \sin\phi \sin\theta\dot{\phi}+l_{p} 
+\ \cos\theta \cos\phi\dot{\theta} \\
+ \dot{z}&=-l_{p} \ \sin\theta\dot{\theta}
+\end{cases}\]
+For the energy terms a squared velocity is needed, which is the scalar product 
+of the squared velocities in all directions:
+\begin{align*}v^2&=\dot{x}^2+\dot{y}^2+\dot{z}^2\\
+&=(l_a^2+l_p^2\ 
+\sin^2\theta)\dot{\phi}^2+l_p^2\dot{\theta}^2+2l_al_p\dot{\phi}\dot{\theta}\cos 
+\theta\end{align*} %TODO ich kann die Herleitung dafür in den Anhang packen, 
+%falls 
+%gewünscht
+First of all, we will derive the equations of motion through the Euler-Lagrange 
+method. The Lagrangian function can be obtained by the difference of the 
+kinetic and potential energies $L=T-V$, with $T$ as the total sum of the 
+kinetic energies in the system and $V$ the total potential energies. Lagrange's 
+Equation follows \[ 
+\frac{d}{dt}\left(\frac{\partial L}{\partial 
+\dot{q_i}}\right)-\frac{\partial 
+L}{\partial 
+q_i}=0 \] Thereby, the variables $q_i$ are called generalized coordinates. For 
+the furuta pendulum this is $\dot{q}(t)^T = \left[\frac{\partial 
+\phi(t)}{\partial t} \frac{\partial \theta(t)}{\partial t} \right]$ which leads 
+to 
+\begin{align*}
+	\frac{\partial^2 L}{\partial t\partial \dot{\phi}}-\frac{\partial 
+	L}{\partial \phi}&=\tau - B_r\dot{\phi}\\
+	\frac{\partial^2 L}{\partial t\partial \dot{\theta}}-\frac{\partial 
+	L}{\partial \theta}&=-B_p\dot{\theta}
+\end{align*}
+The only potential energy which is in the system is the one of the pendulum:
+\[V_{total}=V_{pendulum}=m_pgz= m_pgl_{p}\cos\theta\]
 \bibliographystyle{spbasic}      % basic style, author-year citations
 \bibliography{furuta.bib}   % name your BibTeX data base
 
