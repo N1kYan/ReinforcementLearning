@@ -35,6 +35,7 @@ github.com/kvfrans/openai-cartpole/blob/master/cartpole-policygradient.py
 import tensorflow as tf
 import numpy as np
 import sys
+import time
 import gym
 # import quanser_robots
 
@@ -44,6 +45,10 @@ from NAC_by_studywolf.actor_network import policy_gradient
 from NAC_by_studywolf.natural_policy_gradient import run_episode
 from NAC_by_studywolf import Evaluation
 
+# Environments which have to be solved:
+# DoubleCartPole: "DoublePendulum-v0"
+# FurutaPend: "Qube-v0"
+# BallBalancer: "BallBalancerSim-v0"
 # ----------------------------- RESULTS ------------------------------------- #
 # DoublePend, 3 actions, 300 Traj, 300 timesteps it holds the sticks far longer
 # (avg. 450) than if we have 200 timesteps with same config (avg. 200)
@@ -53,10 +58,10 @@ from NAC_by_studywolf import Evaluation
 # VARIABLES & CONSTANTS
 # Choosing the environment
 # For possible environments, please look at the assert check
-ENVIRONMENT = 'DoublePendulum-v0'
+ENVIRONMENT = 'BallBalancerSim-v0'
 NUM_ACTIONS = None
 PRINTING = False
-TIME_STEPS = 1500  # how much time steps should be accumulated in a trajectory
+TIME_STEPS = 200  # how much time steps should be accumulated in a trajectory
 # Number of trajectories, where each is of length TIME_STEPS
 # Trajectories consist of one or several environment episodes (done = true)
 N_TRAJECTORIES = 300
@@ -64,7 +69,8 @@ N_TRAJECTORIES = 300
 # Names of envs & default num of actions for discretization
 # If default value is 'None' the action space is already discretized
 env_dict = {'CartPole-v0': None, 'Pendulum-v0': 3, 'DoublePendulum-v0': 3,
-            'CartpoleSwingShort-v0': 3, 'Qube-v0': 3, 'CartpoleStabRR-v0': 3}
+            'CartpoleSwingShort-v0': 3, 'Qube-v0': 3, 'CartpoleStabRR-v0': 3,
+            'BallBalancerSim-v0': None}
 assert ENVIRONMENT in env_dict.keys()
 
 # GENERATE ENVIRONMENTS
@@ -88,7 +94,6 @@ for ii in range(1):
 
     max_rewards = []
     total_episodes = []
-    import time
     times = []
     for i in range(N_TRAJECTORIES):
         start_time = time.time()
