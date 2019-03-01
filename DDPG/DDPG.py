@@ -307,7 +307,7 @@ def main():
     env.seed(3)
 
     # Noise generating process
-    OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.15, sigma=0.2)
+    OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.15, sigma=1.2)
 
     GAUSS_NOISE = Gaussian(size=env_action_size, seed=random_seed, mu=0.0, sigma=5.0, decay=0.5)
 
@@ -316,8 +316,8 @@ def main():
                           seed=random_seed)
 
     # Run training procedure with defined hyperparameters
-    ACTOR = training(epochs=10000, max_steps=1000, epoch_checkpoint=50, noise=OU_NOISE, add_noise=True,
-                     lr_actor=1e-4, lr_critic=1e-3, weight_decay=0, gamma=0.99, memory=MEMORY, tau=1e-3,
+    ACTOR = training(epochs=10000, max_steps=1000, epoch_checkpoint=200, noise=OU_NOISE, add_noise=True,
+                     lr_actor=1e-4, lr_critic=1e-3, weight_decay=0, gamma=0.99, memory=MEMORY, tau=1e-2,
                      seed=random_seed, save_flag=True, load_flag=False, load_path='actor22-1-18', render=False)
 
     # Run evaluation
