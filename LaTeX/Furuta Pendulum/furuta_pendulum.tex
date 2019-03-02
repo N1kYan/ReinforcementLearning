@@ -150,7 +150,7 @@ $\theta$ is zero if the pendulum is in an perfectly upright position.
 The only influence we can take on the system is the voltage $V_m$ we give to 
 the DC motor.
 \section{Mathematical Modelling 
-\cite{furuta1992swing,gafvert2016modelling,ozbek2010swing,zhang2011optimal}}
+\cite{akhtaruzzaman2010modeling,furuta1992swing,gafvert2016modelling,ozbek2010swing,zhang2011optimal}}
 For later derivation of the Lagrangian, the kinetic and potential engergies of 
 the furuta pendulum are needed. Therefore, the kinematics of the pendulums 
 center of gravity can be described by 
@@ -178,23 +178,56 @@ of the squared velocities in all directions:
 First of all, we will derive the equations of motion through the Euler-Lagrange 
 method. The Lagrangian function can be obtained by the difference of the 
 kinetic and potential energies $L=T-V$, with $T$ as the total sum of the 
-kinetic energies in the system and $V$ the total potential energies. Lagrange's 
-Equation follows \[ 
-\frac{d}{dt}\left(\frac{\partial L}{\partial 
-\dot{q_i}}\right)-\frac{\partial 
-L}{\partial 
-q_i}=0 \] Thereby, the variables $q_i$ are called generalized coordinates. For 
-the furuta pendulum this is $\dot{q}(t)^T = \left[\frac{\partial 
-\phi(t)}{\partial t} \frac{\partial \theta(t)}{\partial t} \right]$ which leads 
-to 
-\begin{align*}
-	\frac{\partial^2 L}{\partial t\partial \dot{\phi}}-\frac{\partial 
-	L}{\partial \phi}&=\tau - B_r\dot{\phi}\\
-	\frac{\partial^2 L}{\partial t\partial \dot{\theta}}-\frac{\partial 
-	L}{\partial \theta}&=-B_p\dot{\theta}
-\end{align*}
+kinetic energies in the system and $V$ the total potential energies.
 The only potential energy which is in the system is the one of the pendulum:
 \[V_{total}=V_{pendulum}=m_pgz= m_pgl_{p}\cos\theta\]
+Kinetic energy is available both in the arm and in the pendulum and is composed 
+of the the sum of translation energy and rotational energy:
+\begin{align*}
+T_{arm}&=\frac{1}{2}J_r\dot{\phi_0}^2\\
+T_{pendulum}&=\frac{1}{2}J_p\dot{\theta_0}^2+\frac{1}{2}m_pv^2\\
+&= \frac{1}{2}J_p\dot{\theta_0}^2+\frac{1}{2}m_p\left((l_a^2+l_p^2\ 
+\sin^2\theta)\dot{\phi}^2+l_p^2\dot{\theta}^2+2l_al_p\dot{\phi}\dot{\theta}\cos 
+\theta\right)\\
+T_{total}&= 
+\frac{1}{2}J_r\dot{\phi_0}^2+\frac{1}{2}J_p\dot{\theta_0}^2+\frac{1}{2}m_p\left((l_a^2+l_p^2\
+\sin^2\theta)\dot{\phi}^2+l_p^2\dot{\theta}^2+2l_al_p\dot{\phi}\dot{\theta}\cos 
+\theta\right)
+\end{align*}
+From this the Lagrange Function arises:
+\begin{align*}
+L &=T_{total}-V_{total}\\
+&=\frac{1}{2}J_r\dot{\phi_0}^2+\frac{1}{2}J_p\dot{\theta_0}^2+\frac{1}{2}m_p\left((l_a^2+l_p^2\
+\sin^2\theta)\dot{\phi}^2+l_p^2\dot{\theta}^2+2l_al_p\dot{\phi}\dot{\theta}\cos 
+\theta\right) \ - \ m_pgl_{p}\cos\theta
+\end{align*}
+ Lagrange's 
+Equation follows \[ 
+\frac{d}{dt}\left(\frac{\partial L}{\partial 
+	\dot{q_i}}\right)-\frac{\partial 
+	L}{\partial 
+	q_i}+\frac{\partial F}{\partial \dot{q_i}} =0\] Thereby, the variables 
+	$q_i$ are called 
+	generalized coordinates and $F$ is the friction in the system. 
+	The friction in the system can be described by $B_p\dot{\theta}$ and $ 
+	B_r\dot{\phi}$
+	For 
+the furuta pendulum the generalized coordinates are $\dot{q}(t)^T = 
+\left[\frac{\partial 
+	\phi(t)}{\partial t} \frac{\partial \theta(t)}{\partial t} \right]$ which 
+	leads 
+to 
+\begin{align*}
+\frac{\partial^2 L}{\partial t\partial \dot{\phi}}-\frac{\partial 
+	L}{\partial \phi}&=\tau - B_r\dot{\phi}\\
+\frac{\partial^2 L}{\partial t\partial \dot{\theta}}-\frac{\partial 
+	L}{\partial \theta}&=-B_p\dot{\theta}
+\end{align*}
+The partial derivations of the Lagrangian for the generalized coordinates are:
+
+\begin{align*}
+	\frac{\partial L}{\partial \phi}=0
+\end{align*}
 \bibliographystyle{spbasic}      % basic style, author-year citations
 \bibliography{furuta.bib}   % name your BibTeX data base
 
