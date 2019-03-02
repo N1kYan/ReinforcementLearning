@@ -231,8 +231,21 @@ The natural gradient is a first order method, but implements many second order a
 \subsection{Parametrization invariant}
 The natural gradient is invariant regarding parametrization. This comes from the KL-divergence constraint we apply, which measures the changes of our probability density estimation regardless how it was parametrized \cite{pascanu2013revisiting}. This is comparable to signal noise whitening \cite{sohl2012natural}.
 
+(Berkley Slides, covariance)
+
 \subsection{Faster convergence}
-In many cases natural gradient algorithms converge faster than vanilla gradient algorithms. \cite{sohl2012natural, ??, ??}. This is due to the fact, that a metric is used which removes the dependencies and differences in scaling between the parameters. This means, that the parameters are perpendicular to each other and the parameter space can be explored more efficiently \cite{sohl2012natural}.
+In many cases natural gradient algorithms converge faster than vanilla gradient algorithms. \cite{sohl2012natural, amari1998natural, ??}. This is due to the fact, that a metric is used which removes the dependencies and differences in scaling between the parameters. This means, that the parameters are perpendicular to each other and the parameter space can be explored more efficiently \cite{sohl2012natural}.
+
+\subsection{Better convergence properties}
+\cite{amari1998natural} $\rightarrow$ jump over plateaus (?!)
+
+\subsection{Sample efficiency}
+
+Natural actor critic has much better sample complexity guarantees than gradient-free algorithms, due to the fact that it is a gradient method \cite{nemirovski2005efficient}.
+
+\subsection{More properties}
+
+Look at Berkley slides
 
 % ---------------------- Extensions --------------------------------- %
 \newpage
@@ -250,7 +263,11 @@ Melo et. al additionally implemented importance sampling, which increased the ef
 
 \subsection{Incremental NAC}
 
+``The way we use natural gradients is distinctive in that it is totally incremental: the policy is changed on every time step, yet the gradient computation is never reset as it is in the algorithm of Peters et al. (2005). Alg. 3 is perhaps the most interesting of the three natural-gradient algorithms. It never explicitly stores an estimate of the inverse Fisher information matrix and, as a result, it requires less computation. In empirical experiments using our algorithms (not reported here) we observed that it is easier to ﬁnd good parameter settings for Alg. 3 than it is for the other natural-gradient algorithms and, perhaps because of this, it converged more rapidly than the others and than Konda’s algorithm.'' \cite{bhatnagar2008incremental}
+
 \subsection{Implicit incremental NAC}
+
+
 
 \subsection{Regularization on NAC}
 	Even if we find the inverse of $G$, it can be ill defined. An example for this are extremely small eigenvalues which appear due to noise in our data. These eigenvalues will become extremely large if we take the inverse of $G$ and thus the parameters belonging to the eigenvalues will get a lot of credibility which they should not have and which will falsify our inverse.
@@ -292,6 +309,20 @@ Melo et. al additionally implemented importance sampling, which increased the ef
 	\subsection{Least Squares}
 	
 	Recursive least squares: \cite{park2005rls}
+	
+	\subsection{Truncated Natural Policy Gradient}
+	
+	We use conjugate gradients (CG) to avoid calculating the inverse of the fisher matrix. We apply CG by solving the equation
+	
+	\begin{equation}
+		x_k \approx H_k^{-1} g_k \Rightarrow H^{-1}_k x_k \approx g_k
+	\end{equation}
+	
+	If we transform it into an optimization problem for quadratic equations, we have to optimize
+	
+	\begin{equation}
+		\min_{x \in \mathbb{R}^n} \dfrac{1}{2} x^T H x - g^T x
+	\end{equation}
 
 % ---------------------- Improvements --------------------------------- %
 \newpage
@@ -351,9 +382,15 @@ Meetings:
 	\min_{V_t, W_t} (r(s,a) + \gamma f_{V_{t+1}}(s') - f_{V_t}(s) + f_{W_t}(s,a))^2
 \end{align}
 
+\subsection{Policy Evaluation with Temporal Difference}
+\cite{dann2014policy}
 
 
 \subsection{Ideas of TRPO}
+Ideas of TRPO are:
+\begin{itemize}
+	\x 
+\end{itemize}
 
 
 \subsection{Other Extentions}

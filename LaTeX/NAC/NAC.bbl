@@ -1,9 +1,11 @@
 \begin{thebibliography}{10}
 
 \bibitem{amari1998natural}
-Shun-Ichi Amari.
-\newblock Natural gradient works efficiently in learning.
-\newblock {\em Neural computation}, 10(2):251--276, 1998.
+Shun-Ichi Amari and Scott~C Douglas.
+\newblock Why natural gradient?
+\newblock In {\em Proceedings of the 1998 IEEE International Conference on
+  Acoustics, Speech and Signal Processing, ICASSP'98 (Cat. No. 98CH36181)},
+  volume~2, pages 1213--1216. IEEE, 1998.
 
 \bibitem{bhatnagar2008incremental}
 Shalabh Bhatnagar, Mohammad Ghavamzadeh, Mark Lee, and Richard~S Sutton.
@@ -57,6 +59,11 @@ Francisco~S Melo and Manuel Lopes.
   state-action mdps.
 \newblock In {\em Joint European Conference on Machine Learning and Knowledge
   Discovery in Databases}, pages 66--81. Springer, 2008.
+
+\bibitem{nemirovski2005efficient}
+Arkadi Nemirovski.
+\newblock Efficient methods in convex programming.
+\newblock 2005.
 
 \bibitem{park2005rls}
 Jooyoung Park, Jongho Kim, and Daesung Kang.

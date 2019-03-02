@@ -49,38 +49,44 @@ from NAC_by_studywolf import Evaluation
 # DoubleCartPole: "DoublePendulum-v0"
 # FurutaPend: "Qube-v0"
 # BallBalancer: "BallBalancerSim-v0"
+
 # ----------------------------- RESULTS ------------------------------------- #
 # DoublePend, 3 actions, 300 Traj, 300 timesteps it holds the sticks far longer
 # (avg. 450) than if we have 200 timesteps with same config (avg. 200)
 
-# --------------------------------------------------------------------------- #
-
-# VARIABLES & CONSTANTS
-# Choosing the environment
-# For possible environments, please look at the assert check
-ENVIRONMENT = 'BallBalancerSim-v0'
-NUM_ACTIONS = None
+# ---------------------- VARIABLES & CONSTANTS ------------------------------ #
 PRINTING = False
-TIME_STEPS = 200  # how much time steps should be accumulated in a trajectory
+
+# How much steps should the agent perform before updating parameters
+TIME_STEPS = 200
+
 # Number of trajectories, where each is of length TIME_STEPS
-# Trajectories consist of one or several environment episodes (done = true)
+# Trajectories consist of one or several environment episodes
 N_TRAJECTORIES = 300
 
-# Names of envs & default num of actions for discretization
-# If default value is 'None' the action space is already discretized
-env_dict = {'CartPole-v0': None, 'Pendulum-v0': 3, 'DoublePendulum-v0': 3,
-            'CartpoleSwingShort-v0': 3, 'Qube-v0': 3, 'CartpoleStabRR-v0': 3,
-            'BallBalancerSim-v0': None}
+# Select Environment
+ENVIRONMENT = 1
+
+# Set the discretization of continuous environments here
+env_dict = {1: ['CartPole-v0',          'discrete'],
+            2: ['DoublePendulum-v0',    'continuous',   3],
+            3: ['Qube-v0',              'continuous',   3],
+            4: ['BallBalancerSim-v0',   'discrete'],
+            5: ['Levitation-v1',   'discrete'],
+            6: ['Pendulum-v0',          'continuous',   3],
+            7: ['CartpoleSwingShort-v0','continuous',   3],
+            8: ['CartpoleStabRR-v0',    'continuous',   3]}
 assert ENVIRONMENT in env_dict.keys()
 
-# GENERATE ENVIRONMENTS
+# ---------------------- GENERATE ENVIRONMENT ------------------------------- #
 print("Generating {} environment:".format(ENVIRONMENT), end="")
 num_actions = env_dict[ENVIRONMENT]
 if NUM_ACTIONS is not None and num_actions is not None:
     num_actions = NUM_ACTIONS
 env = MyEnvironment(ENVIRONMENT, num_actions, TIME_STEPS)
 
-# GENERATE NETWORKS
+# ----------------------- GENERATE NETWORKS --------------------------------- #
+
 print("Generating Neural Networks ... ", end="")
 sys.stdout.flush()
 policy_grad = policy_gradient(env)
