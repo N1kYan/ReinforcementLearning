@@ -1,0 +1,5 @@
+- Parameters from BallBalancerSim-v0 do not work
+- higher batch-size (1024) seems to be good
+- low amount of random actions (e.g. epsilon 0.02) seems to help
+- gets often stuck in local optima
+
