@@ -67,8 +67,8 @@ def evaluation(actor, epochs, render):
     plt.show()
 
 
-def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr_critic, weight_decay, memory, gamma,
-             tau, seed, save_flag, load_flag, load_path, render):
+def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, add_noise, lr_actor, lr_critic, weight_decay, memory,
+             gamma, tau, seed, save_flag, load_flag, load_path, render):
     """
     Creates neural networks and runs the training process on the gym environment.
     Then plots the cumulative reward per episode.
@@ -78,6 +78,7 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
      Does end epochs for environments, which epochs are not time limited
     :param epoch_checkpoint: Checkpoint for printing the learning progress and rendering the environment
     :param noise: The noise generating process; added to the action output of the actor network
+    :param epsilon: Set different from None to use epsilon-greedy action selection
     :param add_noise: Set true to add noise to enable action exploration
     :param lr_actor: Learning rate for actor network
     :param lr_critic: Learning rate for critic network
@@ -186,7 +187,14 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
             with torch.no_grad():
                 # Activation function tanh returns [-1, 1] so we multiply by
                 # the highest possible action to map it to our action space.
-                action = actor_local(state).cpu().data.numpy() * env_specs[3]
+                if epsilon is not None:
+                    rand = np.random.rand()
+                    if rand > epsilon:
+                        action = actor_local(state).cpu().data.numpy() * env_specs[3]
+                    else:
+                        action = env.action_space.sample()
+                else:
+                    action = actor_local(state).cpu().data.numpy() * env_specs[3]
             actor_local.train()
             if add_noise:
                 action += noise.sample()
@@ -256,10 +264,10 @@ def training(epochs, max_steps, epoch_checkpoint, noise, add_noise, lr_actor, lr
         parameter_file = open("./{}/{}-{}-{}/parameters".format(env.spec.id, save_time.day, save_time.month, save_time.hour),
                               'w')
         parameter_string = "Learning Epochs:{}\nMax Steps:{}\nActor:{}\nActor LR:{}\nCritic:{}\nCritic LR:{}" \
-                           "\nGamma:{}\nTau:{}\nL2 Weight Decay:{}\nReplay Batch Size:{}\n Replay Total Size\n" \
-                           "OU Theta:{}\nOU Sigma:{}".\
+                           "\nGamma:{}\nTau:{}\nL2 Weight Decay:{}\nReplay Batch Size:{}\n Replay Total Size:{}\n" \
+                           "OU Theta:{}\nOU Sigma:{}\nEpsilon:{}".\
             format(epochs, max_steps, actor_local.num_layers, lr_actor, critic_local.num_layers, lr_critic, gamma, tau,
-                   weight_decay, memory.memory.maxlen, memory.batch_size, noise.theta, noise.sigma)
+                   weight_decay, memory.batch_size,memory.memory.maxlen, noise.theta, noise.sigma, epsilon)
         parameter_file.write(parameter_string)
         parameter_file.close()
 
@@ -307,17 +315,17 @@ def main():
     env.seed(3)
 
     # Noise generating process
-    OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.15, sigma=1.2)
+    OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.15, sigma=0.2)
 
     GAUSS_NOISE = Gaussian(size=env_action_size, seed=random_seed, mu=0.0, sigma=5.0, decay=0.5)
 
     # Replay memory
-    MEMORY = ReplayBuffer(action_size=env_specs[1], buffer_size=int(1e6), batch_size=128,
+    MEMORY = ReplayBuffer(action_size=env_specs[1], buffer_size=int(1e6), batch_size=1024,
                           seed=random_seed)
 
     # Run training procedure with defined hyperparameters
-    ACTOR = training(epochs=10000, max_steps=1000, epoch_checkpoint=200, noise=OU_NOISE, add_noise=True,
-                     lr_actor=1e-4, lr_critic=1e-3, weight_decay=0, gamma=0.99, memory=MEMORY, tau=1e-2,
+    ACTOR = training(epochs=10000, max_steps=1000, epoch_checkpoint=200, noise=OU_NOISE, epsilon=0.02, add_noise=True,
+                     lr_actor=1e-4, lr_critic=1e-3, weight_decay=0, gamma=0.99, memory=MEMORY, tau=1e-3,
                      seed=random_seed, save_flag=True, load_flag=False, load_path='actor22-1-18', render=False)
 
     # Run evaluation

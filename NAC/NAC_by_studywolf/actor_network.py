@@ -173,8 +173,6 @@ def policy_gradient(env):
 
         # ------------------------ SVD Clip ------------------------ #
 
-        # TODO: Check this section
-
         # Calculate inverse of positive definite clipped F
         # NOTE: have noticed small eigenvalues (1e-10) that are negative,
         # using SVD to clip those out, assuming they're rounding errors

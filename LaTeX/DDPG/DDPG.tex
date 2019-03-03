@@ -312,9 +312,13 @@ TODO:
 
 \section{Improvements for DDPG}
 \subsection{Using importance sampling to sample from the replay-buffer}
+TODO
 \subsection{Using Action Noise in Parameter Space}
+Instead of adding noise to the action space to ensure exploration, one could add adaptive noise directly to the parameters of the neural network [EDIT: LINK TO AI BLOG?]. This would add some randomness into the parameters of the agent and therefore into the decission it makes, while still always fully depending on it's current observation about it's environment. This parameter noise makes an agent's exploration more consistent and results in a more effective exploration, increased performance and smoother behavior. 
 \subsection{Evoluationary approaches?}
+One can consider an even more extreme case of the above mentioned extension, which would be the use of \textit{Evolutionary Strategies} to approximate the gradient of our objective function [EDIT: QUELLE]. This does not require backpropagation at all and is compettivie with sate of the art RL.
 \subsection{Improvements of the deep neural network architectures}
+TODO
 \label{sec:1}
 
 \section{Conclusion}
