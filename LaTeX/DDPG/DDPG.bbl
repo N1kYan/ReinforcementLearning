@@ -1,4 +1,4 @@
-\begin{thebibliography}{5}
+\begin{thebibliography}{13}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{{#1}}
 \providecommand{\urlprefix}{URL }
@@ -7,6 +7,18 @@
   \providecommand{\doi}{DOI~\discretionary{}{}{}\begingroup
   \urlstyle{rm}\Url}\fi
 \providecommand{\eprint}[2][]{\url{#2}}
+
+\bibitem[{Glynn and Iglehart(1989)}]{glynn1989importance}
+Glynn PW, Iglehart DL (1989) Importance sampling for stochastic simulations.
+  Management Science 35(11):1367--1392
+
+\bibitem[{Kingma and Ba(2014)}]{kingma2014adam}
+Kingma DP, Ba J (2014) Adam: A method for stochastic optimization. arXiv
+  preprint arXiv:14126980
+
+\bibitem[{Konda and Tsitsiklis(2000)}]{konda2000actor}
+Konda VR, Tsitsiklis JN (2000) Actor-critic algorithms. In: Advances in neural
+  information processing systems, pp 1008--1014
 
 \bibitem[{Lillicrap et~al.(2015)Lillicrap, Hunt, Pritzel, Heess, Erez, Tassa,
   Silver, and Wierstra}]{lillicrap2015continuous}
@@ -26,6 +38,27 @@ Mnih V, Kavukcuoglu K, Silver D, Rusu AA, Veness J, Bellemare MG, Graves A,
   Riedmiller M, Fidjeland AK, Ostrovski G, et~al. (2015) Human-level control
   through deep reinforcement learning. Nature 518(7540):529
 
+\bibitem[{Moore and Atkeson(1993)}]{moore1993prioritized}
+Moore AW, Atkeson CG (1993) Prioritized sweeping: Reinforcement learning with
+  less data and less time. Machine learning 13(1):103--130
+
+\bibitem[{Plappert et~al.(2017)Plappert, Houthooft, Dhariwal, Sidor, Chen,
+  Chen, Asfour, Abbeel, and Andrychowicz}]{plappert2017parameter}
+Plappert M, Houthooft R, Dhariwal P, Sidor S, Chen RY, Chen X, Asfour T, Abbeel
+  P, Andrychowicz M (2017) Parameter space noise for exploration. arXiv
+  preprint arXiv:170601905
+
+\bibitem[{Riedmiller(2005)}]{riedmiller2005neural}
+Riedmiller M (2005) Neural fitted q iteration--first experiences with a data
+  efficient neural reinforcement learning method. In: European Conference on
+  Machine Learning, Springer, pp 317--328
+
+\bibitem[{Salimans et~al.(2017)Salimans, Ho, Chen, Sidor, and
+  Sutskever}]{salimans2017evolution}
+Salimans T, Ho J, Chen X, Sidor S, Sutskever I (2017) Evolution strategies as a
+  scalable alternative to reinforcement learning. arXiv preprint
+  arXiv:170303864
+
 \bibitem[{Silver et~al.(2014)Silver, Lever, Heess, Degris, Wierstra, and
   Riedmiller}]{silver2014deterministic}
 Silver D, Lever G, Heess N, Degris T, Wierstra D, Riedmiller M (2014)
@@ -33,5 +66,8 @@ Silver D, Lever G, Heess N, Degris T, Wierstra D, Riedmiller M (2014)
 
 \bibitem[{Sutton and Barto(2018)}]{sutton2018reinforcement}
 Sutton RS, Barto AG (2018) Reinforcement learning: An introduction. MIT press
+
+\bibitem[{Watkins and Dayan(1992)}]{watkins1992q}
+Watkins CJ, Dayan P (1992) Q-learning. Machine learning 8(3-4):279--292
 
 \end{thebibliography}

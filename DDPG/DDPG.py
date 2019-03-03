@@ -324,7 +324,7 @@ def main():
                           seed=random_seed)
 
     # Run training procedure with defined hyperparameters
-    ACTOR = training(epochs=10000, max_steps=1000, epoch_checkpoint=200, noise=OU_NOISE, epsilon=0.02, add_noise=True,
+    ACTOR = training(epochs=10000, max_steps=1000, epoch_checkpoint=200, noise=OU_NOISE, epsilon=0.03, add_noise=True,
                      lr_actor=1e-4, lr_critic=1e-3, weight_decay=0, gamma=0.99, memory=MEMORY, tau=1e-3,
                      seed=random_seed, save_flag=True, load_flag=False, load_path='actor22-1-18', render=False)
 
