@@ -40,18 +40,20 @@ grestore
 %
 %\documentclass{svjour3}                     % onecolumn (standard format)
 %\documentclass[smallcondensed]{svjour3}     % onecolumn (ditto)
-\documentclass[smallextended]{svjour3}       % onecolumn (second format)
+\documentclass[smallextended, natbib]{svjour3}       % onecolumn (second format)
 %\documentclass[twocolumn]{svjour3}          % twocolumn
 %
 \smartqed  % flush right qed marks, e.g. at end of proof
 %
 \usepackage{graphicx}
-\usepackage[numbers]{natbib}%TODO delete before submission
-\usepackage{amsmath}
+%\usepackage[numbers]{natbib} %TODO delete before submission
+%TODO optimiere Zitierweise, fehlen Klammern um die Zitate?
+
 %
-% \usepackage{mathptmx}      % use Times fonts if available on your TeX system
+ \usepackage{mathptmx}      % use Times fonts if available on your TeX system
 %
 % insert here the call for the packages your document requires
+\usepackage{amsmath}
 %\usepackage{latexsym}
 % etc.
 %
@@ -72,10 +74,10 @@ grestore
 
 %\titlerunning{Short form of title}        % if too long for running head
 
-\author{Maximilian Gehrke \and Tabea Wilke \and Yannik Frisch %etc.
+\author{Tabea Wilke \and Maximilian Gehrke \and Yannik Frisch %etc.
 }
 
-%\authorrunning{Short form of author list} % if too long for running head
+%\authorrunning{Wilke, Gehrke, Frisch} % if too long for running head
 
 \institute{F. Author \at
               first address \\
@@ -113,7 +115,8 @@ limited movement of the cart from
 the inverted pendulum, the furuta pendulum (also called rotary inverted 
 pendulum) 
 has been developed by 
-\citeauthor{furuta1992swing}. The advantages of the furuta pendulum are that it 
+\citeauthor{furuta1992swing}. The advantages of the furuta pendulum are that 
+%it 
 needs less space and one moving arm is directly linked to the motor, therefore, 
 the dynamics is less unmodeled thanks to a power transmission mechanism 
 \cite{furuta1992swing}. The furuta pendulum is an underactuated problem, this 
@@ -124,8 +127,8 @@ is attached to
 the end of the controlled arm and therefore is moved indirectly by it in the 
 vertical plane with angle $\theta$ 
 \cite{spong1998underactuated,tedrake2009underactuated}. The whole system is 
-highly non-linear as a result of an interplay between gravitational, coriolis 
-and centripetal forces.
+highly non-linear as a result of an interplay between gravitational, coriolis, 
+friction and centrifugal forces \cite{izutsu2008swing}.
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.5\linewidth]{pendulum}
@@ -149,8 +152,9 @@ force it is applied to is damping at the connection to the arm $B_p$. The angle
 $\theta$ is zero if the pendulum is in an perfectly upright position.
 The only influence we can take on the system is the voltage $V_m$ we give to 
 the DC motor.
-\section{Mathematical Modelling 
-\cite{akhtaruzzaman2010modeling,furuta1992swing,gafvert2016modelling,ozbek2010swing,zhang2011optimal}}
+\section{Mathematical 
+Modelling\protect\footnote[1]{\cite{akhtaruzzaman2010modeling,furuta1992swing,gafvert2016modelling,
+		ozbek2010swing,zhang2011optimal,fairus2013fuzzy}}} 
 For later derivation of the Lagrangian, the kinetic and potential engergies of 
 the furuta pendulum are needed. Therefore, the kinematics of the pendulums 
 center of gravity can be described by 
@@ -184,22 +188,22 @@ The only potential energy which is in the system is the one of the pendulum:
 Kinetic energy is available both in the arm and in the pendulum and is composed 
 of the the sum of translation energy and rotational energy:
 \begin{align*}
-T_{arm}&=\frac{1}{2}J_r\dot{\phi_0}^2\\
-T_{pendulum}&=\frac{1}{2}J_p\dot{\theta_0}^2+\frac{1}{2}m_pv^2\\
-&= \frac{1}{2}J_p\dot{\theta_0}^2+\frac{1}{2}m_p\left((l_a^2+l_p^2\ 
+T_{arm}&=\frac{1}{2}J_r\dot{\phi}^2\\
+T_{pendulum}&=\frac{1}{2}J_p\dot{\theta}^2+\frac{1}{2}m_pv^2\\
+&= \frac{1}{2}J_p\dot{\theta}^2+\frac{1}{2}m_p\left((l_a^2+l_p^2\ 
 \sin^2\theta)\dot{\phi}^2+l_p^2\dot{\theta}^2+2l_al_p\dot{\phi}\dot{\theta}\cos 
 \theta\right)\\
 T_{total}&= 
-\frac{1}{2}J_r\dot{\phi_0}^2+\frac{1}{2}J_p\dot{\theta_0}^2+\frac{1}{2}m_p\left((l_a^2+l_p^2\
+\frac{1}{2}J_r\dot{\phi}^2+\frac{1}{2}J_p\dot{\theta_0}^2+\frac{1}{2}m_p\left((l_a^2+l_p^2\
 \sin^2\theta)\dot{\phi}^2+l_p^2\dot{\theta}^2+2l_al_p\dot{\phi}\dot{\theta}\cos 
 \theta\right)
 \end{align*}
 From this the Lagrange Function arises:
 \begin{align*}
 L &=T_{total}-V_{total}\\
-&=\frac{1}{2}J_r\dot{\phi_0}^2+\frac{1}{2}J_p\dot{\theta_0}^2+\frac{1}{2}m_p\left((l_a^2+l_p^2\
+\begin{split}&=\frac{1}{2}J_r\dot{\phi}^2+\frac{1}{2}J_p\dot{\theta}^2+\frac{1}{2}m_p\left((l_a^2+l_p^2\
 \sin^2\theta)\dot{\phi}^2+l_p^2\dot{\theta}^2+2l_al_p\dot{\phi}\dot{\theta}\cos 
-\theta\right) \ - \ m_pgl_{p}\cos\theta
+\theta\right) \\&\quad - m_pgl_{p}\cos\theta\end{split}
 \end{align*}
  Lagrange's 
 Equation follows \[ 
@@ -226,8 +230,63 @@ to
 The partial derivations of the Lagrangian for the generalized coordinates are:
 
 \begin{align*}
-	\frac{\partial L}{\partial \phi}=0
+	\frac{\partial L}{\partial \phi}&=0\\
+	\frac{\partial L}{\partial 
+	\dot{\phi}}&=\dot{\phi}(J_r+m_p(l_a^2+l_p^2\sin^2\theta))+\dot{\theta}(
+	m_pl_al_p\cos\theta)\\
+	\frac{\partial^2 L}{\partial t \partial \dot{\phi}}&= 
+	\ddot{\phi}(J_r+m_p(l_a^2+l_p^2\sin^2 \theta))+l_p^2m_p\sin(2\theta)
+	\dot{\phi}\dot{\theta}+m_pl_al_p(\cos 
+	\theta\ddot{\theta}-sin\theta \dot{\theta}^2)\\
+	\frac{\partial L}{\partial 
+	\theta}&=\frac{1}{2}\dot{\phi}^2m_pl_p^2\sin(2\theta)-m_pl_al_psin\theta\dot{\phi}
+	\dot{\theta}+m_pgl_psin\theta\\
+	\frac{\partial L}{\partial 
+		\dot{\theta}}&=\dot{\theta}(J_p+m_pl_p^2)+\dot{\phi}(m_pl_al_p\cos\theta)\\
+	\frac{\partial^2 L}{\partial t \partial 
+	\dot{\theta}}&=\ddot{\theta}(J_p+m_pl_p^2)+\ddot{\phi}m_pl_al_p\cos\theta-\dot{\phi}
+	\dot{\theta}m_pl_al_p\sin\theta
 \end{align*}
+With this equations it is possible to derive the equations for the 
+Euler-Lagrange's Equation:
+\begin{align*}
+\frac{\partial^2 L}{\partial t\partial\dot{\phi}}-\frac{\partial 
+L}{\partial\dot{\phi}}&=\ddot{\phi}(J_r+m_p(l_a^2+l_p^2\sin^2 
+\theta))+l_p^2m_p\sin(2\theta)
+\dot{\phi}\dot{\theta}\\ &\quad + m_pl_al_p(\cos 
+\theta\ddot{\theta}-sin\theta \dot{\theta}^2)\\
+\frac{\partial^2 L}{\partial t\partial\dot{\theta}}-\frac{\partial 
+L}{\partial\dot{\theta}}&=\ddot{\theta}(J_p+m_pl_p^2)+\ddot{\phi}m_pl_al_p\cos\theta-\frac{1}{2}\dot{\phi}^2m_pl_p^2\sin(2\theta)-m_pgl_psin\theta
+\end{align*}
+Putting this into a matrix form and filling in the friction, this results in 
+the nonlinear equations of motion (EOM) for the furuta pendulum.
+\begin{align*}
+&\begin{bmatrix}
+J_r+m_p(l_a^2+l_p^2\sin^2\theta)& \quad m_pl_al_p\cos\theta \\ 
+m_pl_al_p\cos\theta& \quad J_p+m_pl_p^2 
+\end{bmatrix} 
+\begin{bmatrix}
+\ddot{\phi}\\
+\ddot{\theta}
+\end{bmatrix} + \\
+&\begin{bmatrix}
+m_pl_p^2\sin(2\theta)\dot{\theta}- B_r& \quad -m_pl_al_p\sin \theta 
+\dot{\theta}\\
+-\frac{1}{2}m_pl_p^2\sin(2\theta)\dot{\phi} &\quad -B_p
+\end{bmatrix}
+\begin{bmatrix}
+\dot{\phi}\\
+\dot{\theta}
+\end{bmatrix} +
+\begin{bmatrix}
+0\\
+-m_pl_pg\sin\theta
+\end{bmatrix}=\begin{bmatrix}
+\tau \\
+0
+\end{bmatrix}
+\end{align*}
+\subsection{Linearization}
 \bibliographystyle{spbasic}      % basic style, author-year citations
 \bibliography{furuta.bib}   % name your BibTeX data base
 
