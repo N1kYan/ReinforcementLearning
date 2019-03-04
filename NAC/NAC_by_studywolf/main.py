@@ -37,7 +37,7 @@ import numpy as np
 import sys
 import time
 import gym
-# import quanser_robots
+import quanser_robots
 
 from NAC_by_studywolf.my_environment import MyEnvironment
 from NAC_by_studywolf.critic_network import value_gradient
@@ -45,45 +45,55 @@ from NAC_by_studywolf.actor_network import policy_gradient
 from NAC_by_studywolf.natural_policy_gradient import run_episode
 from NAC_by_studywolf import Evaluation
 
+# ----------------------------- GOALS ------------------------------------- #
+
 # Environments which have to be solved:
 # DoubleCartPole: "DoublePendulum-v0"
 # FurutaPend: "Qube-v0"
 # BallBalancer: "BallBalancerSim-v0"
+# Levitation: "Levitation-v1"
 
-# ----------------------------- RESULTS ------------------------------------- #
-# DoublePend, 3 actions, 300 Traj, 300 timesteps it holds the sticks far longer
-# (avg. 450) than if we have 200 timesteps with same config (avg. 200)
+# ----------------------------- TODOS --------------------------------------- #
+# TODO: Print Results to a file including parameters
+# TODO: Continuous actions
+# TODO: Improvements: https://github.com/rgilman33/simple-A2C/blob/master/3_A2C-nstep-TUTORIAL.ipynb
 
 # ---------------------- VARIABLES & CONSTANTS ------------------------------ #
+# Select Rendering
+RENDER = False
+
+# Select debugging console printing
 PRINTING = False
 
-# How much steps should the agent perform before updating parameters
-TIME_STEPS = 200
-
-# Number of trajectories, where each is of length TIME_STEPS
-# Trajectories consist of one or several environment episodes
-N_TRAJECTORIES = 300
-
 # Select Environment
-ENVIRONMENT = 1
+ENVIRONMENT = 2
 
-# Set the discretization of continuous environments here
-env_dict = {1: ['CartPole-v0',          'discrete'],
-            2: ['DoublePendulum-v0',    'continuous',   3],
-            3: ['Qube-v0',              'continuous',   3],
-            4: ['BallBalancerSim-v0',   'discrete'],
-            5: ['Levitation-v1',   'discrete'],
-            6: ['Pendulum-v0',          'continuous',   3],
-            7: ['CartpoleSwingShort-v0','continuous',   3],
-            8: ['CartpoleStabRR-v0',    'continuous',   3]}
+"""
+    0: Name of the Gym/Quanser environment.
+    1: If the environment is descrete or continuous.
+    2: Chose the discretization of continuous environments (discrete = 0).
+    3: How much steps should the agent perform before updating parameters.
+       If the trajectory ends before that (done == True), a new trajectory
+       is started.
+    4: How many updates (of parameters) do we want.
+    5: Discount factor for expected monte carlo return.
+"""
+
+env_dict = {1: ['CartPole-v0',          'discrete',     0, 200, 300, 0.97],
+            2: ['DoublePendulum-v0',    'continuous',   5, 200, 300, 0.97],
+            3: ['Qube-v0',              'continuous',   3, 200, 300, 0.97],
+            4: ['BallBalancerSim-v0',   'discrete',     0, 200, 300, 0.97],
+            5: ['Levitation-v1',        'continuous',   5, 200, 300, 0.97],
+            6: ['Pendulum-v0',          'continuous',   3, 200, 300, 0.97],
+            7: ['CartpoleStabRR-v0',    'continuous',   3, 200, 300, 0.97]}
+
 assert ENVIRONMENT in env_dict.keys()
+env_details = env_dict[ENVIRONMENT]
+
 
 # ---------------------- GENERATE ENVIRONMENT ------------------------------- #
-print("Generating {} environment:".format(ENVIRONMENT), end="")
-num_actions = env_dict[ENVIRONMENT]
-if NUM_ACTIONS is not None and num_actions is not None:
-    num_actions = NUM_ACTIONS
-env = MyEnvironment(ENVIRONMENT, num_actions, TIME_STEPS)
+print("Generating {} environment:".format(env_details[0]))
+env = MyEnvironment(env_details=env_details)
 
 # ----------------------- GENERATE NETWORKS --------------------------------- #
 
@@ -93,28 +103,36 @@ policy_grad = policy_gradient(env)
 value_grad = value_gradient(env)
 print("Done!")
 
-# run the training from scratch 10 times, record results
-for ii in range(1):
+# ----------------------- TRAINING NETWORKS --------------------------------- #
+# We run the same algorithm 10 times and save the results
+for run in range(1):
+
+    # Initialize the session
     sess = tf.InteractiveSession()
     sess.run(tf.global_variables_initializer())
 
     max_rewards = []
     total_episodes = []
     times = []
-    for i in range(N_TRAJECTORIES):
+
+    num_of_updates = env_details[4]
+
+    for u in range(num_of_updates):
         start_time = time.time()
+
+        # Act in the env and update weights after collecting data
         reward, n_episodes = \
-            run_episode(env, policy_grad, value_grad, sess, i,
-                        printing=PRINTING)
+            run_episode(env, policy_grad, value_grad, sess, u, PRINTING)
+
         max_rewards.append(np.max(reward))
         total_episodes.append(n_episodes)
         times.append(time.time() - start_time)
-    print('Average time: %.3f' % (np.sum(times) / N_TRAJECTORIES))
+    print('Average time: %.3f' % (np.sum(times) / num_of_updates))
 
-    np.savez_compressed('data/natural_policy_gradient_%i' % ii,
+    np.savez_compressed('data/' + env_details[0] + '/NP_gradient_%i' % run,
                         max_rewards=max_rewards, total_episodes=total_episodes)
 
-    # Render the result
-    Evaluation.evaluate(env, policy_grad, 50, True, 0.1, sess)
+    # Evaluate the result (& eventually render)
+    Evaluation.evaluate(env, policy_grad, 50, RENDER, 0.1, sess)
 
     sess.close()

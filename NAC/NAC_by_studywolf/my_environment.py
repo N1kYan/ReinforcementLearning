@@ -4,21 +4,26 @@ import sys
 import gym
 import quanser_robots
 from quanser_robots import GentlyTerminating
+import warnings
 
 
 class MyEnvironment(gym.Space):
-    def __init__(self, env_name, num_of_actions, time_steps):
+    def __init__(self, env_details):
         gym.Space.__init__(self, (), np.float)
 
-        self.name = env_name
-        self.num_of_actions = num_of_actions
-        self.time_steps = time_steps  # per trajectory
+        self.name = env_details[0]
+        self.time_steps = env_details[3]  # between weight updates
+        self.discount_factor = env_details[5]
 
-        # self.env = GentlyTerminating(gym.make(env_name))  # doesnt work
-        self.env = gym.make(env_name)
+        # Ignoring PkgResourcesDeprecationWarning: Parameters deprecated.
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self.env = gym.make(self.name)
+            # self.env = GentlyTerminating(gym.make(env_name))  # doesnt work
+
         self.env = gym.wrappers.Monitor(
             env=self.env,
-            directory=env_name + '/',
+            directory='data/' + self.name + '/',
             force=True,
             video_callable=False)
 
@@ -30,25 +35,34 @@ class MyEnvironment(gym.Space):
         print("\tObservation space high: {}".format(self.observation_space.high))
         print("\tObservation space low : {}".format(self.observation_space.low))
 
+        print("\tOriginal action space object type:", type(self.env.action_space))
+
         # ACTION SPACE
+        # Need conditions for different action structure of different classes
         if type(self.env.action_space) is gym.spaces.discrete.Discrete:
-            assert num_of_actions is None
+            assert env_details[1] == 'discrete'
+            assert env_details[2] == 0
             self.action_space = np.arange(self.env.action_space.n)
-        elif type(self.env.action_space) is gym.spaces.box.Box \
-                or type(self.env.action_space) is quanser_robots.common.LabeledBox:
-            assert num_of_actions is not None
+            self.action_space_n = self.env.action_space.n
+        elif type(self.env.action_space) in \
+                [gym.spaces.box.Box, quanser_robots.common.LabeledBox]:
+            assert env_details[1] == 'continuous'
             self.action_space = np.linspace(self.env.action_space.low,
                                             self.env.action_space.high,
-                                            self.num_of_actions)
+                                            env_details[2]) # num of actions
+            self.action_space_n = env_details[2]
         else:
             raise ValueError("Env Action Space should be of type Discrete "
-                             "or Box, but is of Type {}.".format(type(self.env.action_space)))
+                             "or Box, but is of Type {}."
+                             .format(type(self.env.action_space)))
 
         self.env.action_space = self.action_space
         self.action_space_high = np.max(self.action_space)
         self.action_space_low = np.min(self.action_space)
 
-        print("\tAction space: {}".format(self.action_space))
+        print("\tAction space high: {}".format(self.action_space_high))
+        print("\taction space low : {}".format(self.action_space_low))
+        print("\tAction space: {}".format(self.action_space.tolist()))
 
     def step(self, action):
         return self.env.step(action)
