@@ -66,7 +66,7 @@ RENDER = False
 PRINTING = False
 
 # Select Environment
-ENVIRONMENT = 2
+ENVIRONMENT = 1
 
 """
     0: Name of the Gym/Quanser environment.
@@ -79,10 +79,10 @@ ENVIRONMENT = 2
     5: Discount factor for expected monte carlo return.
 """
 
-env_dict = {1: ['CartPole-v0',          'discrete',     0, 200, 300, 0.97],
+env_dict = {1: ['CartPole-v0',          'discrete',     0, 500, 300, 0.97],
             2: ['DoublePendulum-v0',    'continuous',   5, 200, 300, 0.97],
             3: ['Qube-v0',              'continuous',   3, 200, 300, 0.97],
-            4: ['BallBalancerSim-v0',   'discrete',     0, 200, 300, 0.97],
+            4: ['BallBalancerSim-v0',   'continuous',   3, 200, 300, 0.97],
             5: ['Levitation-v1',        'continuous',   5, 200, 300, 0.97],
             6: ['Pendulum-v0',          'continuous',   3, 200, 300, 0.97],
             7: ['CartpoleStabRR-v0',    'continuous',   3, 200, 300, 0.97]}
@@ -129,10 +129,7 @@ for run in range(1):
         times.append(time.time() - start_time)
     print('Average time: %.3f' % (np.sum(times) / num_of_updates))
 
-    np.savez_compressed('data/' + env_details[0] + '/NP_gradient_%i' % run,
-                        max_rewards=max_rewards, total_episodes=total_episodes)
-
     # Evaluate the result (& eventually render)
-    Evaluation.evaluate(env, policy_grad, 50, RENDER, 0.1, sess)
+    Evaluation.evaluate(env, sess, policy_grad, RENDER)
 
     sess.close()
