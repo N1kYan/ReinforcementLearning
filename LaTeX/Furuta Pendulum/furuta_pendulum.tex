@@ -296,10 +296,17 @@ operating point \cite{rigatos2018nonlinear} which is the vertical inverted
 state and therefore, uses $\theta = 0$ and $\dot{\theta}=0$. This results in 
 the following equations:
 
-\section{Swing-Up}
+\section{Pendulum Control}
+The goal of controlling the furuta pendulum is to bring it from a hanging 
+position into a vertical upright position. Therefore, it is necessary to 
+generate enough energy to swing the pendulum up in a nearly upright position 
+where the linear region begins \cite{kurode2011swing}. If this region is 
+reached, the controller should change to the balancing mode to stabilize the 
+upright position.
+\subsection{Swing-Up}
 There are many different approaches for solving the swing-up task of the furuta 
 pendulum
-\section{Balancing}
+\subsection{Balancing}
 
 \section{Reinforcement Learning on the Furuta Pendulum}
 In reinforcement learning the furuta pendulum has only a very small influence 
