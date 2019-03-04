@@ -5,7 +5,8 @@ import gym
 import quanser_robots
 from quanser_robots import GentlyTerminating
 import warnings
-
+import datetime
+import os
 
 class MyEnvironment(gym.Space):
     def __init__(self, env_details):
@@ -15,6 +16,24 @@ class MyEnvironment(gym.Space):
         self.time_steps = env_details[3]  # between weight updates
         self.discount_factor = env_details[5]
 
+        # -------------- CREATE FOLDER FOR SAVING FILES --------------------- #
+
+        # Get current time
+        save_time = datetime.datetime.now()
+
+        self.save_folder = "{}/{}/{}-{}-{}_{}-{}-{}" \
+            .format('data', self.name, save_time.year, save_time.month,
+                    save_time.day, save_time.hour, save_time.minute,
+                    save_time.second)
+
+        # Create folder from current time
+        try:
+            os.makedirs(self.save_folder)
+        except FileExistsError:
+            pass
+
+        # ------------------  CREATE GYM ENVIRONMENT ------------------------ #
+
         # Ignoring PkgResourcesDeprecationWarning: Parameters deprecated.
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -23,7 +42,7 @@ class MyEnvironment(gym.Space):
 
         self.env = gym.wrappers.Monitor(
             env=self.env,
-            directory='data/' + self.name + '/',
+            directory=self.save_folder,
             force=True,
             video_callable=False)
 
@@ -63,6 +82,7 @@ class MyEnvironment(gym.Space):
         print("\tAction space high: {}".format(self.action_space_high))
         print("\taction space low : {}".format(self.action_space_low))
         print("\tAction space: {}".format(self.action_space.tolist()))
+
 
     def step(self, action):
         return self.env.step(action)
