@@ -1,4 +1,11 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
+
+\bibitem{amari1998natural}
+Shun-Ichi Amari and Scott~C Douglas.
+\newblock Why natural gradient?
+\newblock In {\em Proceedings of the 1998 IEEE International Conference on
+  Acoustics, Speech and Signal Processing, ICASSP'98 (Cat. No. 98CH36181)},
+  volume~2, pages 1213--1216. IEEE, 1998.
 
 \bibitem{bhatnagar2008incremental}
 Shalabh Bhatnagar, Mohammad Ghavamzadeh, Mark Lee, and Richard~S Sutton.
@@ -11,10 +18,70 @@ Shalabh Bhatnagar, Richard~S Sutton, Mohammad Ghavamzadeh, and Mark Lee.
 \newblock Natural actor--critic algorithms.
 \newblock {\em Automatica}, 45(11):2471--2482, 2009.
 
+\bibitem{boyd2004convex}
+Stephen Boyd and Lieven Vandenberghe.
+\newblock {\em Convex optimization}.
+\newblock Cambridge university press, 2004.
+
 \bibitem{dann2014policy}
 Christoph Dann, Gerhard Neumann, and Jan Peters.
 \newblock Policy evaluation with temporal differences: A survey and comparison.
 \newblock {\em The Journal of Machine Learning Research}, 15(1):809--883, 2014.
+
+\bibitem{desjardins2013metric}
+Guillaume Desjardins, Razvan Pascanu, Aaron Courville, and Yoshua Bengio.
+\newblock Metric-free natural gradient for joint-training of boltzmann
+  machines.
+\newblock {\em arXiv preprint arXiv:1301.3545}, 2013.
+
+\bibitem{hoerl1970ridge}
+Arthur~E Hoerl and Robert~W Kennard.
+\newblock Ridge regression: Biased estimation for nonorthogonal problems.
+\newblock {\em Technometrics}, 12(1):55--67, 1970.
+
+\bibitem{jurvcivcek2011natural}
+Filip Jur{\v{c}}{\'\i}{\v{c}}ek, Blaise Thomson, and Steve Young.
+\newblock Natural actor and belief critic: Reinforcement algorithm for learning
+  parameters of dialogue systems modelled as pomdps.
+\newblock {\em ACM Transactions on Speech and Language Processing (TSLP)},
+  7(3):6, 2011.
+
+\bibitem{kim2010impedance}
+Byungchan Kim, Jooyoung Park, Shinsuk Park, and Sungchul Kang.
+\newblock Impedance learning for robotic contact tasks using natural
+  actor-critic algorithm.
+\newblock {\em IEEE Transactions on Systems, Man, and Cybernetics, Part B
+  (Cybernetics)}, 40(2):433--443, 2010.
+
+\bibitem{melo2008fitted}
+Francisco~S Melo and Manuel Lopes.
+\newblock Fitted natural actor-critic: A new algorithm for continuous
+  state-action mdps.
+\newblock In {\em Joint European Conference on Machine Learning and Knowledge
+  Discovery in Databases}, pages 66--81. Springer, 2008.
+
+\bibitem{nemirovski2005efficient}
+Arkadi Nemirovski.
+\newblock Efficient methods in convex programming.
+\newblock 2005.
+
+\bibitem{park2005rls}
+Jooyoung Park, Jongho Kim, and Daesung Kang.
+\newblock An rls-based natural actor-critic algorithm for locomotion of a
+  two-linked robot arm.
+\newblock In {\em International Conference on Computational and Information
+  Science}, pages 65--72. Springer, 2005.
+
+\bibitem{pascanu2013revisiting}
+Razvan Pascanu and Yoshua Bengio.
+\newblock Revisiting natural gradient for deep networks.
+\newblock {\em arXiv preprint arXiv:1301.3584}, 2013.
+
+\bibitem{peters2007applying}
+Jan Peters and Stefan Schaal.
+\newblock Applying the episodic natural actor-critic architecture to motor
+  primitive learning.
+\newblock In {\em ESANN}, pages 295--300, 2007.
 
 \bibitem{peters2008natural}
 Jan Peters and Stefan Schaal.
@@ -31,5 +98,38 @@ Jan Peters, Sethu Vijayakumar, and Stefan Schaal.
 \newblock Natural actor-critic.
 \newblock In {\em European Conference on Machine Learning}, pages 280--291.
   Springer, 2005.
+
+\bibitem{richter2007natural}
+Silvia Richter, Douglas Aberdeen, and Jin Yu.
+\newblock Natural actor-critic for road traffic optimisation.
+\newblock In {\em Advances in neural information processing systems}, pages
+  1169--1176, 2007.
+
+\bibitem{sohl2012natural}
+Jascha Sohl-Dickstein.
+\newblock The natural gradient by analogy to signal whitening, and recipes and
+  tricks for its use.
+\newblock {\em arXiv preprint arXiv:1205.1828}, 2012.
+
+\bibitem{sutton2000policy}
+Richard~S Sutton, David~A McAllester, Satinder~P Singh, and Yishay Mansour.
+\newblock Policy gradient methods for reinforcement learning with function
+  approximation.
+\newblock In {\em Advances in neural information processing systems}, pages
+  1057--1063, 2000.
+
+\bibitem{thomas2014bias}
+Philip Thomas.
+\newblock Bias in natural actor-critic algorithms.
+\newblock In {\em International Conference on Machine Learning}, pages
+  441--448, 2014.
+
+\bibitem{witsch2011enhancing}
+Andreas Witsch, Roland Reichle, Kurt Geihs, Sascha Lange, and Martin
+  Riedmiller.
+\newblock Enhancing the episodic natural actor-critic algorithm by a
+  regularisation term to stabilize learning of control structures.
+\newblock In {\em 2011 IEEE Symposium on Adaptive Dynamic Programming and
+  Reinforcement Learning (ADPRL)}, pages 156--163. IEEE, 2011.
 
 \end{thebibliography}

@@ -2,15 +2,16 @@ import numpy as np
 import random
 import gym
 import quanser_robots
+import warnings
 
 
 def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
 
-    # unpack the policy network (generates control policy)
+    # Unpack the policy network (generates control policy)
     (pl_state, pl_actions, pl_advantages,
         pl_probabilities, pl_train_vars) = policy_grad
 
-    # unpack the value network (estimates expected reward)
+    # Unpack the value network (estimates expected reward)
     (vfa_state_input, vfa_true_vf_input,
         vfa_nn_output, vfa_optimizer, vfa_loss) = value_grad
 
@@ -33,7 +34,6 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
 
         # I think sometimes we have a zero in the observations
         # and we somehow divide while calculating the probs
-        # IT WORKS !! (we dont NaN's anymore)
         observation = \
             [0.00001 if np.abs(x) < 0.00001 else x for x in observation]
 
@@ -51,7 +51,7 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
 
         print("({}) OBS:{}".format(t, obs_vector), end='') if printing else ...
 
-        # Probabilities
+        # ------------------- PREDICT ACTION -------------------------------- #
         probs = sess.run(
             pl_probabilities,
             feed_dict={pl_state: obs_vector})
@@ -100,18 +100,21 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
         transitions.append((old_observation, action, reward))
         episode_reward += reward
 
-        # if the pole falls or time is up
+        # ---------------- End of trajectory -------------------------------- #
+
+        # If the pole falls or we collected our number of steps
         if done or t == n_timesteps - 1:
-            for ii, trans in enumerate(transitions):
+            for o, trans in enumerate(transitions):
                 obs, action, reward = trans
 
-                # calculate discounted monte-carlo return
+                # Calculate discounted monte-carlo return
                 future_reward = 0
-                future_transitions = len(transitions) - ii
+                future_transitions = len(transitions) - o
                 decrease = 1
-                for jj in range(future_transitions):
-                    future_reward += transitions[jj + ii][2] * decrease
-                    decrease = decrease * 0.97
+                for p in range(future_transitions):
+                    future_reward += transitions[p + o][2] * decrease
+                    decrease = decrease * env.discount_factor
+
                 obs_vector = np.expand_dims(obs, axis=0)
                 # compare the calculated expected reward to the average
                 # expected reward, as estimated by the value network
@@ -138,8 +141,10 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
             else:
                 # if out of time, close environment
                 env.close()
+
     print("\n\n\n") if printing else ...
-    print('Trajectory: {}, Total rewards: {}'.format(num_traj, total_rewards))
+    print('Update {} with {} trajectories with rewards of: {}'
+          .format(num_traj, len(total_rewards), total_rewards))
 
     # update value function
     update_vals_vector = np.expand_dims(update_vals, axis=1)

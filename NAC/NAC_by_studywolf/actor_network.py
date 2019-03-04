@@ -98,12 +98,14 @@ def policy_gradient(env):
         # Because actions_input is a one-hot array, which only has a 1 at the
         # chosen action, we end up with an array which has in every row just
         # one probability number.
+        # Results in shape (200, 2)
         action_prob = tf.multiply(pl_probabilities, pl_actions_input)
 
         # Now we sum up each row  to get rid of the 0s.
         # This means we end up with a tensor which  has just 1 dimension with
         # "env.time_steps" elements. For every step we took in our env, we now
         # have the probability of the action, that we took.
+        # Results in shape (200,)
         action_prob = tf.reduce_sum(action_prob, axis=[1])
 
         # ----------------------- log(π(a|s)) ----------------------- #
@@ -116,6 +118,7 @@ def policy_gradient(env):
         # NOTE: doing this because tf.gradients only returns a summed version
         # TODO: As far as I can tell, this is unnecessary. The array is already
         #   flattened. Maybe when we have high dim actions it will be useful.
+        # Results in shape (200,)
         action_log_prob_flat = tf.reshape(action_log_prob, (-1,))
 
         # TODO: Do we want to take gradient of scalar and all weights
@@ -169,8 +172,6 @@ def policy_gradient(env):
         # Result: fisher = E[∇_θ log(π(a|s)) ∇_θ log(π(a|s))^T]
 
         # ------------------------ SVD Clip ------------------------ #
-
-        # TODO: Check this section
 
         # Calculate inverse of positive definite clipped F
         # NOTE: have noticed small eigenvalues (1e-10) that are negative,
