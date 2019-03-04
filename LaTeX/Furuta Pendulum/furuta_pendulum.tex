@@ -40,13 +40,13 @@ grestore
 %
 %\documentclass{svjour3}                     % onecolumn (standard format)
 %\documentclass[smallcondensed]{svjour3}     % onecolumn (ditto)
-\documentclass[smallextended, natbib]{svjour3}       % onecolumn (second format)
+\documentclass[smallextended]{svjour3}       % onecolumn (second format)
 %\documentclass[twocolumn]{svjour3}          % twocolumn
 %
 \smartqed  % flush right qed marks, e.g. at end of proof
 %
 \usepackage{graphicx}
-%\usepackage[numbers]{natbib} %TODO delete before submission
+\usepackage[numbers]{natbib} %TODO delete before submission
 %TODO optimiere Zitierweise, fehlen Klammern um die Zitate?
 
 %
@@ -140,13 +140,13 @@ flexible arm from a hanging position to a position which is nearly upright,
 further called "swing-up". Second, if the arm is nearly upright with low enough 
 speed, balancing it to hold this state stable, called "stabilization". 
 \subsection{Definitions}
-The system consists of an arm with length $l_r$ mounted to a DC motor, which is 
-able to apply a torque of $\tau$ to it. It has a mass of $m_r$ which is 
+The system consists of an arm with length $l_a$ mounted to a DC motor, which is 
+able to apply a torque of $\tau$ to it. It has a mass of $m_a$ which is 
 located at $l_1$ alongside the arm. Another arm with length $l_p$ and mass 
 $m_p$ %located at $\frac{l_p}{2}$ 
 is attached to the remaining side of the 
-first arm. Both arms have a moment of inertia $J_r$ and $J_p$ respectively. The 
-counter force to the input torque is the viscous damping $B_r$ because of the 
+first arm. Both arms have a moment of inertia $J_a$ and $J_p$ respectively. The 
+counter force to the input torque is the viscous damping $B_a$ because of the 
 bearings of the motor. As the pendulum is not controlled directly, the only 
 force it is applied to is damping at the connection to the arm $B_p$. The angle 
 $\theta$ is zero if the pendulum is in an perfectly upright position.
@@ -159,8 +159,8 @@ For later derivation of the Lagrangian, the kinetic and potential engergies of
 the furuta pendulum are needed. Therefore, the kinematics of the pendulums 
 center of gravity can be described by 
 \[\begin{cases}
-x&=l_r\cos\phi-l_{p}\sin\theta\sin\phi \\ 
-y&=l_r\sin\phi+l_{p}\sin\theta\cos\phi \\ 
+x&=l_a\cos\phi-l_{p}\sin\theta\sin\phi \\ 
+y&=l_a\sin\phi+l_{p}\sin\theta\cos\phi \\ 
 z&=l_{p}\cos\theta
 \end{cases} \] 
 The relative velocity of the pendulum to the arm can be represented by 
@@ -188,20 +188,20 @@ The only potential energy which is in the system is the one of the pendulum:
 Kinetic energy is available both in the arm and in the pendulum and is composed 
 of the the sum of translation energy and rotational energy:
 \begin{align*}
-T_{arm}&=\frac{1}{2}J_r\dot{\phi}^2\\
+T_{arm}&=\frac{1}{2}J_a\dot{\phi}^2\\
 T_{pendulum}&=\frac{1}{2}J_p\dot{\theta}^2+\frac{1}{2}m_pv^2\\
 &= \frac{1}{2}J_p\dot{\theta}^2+\frac{1}{2}m_p\left((l_a^2+l_p^2\ 
 \sin^2\theta)\dot{\phi}^2+l_p^2\dot{\theta}^2+2l_al_p\dot{\phi}\dot{\theta}\cos 
 \theta\right)\\
 T_{total}&= 
-\frac{1}{2}J_r\dot{\phi}^2+\frac{1}{2}J_p\dot{\theta_0}^2+\frac{1}{2}m_p\left((l_a^2+l_p^2\
+\frac{1}{2}J_a\dot{\phi}^2+\frac{1}{2}J_p\dot{\theta_0}^2+\frac{1}{2}m_p\left((l_a^2+l_p^2\
 \sin^2\theta)\dot{\phi}^2+l_p^2\dot{\theta}^2+2l_al_p\dot{\phi}\dot{\theta}\cos 
 \theta\right)
 \end{align*}
 From this the Lagrange Function arises:
 \begin{align*}
 L &=T_{total}-V_{total}\\
-\begin{split}&=\frac{1}{2}J_r\dot{\phi}^2+\frac{1}{2}J_p\dot{\theta}^2+\frac{1}{2}m_p\left((l_a^2+l_p^2\
+\begin{split}&=\frac{1}{2}J_a\dot{\phi}^2+\frac{1}{2}J_p\dot{\theta}^2+\frac{1}{2}m_p\left((l_a^2+l_p^2\
 \sin^2\theta)\dot{\phi}^2+l_p^2\dot{\theta}^2+2l_al_p\dot{\phi}\dot{\theta}\cos 
 \theta\right) \\&\quad - m_pgl_{p}\cos\theta\end{split}
 \end{align*}
@@ -214,7 +214,7 @@ Equation follows \[
 	$q_i$ are called 
 	generalized coordinates and $F$ is the friction in the system. 
 	The friction in the system can be described by $B_p\dot{\theta}$ and $ 
-	B_r\dot{\phi}$
+	B_a\dot{\phi}$
 	For 
 the furuta pendulum the generalized coordinates are $\dot{q}(t)^T = 
 \left[\frac{\partial 
@@ -223,7 +223,7 @@ the furuta pendulum the generalized coordinates are $\dot{q}(t)^T =
 to 
 \begin{align*}
 \frac{\partial^2 L}{\partial t\partial \dot{\phi}}-\frac{\partial 
-	L}{\partial \phi}&=\tau - B_r\dot{\phi}\\
+	L}{\partial \phi}&=\tau - B_a\dot{\phi}\\
 \frac{\partial^2 L}{\partial t\partial \dot{\theta}}-\frac{\partial 
 	L}{\partial \theta}&=-B_p\dot{\theta}
 \end{align*}
@@ -232,10 +232,10 @@ The partial derivations of the Lagrangian for the generalized coordinates are:
 \begin{align*}
 	\frac{\partial L}{\partial \phi}&=0\\
 	\frac{\partial L}{\partial 
-	\dot{\phi}}&=\dot{\phi}(J_r+m_p(l_a^2+l_p^2\sin^2\theta))+\dot{\theta}(
+	\dot{\phi}}&=\dot{\phi}(J_a+m_p(l_a^2+l_p^2\sin^2\theta))+\dot{\theta}(
 	m_pl_al_p\cos\theta)\\
 	\frac{\partial^2 L}{\partial t \partial \dot{\phi}}&= 
-	\ddot{\phi}(J_r+m_p(l_a^2+l_p^2\sin^2 \theta))+l_p^2m_p\sin(2\theta)
+	\ddot{\phi}(J_a+m_p(l_a^2+l_p^2\sin^2 \theta))+l_p^2m_p\sin(2\theta)
 	\dot{\phi}\dot{\theta}+m_pl_al_p(\cos 
 	\theta\ddot{\theta}-sin\theta \dot{\theta}^2)\\
 	\frac{\partial L}{\partial 
@@ -251,7 +251,7 @@ With this equations it is possible to derive the equations for the
 Euler-Lagrange's Equation:
 \begin{align*}
 \frac{\partial^2 L}{\partial t\partial\dot{\phi}}-\frac{\partial 
-L}{\partial\dot{\phi}}&=\ddot{\phi}(J_r+m_p(l_a^2+l_p^2\sin^2 
+L}{\partial\dot{\phi}}&=\ddot{\phi}(J_a+m_p(l_a^2+l_p^2\sin^2 
 \theta))+l_p^2m_p\sin(2\theta)
 \dot{\phi}\dot{\theta}\\ &\quad + m_pl_al_p(\cos 
 \theta\ddot{\theta}-sin\theta \dot{\theta}^2)\\
@@ -262,7 +262,7 @@ Putting this into a matrix form and filling in the friction, this results in
 the nonlinear equations of motion (EOM) for the furuta pendulum.
 \begin{align*}
 &\begin{bmatrix}
-J_r+m_p(l_a^2+l_p^2\sin^2\theta)& \quad m_pl_al_p\cos\theta \\ 
+J_a+m_p(l_a^2+l_p^2\sin^2\theta)& \quad m_pl_al_p\cos\theta \\ 
 m_pl_al_p\cos\theta& \quad J_p+m_pl_p^2 
 \end{bmatrix} 
 \begin{bmatrix}
@@ -270,7 +270,7 @@ m_pl_al_p\cos\theta& \quad J_p+m_pl_p^2
 \ddot{\theta}
 \end{bmatrix} + \\
 &\begin{bmatrix}
-m_pl_p^2\sin(2\theta)\dot{\theta}- B_r& \quad -m_pl_al_p\sin \theta 
+m_pl_p^2\sin(2\theta)\dot{\theta}- B_a& \quad -m_pl_al_p\sin \theta 
 \dot{\theta}\\
 -\frac{1}{2}m_pl_p^2\sin(2\theta)\dot{\phi} &\quad -B_p
 \end{bmatrix}
@@ -286,7 +286,40 @@ m_pl_p^2\sin(2\theta)\dot{\theta}- B_r& \quad -m_pl_al_p\sin \theta
 0
 \end{bmatrix}
 \end{align*}
-\subsection{Linearization}
+\subsection{Linearization of the state-soace model}
+As all equations of motion contain a part of a trigonometric function the 
+equations are non-linear. There are several different methods to change the 
+non-linear equations to linear ones. %TODO which ones
+ For a linearization in the state-space the equation 
+$\dot{x}=Ax+Bu+\tilde{d}$ is used. The linearization is done around the 
+operating point \cite{rigatos2018nonlinear} which is the vertical inverted 
+state and therefore, uses $\theta = 0$ and $\dot{\theta}=0$. This results in 
+the following equations:
+
+\section{Swing-Up}
+There are many different approaches for solving the swing-up task of the furuta 
+pendulum
+\section{Balancing}
+
+\section{Reinforcement Learning on the Furuta Pendulum}
+In reinforcement learning the furuta pendulum has only a very small influence 
+on the simulation and experimental research because of the complexity of the 
+problem. Only a few algorithms were tested on it with divers results.\\
+\citeauthor{hennig2011optimal} compares Gaussian process optimal learner with 
+Kalman filter, TD($\lambda$) and as baseline full information. He used the same 
+baseline function for all algorithms and collated the cumulated loss. 
+Surprisingly, none of the methods could stabilize the swung up pendulum 
+totally, even not the best method the Gaussian process optimal learner.\\
+Also an artificial neural network (ANN) was used to model the pendulum 
+\cite{quyen2012rotary}. They worked with the voltage of the motor as input 
+values and the angles of arm and pendulum as the output. Different numbers of 
+hidden neurons were tested with the result that more neurons in the hidden 
+layer led to a smaller mean squared error. The ANN could foresee the angle of 
+the pendulum very well.\\
+A good approach was done with recurrent neural networks and a Genetic Algorithm 
+\cite{shojaei2011hybrid}. They used a recurrent neural network identifier and 
+controller with a proportional integral derivative controller which was 
+responsible for the feedback and the prediction in the derivative action.
 \bibliographystyle{spbasic}      % basic style, author-year citations
 \bibliography{furuta.bib}   % name your BibTeX data base
 
