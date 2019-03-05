@@ -2,8 +2,11 @@ import tensorflow as tf
 
 import gym
 import quanser_robots
+import numpy as np
+import sys
 
-def policy_gradient(env):
+
+def policy_gradient(env, continuous=False):
     """
     Neural Network to approximate our policy.
 
@@ -38,7 +41,10 @@ def policy_gradient(env):
 
         # TODO: Actions can have several dimensions
         state_dim = env.observation_space.shape[0]
-        action_dim = len(env.action_space)
+        if continuous:
+            action_dim = env.action_dimensions
+        else:
+            action_dim = len(env.action_space)
         act_state_dim = state_dim * action_dim
 
         # -------------------- Input Variables -------------------- #
@@ -62,6 +68,7 @@ def policy_gradient(env):
                                           [env.time_steps, action_dim],
                                           name="pl_actions_input")
 
+
         # Placeholder with just 1 dimension which is dynamic
         # We use it to feed the advantages of our episode to the network. The
         # size of the tensor is determined by the number of steps the agent
@@ -79,8 +86,23 @@ def policy_gradient(env):
         # and has just 1 weight tensor.
         linear = tf.matmul(pl_state_input, pl_weights)
 
-        # Softmax function: sum(probabilities) = 1
-        pl_probabilities = tf.nn.softmax(linear)
+        if continuous:
+            # Tangenz-H: -1 < x 1
+            pl_probabilities = tf.nn.tanh(linear)
+
+            bias = [(env.action_space_high[i] + env.action_space_low[i])
+                    / 2 for i in range(action_dim)]
+
+            # Scale, so it matches the action range
+            # TODO: What if max action = inf
+
+            pl_probabilities = tf.map_fn(
+                lambda x: x - bias * env.action_space_high,
+                pl_probabilities)
+
+        else:
+            # Softmax function: sum(probabilities) = 1
+            pl_probabilities = tf.nn.softmax(linear)
 
         # ------------------- Trainable Vars ------------------------ #
 
@@ -89,24 +111,27 @@ def policy_gradient(env):
         pl_train_vars = tf.trainable_variables()
 
         # ------------------------ π(a|s) -------------------------- #
-        # Calculate the probability of the chosen action given the state
-        # TODO: just  get the prob of the chosen action or an array with
-        #   all probs of possible actions?
+        if continuous:
+            action_prob = tf.map_fn(lambda x: 1, pl_probabilities)
+        else:
+            # Calculate the probability of the chosen action given the state
+            # TODO: just  get the prob of the chosen action or an array with
+            #   all probs of possible actions?
 
-        # We multiply probabilities, which has in every row the probabilites
-        # for every possible action, elementwise with the actions_input.
-        # Because actions_input is a one-hot array, which only has a 1 at the
-        # chosen action, we end up with an array which has in every row just
-        # one probability number.
-        # Results in shape (200, 2)
-        action_prob = tf.multiply(pl_probabilities, pl_actions_input)
+            # We multiply probabilities, which has in every row the probabilites
+            # for every possible action, elementwise with the actions_input.
+            # Because actions_input is a one-hot array, which only has a 1 at the
+            # chosen action, we end up with an array which has in every row just
+            # one probability number.
+            # Results in shape (200, 2)
+            action_prob = tf.multiply(pl_probabilities, pl_actions_input)
 
-        # Now we sum up each row  to get rid of the 0s.
-        # This means we end up with a tensor which  has just 1 dimension with
-        # "env.time_steps" elements. For every step we took in our env, we now
-        # have the probability of the action, that we took.
-        # Results in shape (200,)
-        action_prob = tf.reduce_sum(action_prob, axis=[1])
+            # Now we sum up each row  to get rid of the 0s.
+            # This means we end up with a tensor which  has just 1 dimension with
+            # "env.time_steps" elements. For every step we took in our env, we now
+            # have the probability of the action, that we took.
+            # Results in shape (200,)
+            action_prob = tf.reduce_sum(action_prob, axis=[1])
 
         # ----------------------- log(π(a|s)) ----------------------- #
 
@@ -115,17 +140,21 @@ def policy_gradient(env):
         # ------------------- ∇_θ log(π(a|s)) ----------------------- #
         # Calculate the gradient of the log probability at each point in time
 
+
         # NOTE: doing this because tf.gradients only returns a summed version
         # TODO: As far as I can tell, this is unnecessary. The array is already
         #   flattened. Maybe when we have high dim actions it will be useful.
         # Results in shape (200,)
         action_log_prob_flat = tf.reshape(action_log_prob, (-1,))
 
+        num_of_steps = action_log_prob.get_shape()[0]
+        print(num_of_steps)
+
         # TODO: Do we want to take gradient of scalar and all weights
         # Take the gradient of each action w.r.t. the trainable weights
         # Results in shape (200, 4, 2): List with 200 tensors of shape (4, 2)
         g_log_prob = [tf.gradients(action_log_prob_flat[i], pl_train_vars)[0]
-                      for i in range(action_log_prob_flat.get_shape()[0])]
+                      for i in range(num_of_steps)]
 
         # Results in shape (200, 4, 2)
         g_log_prob = tf.stack(g_log_prob)

@@ -5,7 +5,8 @@ import quanser_robots
 import warnings
 
 
-def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
+def run_batch(env, policy_grad, value_grad, sess, num_traj,
+              printing=False, continuous=True):
 
     # Unpack the policy network (generates control policy)
     (pl_state, pl_actions, pl_advantages,
@@ -18,18 +19,18 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
     # set up the environment
     observation = env.reset()
 
-    episode_reward = 0
-    total_rewards = []
-    states = []
-    actions = []
-    advantages = []
-    transitions = []
-    update_vals = []
+    traj_reward = 0.0
+    traj_transitions = []
 
-    n_episodes = 0
+    batch_traj_rewards = []
+    batch_states = []
+    batch_actions = []
+    batch_advantages = []
+    batch_discounted_returns = []
+
+    n_trajectories = 0
     n_timesteps = env.time_steps
 
-    # calculate policy
     for t in range(n_timesteps):
 
         # I think sometimes we have a zero in the observations
@@ -52,42 +53,51 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
         print("({}) OBS:{}".format(t, obs_vector), end='') if printing else ...
 
         # ------------------- PREDICT ACTION -------------------------------- #
-        probs = sess.run(
-            pl_probabilities,
-            feed_dict={pl_state: obs_vector})
+        if continuous:
+            action = sess.run(
+                pl_probabilities,
+                feed_dict={pl_state: obs_vector})
 
-        print(", PROBS:", probs, end='') if printing else ...
+            batch_actions.append(action)
 
-        # Check which action to take
-        # stochastically generate action using the policy output
-        probs_sum = 0
-        action_i = None
-        rnd = random.uniform(0, 1)
-        for k in range(len(env.action_space)):
-            probs_sum += probs[0][k]
-            if rnd < probs_sum:
-                action_i = k
-                break
-            elif k == (len(env.action_space) - 1):
-                action_i = k
-                break
+        else:
+            probs = sess.run(
+                pl_probabilities,
+                feed_dict={pl_state: obs_vector})
 
-        # record the transition
-        states.append(observation)
-        # Make one-hot action array
-        action_array = np.zeros(len(env.action_space))
-        action_array[action_i] = 1
-        actions.append(action_array)
-        print(", ACTION ARRAY: ", action_array, end='') if printing else ...
+            print(", PROBS:", probs, end='') if printing else ...
 
-        old_observation = observation
+            # Check which action to take
+            # stochastically generate action using the policy output
+            probs_sum = 0
+            action_i = None
+            rnd = random.uniform(0, 1)
+            for k in range(len(env.action_space)):
+                probs_sum += probs[0][k]
+                if rnd < probs_sum:
+                    action_i = k
+                    break
+                elif k == (len(env.action_space) - 1):
+                    action_i = k
+                    break
 
-        # Get the action (not only the index)
-        # and take the action in the environment
-        # Try/Except: Some env need action in an array
-        action = env.action_space[action_i]  # TODO: Actions sind nicht immer 1D
+
+            # Make one-hot action array
+            action_array = np.zeros(len(env.action_space))
+            action_array[action_i] = 1
+            batch_actions.append(action_array)
+            print(", ACTION ARRAY: ", action_array, end='') if printing else ...
+
+            # Get the action (not only the index)
+            # and take the action in the environment
+            # Try/Except: Some env need action in an array
+            action = env.action_space[action_i]  # TODO: if action not 1D
 
         print(", ACTION-1:", action, end='') if printing else ...
+
+        # record the transition
+        batch_states.append(observation)
+        old_observation = observation
 
         try:
             observation, reward, done, info = env.step(action)
@@ -97,65 +107,73 @@ def run_episode(env, policy_grad, value_grad, sess, num_traj, printing=False):
 
         print(", ACTION-2: ", action) if printing else ...
 
-        transitions.append((old_observation, action, reward))
-        episode_reward += reward
+        traj_transitions.append((old_observation, action, reward))
+        traj_reward += reward
 
-        # ---------------- End of trajectory -------------------------------- #
+        # -------------------- END OF TRAJECTORY ---------------------------- #
 
-        # If the pole falls or we collected our number of steps
+        # If env = done or we collected our desired number of steps
         if done or t == n_timesteps - 1:
-            for o, trans in enumerate(transitions):
+            # TODO: Save computation time by calculating G_t backwards
+            for i_trans, trans in enumerate(traj_transitions):
                 obs, action, reward = trans
+                obs_vector = np.expand_dims(obs, axis=0)
 
-                # Calculate discounted monte-carlo return
-                future_reward = 0
-                future_transitions = len(transitions) - o
+                # --------- Discounted monte-carlo return (G_t) ------------- #
+
+                discounted_return = 0
+                future_transitions_n = len(traj_transitions) - i_trans
                 decrease = 1
-                for p in range(future_transitions):
-                    future_reward += transitions[p + o][2] * decrease
+                for p in range(future_transitions_n):
+                    discounted_return += traj_transitions[p + i_trans][2] * decrease
                     decrease = decrease * env.discount_factor
 
-                obs_vector = np.expand_dims(obs, axis=0)
-                # compare the calculated expected reward to the average
-                # expected reward, as estimated by the value network
-                current_val = sess.run(
+                # save disc reward to update critic params in its direction
+                batch_discounted_returns.append(discounted_return)
+
+                # --------- Get the value V from our Critic ----------------- #
+
+                # The estimated return the critic expects the state to have
+                critic_value = sess.run(
                     vfa_nn_output,
                     feed_dict={vfa_state_input: obs_vector}
                 )[0][0]
 
-                # advantage: how much better was this action than normal
-                advantages.append(future_reward - current_val)
+                # --------------------- ADVANTAGE --------------------------- #
 
-                # update the value function towards new return
-                update_vals.append(future_reward)
+                # How much better did we do compared to the critic expectation
+                batch_advantages.append(discounted_return - critic_value)
 
-            n_episodes += 1
-            # reset variables for next episode in batch
-            total_rewards.append(episode_reward)
-            episode_reward = 0.0
-            transitions = []
+            # How many trajectories have been executed in this batch
+            n_trajectories += 1
+            # Save current reward of trajectory
+            batch_traj_rewards.append(traj_reward)
+
+            # ------------------- RESET VARIABLES --------------------------- #
+            traj_reward = 0.0
+            traj_transitions = []
 
             if done:
-                # if the pole fell, reset environment
+                # reset the environment, if we still have steps left
                 observation = env.reset()
             else:
-                # if out of time, close environment
+                # if we have no steps left, close environment
                 env.close()
 
     print("\n\n\n") if printing else ...
     print('Update {} with {} trajectories with rewards of: {}'
-          .format(num_traj, len(total_rewards), total_rewards))
+          .format(num_traj, len(batch_traj_rewards), batch_traj_rewards))
 
-    # update value function
-    update_vals_vector = np.expand_dims(update_vals, axis=1)
+    # ----------------- UPDATE VALUE NETWORK -------------------------------- #
+    batch_disc_returns_vec = np.expand_dims(batch_discounted_returns, axis=1)
     sess.run(vfa_optimizer,
-             feed_dict={vfa_state_input: states,
-                        vfa_true_vf_input: update_vals_vector})
+             feed_dict={vfa_state_input: batch_states,
+                        vfa_true_vf_input: batch_disc_returns_vec})
 
-    # update control policy
+    # ---------------- UPDATE POLICY NETWORK -------------------------------- #
     sess.run(pl_train_vars,
-             feed_dict={pl_state: states,
-                        pl_advantages: advantages,
-                        pl_actions: actions})
+             feed_dict={pl_state: batch_states,
+                        pl_advantages: batch_advantages,
+                        pl_actions: batch_actions})
 
-    return total_rewards, n_episodes
+    return batch_traj_rewards, n_trajectories

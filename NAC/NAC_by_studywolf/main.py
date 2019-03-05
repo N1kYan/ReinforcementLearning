@@ -42,7 +42,7 @@ import quanser_robots
 from NAC_by_studywolf.my_environment import MyEnvironment
 from NAC_by_studywolf.critic_network import value_gradient
 from NAC_by_studywolf.actor_network import policy_gradient
-from NAC_by_studywolf.natural_policy_gradient import run_episode
+from NAC_by_studywolf.natural_policy_gradient import run_batch
 from NAC_by_studywolf import Evaluation
 
 # ----------------------------- GOALS ------------------------------------- #
@@ -60,7 +60,7 @@ from NAC_by_studywolf import Evaluation
 
 # ---------------------- VARIABLES & CONSTANTS ------------------------------ #
 # Select Rendering
-RENDER = False
+RENDER = True
 
 # Select debugging console printing
 PRINTING = False
@@ -122,7 +122,7 @@ for run in range(1):
 
         # Act in the env and update weights after collecting data
         reward, n_episodes = \
-            run_episode(env, policy_grad, value_grad, sess, u, PRINTING)
+            run_batch(env, policy_grad, value_grad, sess, u, PRINTING)
 
         max_rewards.append(np.max(reward))
         total_episodes.append(n_episodes)

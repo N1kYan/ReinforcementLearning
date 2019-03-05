@@ -76,8 +76,9 @@ class MyEnvironment(gym.Space):
                              .format(type(self.env.action_space)))
 
         self.env.action_space = self.action_space
-        self.action_space_high = np.max(self.action_space)
-        self.action_space_low = np.min(self.action_space)
+        self.action_space_high = np.asarray([np.max(self.action_space)])
+        self.action_space_low = np.asarray([np.min(self.action_space)])
+        self.action_dimensions = self.action_space_high.flatten().shape[0]
 
         print("\tAction space high: {}".format(self.action_space_high))
         print("\taction space low : {}".format(self.action_space_low))
