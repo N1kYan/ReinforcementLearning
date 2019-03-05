@@ -67,7 +67,7 @@ def evaluation(actor, epochs, render):
     plt.show()
 
 
-def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, add_noise, lr_actor, lr_critic, weight_decay, memory,
+def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrease, add_noise, lr_actor, lr_critic, weight_decay, memory,
              gamma, tau, seed, save_flag, load_flag, load_path, render):
     """
     Creates neural networks and runs the training process on the gym environment.
@@ -79,6 +79,7 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, add_noise, lr_
     :param epoch_checkpoint: Checkpoint for printing the learning progress and rendering the environment
     :param noise: The noise generating process; added to the action output of the actor network
     :param epsilon: Set different from None to use epsilon-greedy action selection
+    :param epsilon_decrease: Set value to not none to multiply epsilon by epsilon_decrease every epoch checkpoint
     :param add_noise: Set true to add noise to enable action exploration
     :param lr_actor: Learning rate for actor network
     :param lr_critic: Learning rate for critic network
@@ -221,12 +222,15 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, add_noise, lr_
         env.close()
         scores_deque.append(cumulative_reward)
         average_episode_reward.append(np.mean(episode_rewards))
-        print('\rEpisode {}\tAverage Reward: {}\tSteps: {}\t({:.2f} min elapsed)'.
-              format(e, np.mean(scores_deque), t, (time.time() - time_start) / 60), end="")
+        print('\rEpisode {}\tAverage Reward: {}\tSteps: {}\tEpsilon: {}\t({:.2f} min elapsed)'.
+              format(e, np.mean(scores_deque), t, epsilon, (time.time() - time_start) / 60), end="")
         if e % epoch_checkpoint == 0:
+            # Decrease epsilon (percentage of random actions) every epoch checkpoint
+            if epsilon is not None and epsilon_decrease is not None:
+                epsilon = epsilon * epsilon_decrease
             # Print cumulative reward per episode averaged over #epoch_checkpoint episodes
-            print('\rEpisode {}\tAverage Reward: {:.3f}\t({:.2f} min elapsed)'.
-                  format(e, np.mean(scores_deque), (time.time() - time_start) / 60))
+            print('\rEpisode {}\tAverage Reward: {:.3f}\tEpsilon: {}\t({:.2f} min elapsed)'.
+                  format(e, np.mean(scores_deque), epsilon, (time.time() - time_start) / 60))
 
     # ----------------------- Plotting, Saving, etc. ----------------------- #
 
@@ -261,13 +265,13 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, add_noise, lr_
 
     if save_flag:
         # Save hyperparameters in text file
-        parameter_file = open("./{}/{}-{}-{}/parameters".format(env.spec.id, save_time.day, save_time.month, save_time.hour),
-                              'w')
+        parameter_file = open("./{}/{}-{}-{}/parameters".format(env.spec.id, save_time.day, save_time.month,
+                                                                save_time.hour), 'w')
         parameter_string = "Learning Epochs:{}\nMax Steps:{}\nActor:{}\nActor LR:{}\nCritic:{}\nCritic LR:{}" \
                            "\nGamma:{}\nTau:{}\nL2 Weight Decay:{}\nReplay Batch Size:{}\n Replay Total Size:{}\n" \
                            "OU Theta:{}\nOU Sigma:{}\nEpsilon:{}".\
             format(epochs, max_steps, actor_local.num_layers, lr_actor, critic_local.num_layers, lr_critic, gamma, tau,
-                   weight_decay, memory.batch_size,memory.memory.maxlen, noise.theta, noise.sigma, epsilon)
+                   weight_decay, memory.batch_size, memory.memory.maxlen, noise.theta, noise.sigma, epsilon)
         parameter_file.write(parameter_string)
         parameter_file.close()
 
@@ -299,12 +303,10 @@ def main():
     # env = gym.make('Pendulum-v0')
     # env = gym.make('BallBalancerSim-v0')
     print(env.spec.id)
-    print("State Space:\tShape:{}\tLow:{}\tHigh:{}".format(np.shape(env.reset()),
-                                                            env.observation_space.low,
-                                                            env.observation_space.high))
-    print("Action Space:\tShape:{}\tLow:{}\tHigh:{}".format(np.shape(env.action_space.sample()),
-                                                             env.action_space.low,
-                                                             env.action_space.high))
+    print("State Space:\tShape:{}\tLow:{}\tHigh:{}".format(np.shape(env.reset()), env.observation_space.low,
+                                                           env.observation_space.high))
+    print("Action Space:\tShape:{}\tLow:{}\tHigh:{}".format(np.shape(env.action_space.sample()), env.action_space.low,
+                                                            env.action_space.high))
     env_observation_size = len(env.reset())
     env_action_size = len(env.action_space.sample())
     env_action_low = env.action_space.low
@@ -320,13 +322,14 @@ def main():
     GAUSS_NOISE = Gaussian(size=env_action_size, seed=random_seed, mu=0.0, sigma=5.0, decay=0.5)
 
     # Replay memory
-    MEMORY = ReplayBuffer(action_size=env_specs[1], buffer_size=int(1e6), batch_size=1024,
+    MEMORY = ReplayBuffer(action_size=env_specs[1], buffer_size=int(1e6), batch_size=512,
                           seed=random_seed)
 
     # Run training procedure with defined hyperparameters
-    ACTOR = training(epochs=10000, max_steps=1000, epoch_checkpoint=200, noise=OU_NOISE, epsilon=0.03, add_noise=True,
-                     lr_actor=1e-4, lr_critic=1e-3, weight_decay=0, gamma=0.99, memory=MEMORY, tau=1e-3,
-                     seed=random_seed, save_flag=True, load_flag=False, load_path='actor22-1-18', render=False)
+    ACTOR = training(epochs=20000, max_steps=1000, epoch_checkpoint=1000, noise=OU_NOISE, epsilon=None,
+                     epsilon_decrease=0.75, add_noise=True, lr_actor=1e-4, lr_critic=1e-3, weight_decay=0.002,
+                     gamma=0.99, memory=MEMORY, tau=1e-2, seed=random_seed, save_flag=True, load_flag=False,
+                     load_path='actor22-1-18', render=False)
 
     # Run evaluation
     # evaluation(load_flag=False, actor='./actor-21-2-16', epochs=25, render=False)

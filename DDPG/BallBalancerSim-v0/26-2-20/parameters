@@ -7,7 +7,7 @@ Critic LR:0.001
 Gamma:0.99
 Tau:0.001
 L2 Weight Decay:0
-Replay Batch Size:1000000
- Replay Total Size
+Replay Batch Size:128
+Replay Total Size:1000000
 OU Theta:128
 OU Sigma:0.15

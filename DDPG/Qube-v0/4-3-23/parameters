@@ -1,0 +1,14 @@
+Learning Epochs:20000
+Max Steps:1000
+Actor:1
+Actor LR:1e-05
+Critic:1
+Critic LR:0.0001
+Gamma:0.75
+Tau:0.0001
+L2 Weight Decay:0
+Replay Batch Size:256
+ Replay Total Size:1000000
+OU Theta:0.15
+OU Sigma:0.2
+Epsilon:None
