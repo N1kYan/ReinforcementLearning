@@ -10,6 +10,16 @@ import datetime
 
 
 def evaluate(env, sess, policy_grad, render=False, episodes=25):
+    """
+    Evaluates the learned agent on a given instance of MyEnvironment class.
+    Then runs plot_save.
+    :param env: MyEnvironment instance; The environment the agent is evaluated on
+    :param sess: Tensorflow session
+    :param policy_grad: TODO
+    :param render: Set true to render each episode of evaluation
+    :param episodes: Number of episodes used for evaluation
+    :return: None
+    """
     time_steps = 10000
 
     print("\nEVALUATION: {} episodes with {} time steps each (or until 'done')"
@@ -78,6 +88,14 @@ def evaluate(env, sess, policy_grad, render=False, episodes=25):
 
 def plot_save(env, cumulative_episode_reward, average_episode_reward,
               save_flag=True):
+    """
+    Plot or save results of evaluation.
+    :param env: Instance of MyEnvironment class; used to name the folder for saving plots
+    :param cumulative_episode_reward: 2D-array, containing all episodes and the cumulative reward per step per episode
+    :param average_episode_reward: 2D-array, episode x average reward per step per episode
+    :param save_flag: Set true to save plots instead of showing them instantly
+    :return: None
+    """
 
     # Plot/Save average reward per episode
     plt.figure()

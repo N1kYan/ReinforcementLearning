@@ -17,12 +17,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 def bootstrapci(data, func, n=3000, p=0.95):
     index = int(n*(1-p)/2)
     samples = np.random.choice(data, size=(n, len(data)))
     r = [func(s) for s in samples]
     r.sort()
     return r[index], r[-index]
+
 
 fig = plt.figure(figsize=(7, 3.5))
 for name, color in zip(
