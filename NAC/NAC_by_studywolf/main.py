@@ -65,6 +65,10 @@ RENDER = True
 # Select debugging console printing
 PRINTING = False
 
+# Select how we treat actions
+# IMPORTANT: Only False works yet
+CONTINUOUS = False
+
 # Select Environment
 ENVIRONMENT = 1
 
@@ -79,7 +83,7 @@ ENVIRONMENT = 1
     5: Discount factor for expected monte carlo return.
 """
 
-env_dict = {1: ['CartPole-v0',          'discrete',     0, 500, 300, 0.97],
+env_dict = {1: ['CartPole-v0',          'discrete',     0, 200, 300, 0.97],
             2: ['DoublePendulum-v0',    'continuous',   5, 200, 300, 0.97],
             3: ['Qube-v0',              'continuous',   3, 200, 300, 0.97],
             4: ['BallBalancerSim-v0',   'continuous',   3, 200, 300, 0.97],
@@ -99,7 +103,7 @@ env = MyEnvironment(env_details=env_details)
 
 print("Generating Neural Networks ... ", end="")
 sys.stdout.flush()
-policy_grad = policy_gradient(env)
+policy_grad = policy_gradient(env, CONTINUOUS)
 value_grad = value_gradient(env)
 print("Done!")
 
@@ -122,7 +126,8 @@ for run in range(1):
 
         # Act in the env and update weights after collecting data
         reward, n_episodes = \
-            run_batch(env, policy_grad, value_grad, sess, u, PRINTING)
+            run_batch(env, policy_grad, value_grad, sess, u,
+                      PRINTING, CONTINUOUS)
 
         max_rewards.append(np.max(reward))
         total_episodes.append(n_episodes)
