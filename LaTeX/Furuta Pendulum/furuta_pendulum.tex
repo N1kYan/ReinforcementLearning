@@ -54,6 +54,7 @@ grestore
 %
 % insert here the call for the packages your document requires
 \usepackage{amsmath}
+
 %\usepackage{latexsym}
 % etc.
 %
@@ -101,7 +102,8 @@ The Furuta Pendulum is an example of a complex non-linear system and therefore
 of big interest in control system theory. It consists of one controllable arm 
 rotating in the horizontal plane and one pendulum uncontrollably moving in the 
 vertical plane, which is attached to the end of this arm.\\
-The non-linearities result from an interplay between gravitational, Coriolis and centripetal forces. \\
+The non-linearities result from an interplay between gravitational, coriolis, 
+centrifugal forces and friction. \\
 XX We present an overview over it's technical details and proposed algorithms to solve the control problem. XX
 \keywords{First keyword \and Second keyword \and More}
 % \PACS{PACS code1 \and PACS code2 \and more}
@@ -295,6 +297,9 @@ $\dot{x}=Ax+Bu+\tilde{d}$ is used. The linearization is done around the
 operating point \cite{rigatos2018nonlinear} which is the vertical inverted 
 state and therefore, uses $\theta = 0$ and $\dot{\theta}=0$. This results in 
 the following equations:
+The result is an linear form of the equations of motion which are very close to 
+the system's description by the non-linear model, up to the first 25 degree 
+which \citeauthor{kurode2011swing} showed.
 
 \section{Pendulum Control}
 The goal of controlling the furuta pendulum is to bring it from a hanging 
@@ -302,10 +307,23 @@ position into a vertical upright position. Therefore, it is necessary to
 generate enough energy to swing the pendulum up in a nearly upright position 
 where the linear region begins \cite{kurode2011swing}. If this region is 
 reached, the controller should change to the balancing mode to stabilize the 
-upright position.
+upright position.\\
+To check whether the controller needs to be switch from the swing-up task to 
+the stabilize task, the switching criteria can for example be defined by:
+\begin{align*}
+\text{switching criteria}\footnotemark[2] =
+\begin{cases} \text{stabilization} &\begin{cases}
+|\theta|< \frac{\pi}{9} \ &\text{and}\  \dot{\theta} < 2.62\  \text{rad/sec}\\
+|E-E_r|< 0.04 \ \text{Joule}\ &\text{and}\  \dot{\theta} < 2.62\  \text{rad/sec}
+\end{cases}\\
+\text{swing-up} & \text{otherwise}
+\end{cases}
+\end{align*}\footnotetext[2]{\cite{hamza2019current}}
 \subsection{Swing-Up}
 There are many different approaches for solving the swing-up task of the furuta 
-pendulum
+pendulum, linear ones which use the linearized equations of motion, non-linear 
+ones and model-free approaches. The classical way solving the swing-up task is 
+an approach with energy control \cite{seman2013swinging}.
 \subsection{Balancing}
 
 \section{Reinforcement Learning on the Furuta Pendulum}
@@ -327,6 +345,13 @@ A good approach was done with recurrent neural networks and a Genetic Algorithm
 \cite{shojaei2011hybrid}. They used a recurrent neural network identifier and 
 controller with a proportional integral derivative controller which was 
 responsible for the feedback and the prediction in the derivative action.
+
+
+\section{Conclusion}
+The furuta pendulum is a very complex control problem which could be solved by 
+a very wide variety of approaches. The control problem splits into two mayor 
+problems the swing-up and the balancing task.
+
 \bibliographystyle{spbasic}      % basic style, author-year citations
 \bibliography{furuta.bib}   % name your BibTeX data base
 
