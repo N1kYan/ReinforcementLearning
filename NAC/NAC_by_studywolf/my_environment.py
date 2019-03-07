@@ -8,6 +8,7 @@ import warnings
 import datetime
 import os
 
+
 class MyEnvironment(gym.Space):
     def __init__(self, env_details):
         gym.Space.__init__(self, (), np.float)

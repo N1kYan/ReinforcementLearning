@@ -7,6 +7,17 @@ import warnings
 
 def run_batch(env, policy_grad, value_grad, sess, num_traj,
               printing=False, continuous=True):
+    """
+    TODO
+    :param env:
+    :param policy_grad:
+    :param value_grad:
+    :param sess:
+    :param num_traj:
+    :param printing:
+    :param continuous:
+    :return:
+    """
 
     # Unpack the policy network (generates control policy)
     (pl_state, pl_actions, pl_advantages,
@@ -80,7 +91,6 @@ def run_batch(env, policy_grad, value_grad, sess, num_traj,
                 elif k == (len(env.action_space) - 1):
                     action_i = k
                     break
-
 
             # Make one-hot action array
             action_array = np.zeros(len(env.action_space))
