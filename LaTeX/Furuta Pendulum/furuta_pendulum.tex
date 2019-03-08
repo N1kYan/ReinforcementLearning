@@ -40,13 +40,13 @@ grestore
 %
 %\documentclass{svjour3}                     % onecolumn (standard format)
 %\documentclass[smallcondensed]{svjour3}     % onecolumn (ditto)
-\documentclass[smallextended]{svjour3}       % onecolumn (second format)
+\documentclass[smallextended, natbib]{svjour3}       % onecolumn (second format)
 %\documentclass[twocolumn]{svjour3}          % twocolumn
 %
 \smartqed  % flush right qed marks, e.g. at end of proof
 %
 \usepackage{graphicx}
-\usepackage[numbers]{natbib} %TODO delete before submission
+%\usepackage[numbers]{natbib} %TODO delete before submission
 %TODO optimiere Zitierweise, fehlen Klammern um die Zitate?
 
 %
@@ -75,8 +75,7 @@ grestore
 
 %\titlerunning{Short form of title}        % if too long for running head
 
-\author{Tabea Wilke \and Maximilian Gehrke \and Yannik Frisch %etc.
-}
+\author{Tabea Wilke \and Maximilian Gehrke \and Yannik Frisch}
 
 %\authorrunning{Wilke, Gehrke, Frisch} % if too long for running head
 
@@ -110,33 +109,34 @@ XX We present an overview over it's technical details and proposed algorithms to
 % \subclass{MSC code1 \and MSC code2 \and more}
 \end{abstract}
 \section{Introduction}
-Many examples of the field of control engineering like aircraft landing, 
+Many examples in the field of control engineering like aircraft landing, 
 aircraft stabilizing and many more can be very well modelled by an inverted 
-pendulum \cite{akhtaruzzaman2010modeling}. As a reaction to problems with the 
+pendulum \citep{akhtaruzzaman2010modeling}. As a reaction to problems with the 
 limited movement of the cart from 
 the inverted pendulum, the furuta pendulum (also called rotary inverted 
 pendulum) 
 has been developed by 
 \citeauthor{furuta1992swing}. The advantages of the furuta pendulum are that 
-%it 
+it 
 needs less space and one moving arm is directly linked to the motor, therefore, 
 the dynamics is less unmodeled thanks to a power transmission mechanism 
-\cite{furuta1992swing}. The furuta pendulum is an underactuated problem, this 
-means that there two degrees of freedom ($\phi,\ \theta$), 
+\citep{furuta1992swing}. \\
+The furuta pendulum is an underactuated problem, this 
+means that there  are two degrees of freedom ($\phi,\ \theta$), 
 but only one arm is directly controlled by the motor. This is the one which 
 changes the angle $\phi$ in the horizontal plane. The other arm called pendulum 
 is attached to 
 the end of the controlled arm and therefore is moved indirectly by it in the 
 vertical plane with angle $\theta$ 
-\cite{spong1998underactuated,tedrake2009underactuated}. The whole system is 
+\citep{spong1998underactuated,tedrake2009underactuated}. The whole system is 
 highly non-linear as a result of an interplay between gravitational, coriolis, 
-friction and centrifugal forces \cite{izutsu2008swing}.
+friction and centrifugal forces \citep{izutsu2008swing}.
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.5\linewidth]{pendulum}
 	\caption{The furuta pendulum, figure from \cite{la2009new}}
 	\label{fig:pendulum}
-\end{figure}
+\end{figure}\\
 Finally, there are two different types of control problems. First, bringing the 
 flexible arm from a hanging position to a position which is nearly upright, 
 further called "swing-up". Second, if the arm is nearly upright with low enough 
@@ -158,7 +158,7 @@ the DC motor.
 Modelling\protect\footnote[1]{\cite{akhtaruzzaman2010modeling,furuta1992swing,gafvert2016modelling,
 		ozbek2010swing,zhang2011optimal,fairus2013fuzzy}}} 
 For later derivation of the Lagrangian, the kinetic and potential engergies of 
-the furuta pendulum are needed. Therefore, the kinematics of the pendulums 
+the furuta pendulum are needed. Therefore, the kinematics of the pendulum's 
 center of gravity can be described by 
 \[\begin{cases}
 x&=l_a\cos\phi-l_{p}\sin\theta\sin\phi \\ 
@@ -184,7 +184,7 @@ of the squared velocities in all directions:
 First of all, we will derive the equations of motion through the Euler-Lagrange 
 method. The Lagrangian function can be obtained by the difference of the 
 kinetic and potential energies $L=T-V$, with $T$ as the total sum of the 
-kinetic energies in the system and $V$ the total potential energies.
+kinetic energies in the system and $V$ the total potential energies.\\
 The only potential energy which is in the system is the one of the pendulum:
 \[V_{total}=V_{pendulum}=m_pgz= m_pgl_{p}\cos\theta\]
 Kinetic energy is available both in the arm and in the pendulum and is composed 
@@ -294,9 +294,9 @@ equations are non-linear. There are several different methods to change the
 non-linear equations to linear ones. %TODO which ones
  For a linearization in the state-space the equation 
 $\dot{x}=Ax+Bu+\tilde{d}$ is used. The linearization is done around the 
-operating point \cite{rigatos2018nonlinear} which is the vertical inverted 
+operating point \citep{rigatos2018nonlinear} which is the vertical inverted 
 state and therefore, uses $\theta = 0$ and $\dot{\theta}=0$. This results in 
-the following equations:
+the following equations: %TODO Gleichung einfügen
 The result is an linear form of the equations of motion which are very close to 
 the system's description by the non-linear model, up to the first 25 degree 
 which \citeauthor{kurode2011swing} showed.
@@ -305,10 +305,10 @@ which \citeauthor{kurode2011swing} showed.
 The goal of controlling the furuta pendulum is to bring it from a hanging 
 position into a vertical upright position. Therefore, it is necessary to 
 generate enough energy to swing the pendulum up in a nearly upright position 
-where the linear region begins \cite{kurode2011swing}. If this region is 
+where the linear region begins \citep{kurode2011swing}. If this region is 
 reached, the controller should change to the balancing mode to stabilize the 
 upright position.\\
-To check whether the controller needs to be switch from the swing-up task to 
+To check whether the controller needs to be switched from the swing-up task to 
 the stabilize task, the switching criteria can for example be defined by:
 \begin{align*}
 \text{switching criteria}\footnotemark[2] =
@@ -323,45 +323,62 @@ the stabilize task, the switching criteria can for example be defined by:
 There are many different approaches for solving the swing-up task of the furuta 
 pendulum, linear ones which use the linearized equations of motion, non-linear 
 ones and model-free approaches. The classical way solving the swing-up task is 
-an approach with energy control \cite{seman2013swinging}. Therefore, the sum of 
+an approach with energy control \citep{seman2013swinging}. Therefore, the sum 
+of 
 kinetic and potential energy of the pendulum is used to model which amount of 
 energy should be added. The energy of the pendulum can be described by 
 \[E = \frac{1}{2}J_p\theta^2+m_pgl_p(\cos \theta -1)\] which was already done 
 by \citeauthor{aastrom2000swinging} for the normal pendulum.
 The selection of the state without energy can be made differently, logically it 
 is the upright state because there is no further need to add energy 
-\cite{seman2013swinging}. There are two different directions in which the 
+\citep{seman2013swinging}.\\
+There are two different directions in which the 
 energy can be supplied either the pendulum seems to be "pulled" or "pushed". To 
-define this, $\text{sign}(\dot{\theta}\cos\theta)$ the velocity helps to find 
+define this, the following term is used: $\text{sign}(\dot{\theta}\cos\theta)$ 
+The velocity helps to find 
 out whether the pendulum starts to swing in the opposite direction, the $\cos 
 \theta$ defines if the pendulum is in the left or in the right half 
-\cite{awtar2002inverted}. The magnitude of energy which should be provided is 
+\citep{awtar2002inverted}. The magnitude of energy which should be provided is 
 selected by an aggressivity factor and the difference of actual and desired 
-system energy $k_a(E-E_0)$. Often there is also a saturation function which 
+system energy $k_a(E-E_0)$. The aggressivity factor handles the amount of input 
+and thereby the number of oscillations which are needed to achieve the 
+swing-up. Often there is also a saturation function which 
 limits the signal to the maximum acceleration of the pendulum. The whole 
 swing-up controller is then implemented by 
 \begin{align*}
 u = sat(k_a(E-E_0))\text{sign}(\dot{\theta}\cos\theta)
 \end{align*}
 \subsection{Stabilization}
+There are many different approaches for solving the stabilization problem as 
+well. The most common one is the linear quadratic regulation (LQR) because it 
+guarantees the optimal solution \citep{hamza2019current}. But also the 
+proportional integral derivative (PID) is often used because of its simplicity 
+and robustness and also because of the usage in the industry 
+\citep{hassanzadeh2011controller}. Nevertheless, there are a lot of other 
+algorithms from sliding modes \citep{izutsu2008swing} to particle swarm 
+optimization and other evolutionary algorithms 
+\citep{hassanzadeh2011controller}.
+%TODO LQR beschreiben
 
 \section{Reinforcement Learning on the Furuta Pendulum}
 In reinforcement learning the furuta pendulum has only a very small influence 
 on the simulation and experimental research because of the complexity of the 
-problem. Only a few algorithms were tested on it with divers results.\\
+problem. Only a few algorithms were tested on it with divers results. Even if 
+the robustness of the stabilization control should improve 
+\citep{wang2004minimum}.\\
 \citeauthor{hennig2011optimal} compares Gaussian process optimal learner with 
 Kalman filter, TD($\lambda$) and as baseline full information. He used the same 
 baseline function for all algorithms and collated the cumulated loss. 
 Surprisingly, none of the methods could stabilize the swung up pendulum 
-totally, even not the best method the Gaussian process optimal learner.\\
+totally, even not the best method, the Gaussian process optimal learner.\\
 Also an artificial neural network (ANN) was used to model the pendulum 
-\cite{quyen2012rotary}. They worked with the voltage of the motor as input 
+\citep{quyen2012rotary}. They worked with the voltage of the motor as input 
 values and the angles of arm and pendulum as the output. Different numbers of 
 hidden neurons were tested with the result that more neurons in the hidden 
 layer led to a smaller mean squared error. The ANN could foresee the angle of 
 the pendulum very well.\\
 A good approach was done with recurrent neural networks and a Genetic Algorithm 
-\cite{shojaei2011hybrid}. They used a recurrent neural network identifier and 
+\citep{shojaei2011hybrid}. They used a recurrent neural network identifier and 
 controller with a proportional integral derivative controller which was 
 responsible for the feedback and the prediction in the derivative action.
 
