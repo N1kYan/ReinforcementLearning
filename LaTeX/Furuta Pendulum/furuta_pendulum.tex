@@ -323,8 +323,27 @@ the stabilize task, the switching criteria can for example be defined by:
 There are many different approaches for solving the swing-up task of the furuta 
 pendulum, linear ones which use the linearized equations of motion, non-linear 
 ones and model-free approaches. The classical way solving the swing-up task is 
-an approach with energy control \cite{seman2013swinging}.
-\subsection{Balancing}
+an approach with energy control \cite{seman2013swinging}. Therefore, the sum of 
+kinetic and potential energy of the pendulum is used to model which amount of 
+energy should be added. The energy of the pendulum can be described by 
+\[E = \frac{1}{2}J_p\theta^2+m_pgl_p(\cos \theta -1)\] which was already done 
+by \citeauthor{aastrom2000swinging} for the normal pendulum.
+The selection of the state without energy can be made differently, logically it 
+is the upright state because there is no further need to add energy 
+\cite{seman2013swinging}. There are two different directions in which the 
+energy can be supplied either the pendulum seems to be "pulled" or "pushed". To 
+define this, $\text{sign}(\dot{\theta}\cos\theta)$ the velocity helps to find 
+out whether the pendulum starts to swing in the opposite direction, the $\cos 
+\theta$ defines if the pendulum is in the left or in the right half 
+\cite{awtar2002inverted}. The magnitude of energy which should be provided is 
+selected by an aggressivity factor and the difference of actual and desired 
+system energy $k_a(E-E_0)$. Often there is also a saturation function which 
+limits the signal to the maximum acceleration of the pendulum. The whole 
+swing-up controller is then implemented by 
+\begin{align*}
+u = sat(k_a(E-E_0))\text{sign}(\dot{\theta}\cos\theta)
+\end{align*}
+\subsection{Stabilization}
 
 \section{Reinforcement Learning on the Furuta Pendulum}
 In reinforcement learning the furuta pendulum has only a very small influence 
