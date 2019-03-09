@@ -196,12 +196,15 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
                         action = env.action_space.sample()
                 else:
                     action = actor_local(state).cpu().data.numpy() * env_specs[3]
+
             actor_local.train()
             if add_noise:
                 action += noise.sample()
             # Clip actions to action bounds (low, high)
+            # TODO: Clipping action after applying noise problematic?
+            # https: // www.reddit.com / r / reinforcementlearning / comments / 8hgdad / ideas_for_exploration_noise_other_than_ornstein /
             action = np.clip(action, env_specs[2], env_specs[3])
-
+            # print(action)
             # Perform the action
             next_state, reward, done, _ = env.step(action)
             episode_rewards.append(reward)
@@ -300,6 +303,7 @@ def main():
 
     global env
     env = gym.make('Qube-v0')
+    # env = gym.make('CartpoleSwingShort-v0')
     # env = gym.make('Pendulum-v0')
     # env = gym.make('BallBalancerSim-v0')
     print(env.spec.id)
@@ -307,6 +311,7 @@ def main():
                                                            env.observation_space.high))
     print("Action Space:\tShape:{}\tLow:{}\tHigh:{}".format(np.shape(env.action_space.sample()), env.action_space.low,
                                                             env.action_space.high))
+    print("Reward Range:{}".format(env.reward_range))
     env_observation_size = len(env.reset())
     env_action_size = len(env.action_space.sample())
     env_action_low = env.action_space.low
@@ -317,16 +322,16 @@ def main():
     env.seed(3)
 
     # Noise generating process
-    OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.45, sigma=2.2)
+    OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.15, sigma=0.4)
 
-    GAUSS_NOISE = Gaussian(size=env_action_size, seed=random_seed, mu=0.0, sigma=5.0, decay=0.5)
+    GAUSS_NOISE = Gaussian(size=env_action_size, seed=random_seed, mu=0.0, sigma=1.0, decay=0.0)
 
     # Replay memory
-    MEMORY = ReplayBuffer(action_size=env_specs[1], buffer_size=int(1e6), batch_size=512,
+    MEMORY = ReplayBuffer(action_size=env_specs[1], buffer_size=int(1e6), batch_size=128,
                           seed=random_seed)
 
     # Run training procedure with defined hyperparameters
-    ACTOR = training(epochs=10000, max_steps=10000, epoch_checkpoint=500, noise=OU_NOISE, epsilon=None,
+    ACTOR = training(epochs=5000, max_steps=10000, epoch_checkpoint=100, noise=GAUSS_NOISE, epsilon=None,
                      epsilon_decrease=None, add_noise=True, lr_actor=1e-4, lr_critic=1e-3, weight_decay=0,
                      gamma=0.99, memory=MEMORY, tau=1e-3, seed=random_seed, save_flag=True, load_flag=False,
                      load_path='actor22-1-18', render=True)

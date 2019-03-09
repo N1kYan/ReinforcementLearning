@@ -17,10 +17,11 @@ class Gaussian:
         :param decay: Decay rate of variance sigma
         :param sigma: Variance / diffusion for OU process
         """
-        self.size =size
+        self.size = size
         self.mu = mu * np.ones(size)
         self.decay = decay
         self.sigma = sigma
+        self.theta = "Gaussian"
         self.covariance_matrix = np.eye(size) * sigma
         self.sigma_start = sigma
         self.seed = random.seed(seed)
@@ -39,7 +40,7 @@ class Gaussian:
         :return: Action noise sample
         """
         action_noise = np.random.multivariate_normal(mean=self.mu, cov=self.covariance_matrix, size=self.size)
-        self.sigma = self.sigma * (1-self.decay**10)
+        # self.sigma = self.sigma * (1-self.decay**10)
         self.covariance_matrix = self.sigma * np.eye(self.size)
         return action_noise[0]
 
