@@ -85,9 +85,15 @@ class MyEnvironment(gym.Space):
         print("\taction space low : {}".format(self.action_space_low))
         print("\tAction space: {}".format(self.action_space.tolist()))
 
-
     def step(self, action):
-        return self.env.step(action)
+        # Take the action in the environment
+        # Try/Except: Some env need action in an array
+        try:
+            observation, reward, done, info = self.env.step(action)
+        except AssertionError:
+            action = np.array([action])
+            observation, reward, done, info = self.env.step(action)
+        return observation, reward, done, info
 
     def sample_env_action(self):
         return self.env.action_space.sample()

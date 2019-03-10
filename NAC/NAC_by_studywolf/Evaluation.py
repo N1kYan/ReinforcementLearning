@@ -7,139 +7,105 @@ import sys
 import matplotlib.pyplot as plt
 import os
 import datetime
+from NAC_by_studywolf.actor_network import Actor
 
 
-def evaluate(env, sess, policy_grad, episodes=25):
+def evaluate(env, sess, actor, episodes=25):
     """
     Evaluates the learned agent on a given instance of MyEnvironment class.
-    Then runs plot_save.
+    Evaluation is done by calculating cumulative reward of each episode and
+    the average reward in each episode. We plot both and save it.
+
     :param env: MyEnvironment instance; The environment the agent is evaluated on
     :param sess: Tensorflow session
-    :param policy_grad: TODO
-    :param render: Set true to render each episode of evaluation
+    :param actor: The actor (policy network) used for generating actions
     :param episodes: Number of episodes used for evaluation
     :return: None
     """
+
     time_steps = 10000
 
     print("\nEVALUATION: {} episodes with {} time steps each (or until 'done')"
           .format(episodes, time_steps))
 
-    # Unpack the policy network (generates control policy)
-    (pl_state, pl_actions, pl_advantages,
-        pl_calculated, pl_optimizer) = policy_grad
-
     cumulative_episode_reward = []
     average_episode_reward = []
+    trajectory_lengths = []
 
     for e in range(episodes):
-        print("Episode {} ... ".format(e), end='')
-        sys.stdout.flush()
+
         done = False
         observation = env.reset()
+
         undiscounted_return = 0
         rewards = []
+
         for t in range(time_steps):
-            # Render environment
-            if render:
-                env.render()
-                time.sleep(0.1)
 
             if done:
-                print("Episode ended after {} time steps!".format(t))
+                trajectory_lengths.append(t)
                 cumulative_episode_reward.append(undiscounted_return)
                 average_episode_reward.append(np.mean(rewards))
                 break
 
-            obs_vector = np.expand_dims(observation, axis=0)
-            probs = sess.run(
-                pl_calculated,
-                feed_dict={pl_state: obs_vector})
-
-            # Check which action to take
-            # stochastically generate action using the policy output
-            probs_sum = 0
-            action_i = None
-            rnd = random.uniform(0, 1)
-            for k in range(len(env.action_space)):
-                probs_sum += probs[0][k]
-                if rnd < probs_sum:
-                    action_i = k
-                    break
-                elif k == (len(env.action_space) - 1):
-                    action_i = k
-                    break
-
-            # Get the action (not only the index)
-            # and take the action in the environment
-            # Try/Except: Some env need action in an array
-            action = env.action_space[action_i]
-            try:
-                observation, reward, done, info = env.step(action)
-            except AssertionError:
-                action = np.array([action])
-                observation, reward, done, info = env.step(action)
+            action = actor.get_action(sess, observation)
+            observation, reward, done, _ = env.step(action)
 
             undiscounted_return += reward
             rewards.append(reward)
 
-    plot_save(env, cumulative_episode_reward, average_episode_reward, True)
+    print("Average trajectory length:", np.mean(trajectory_lengths))
+    print("Average episode reward:", np.mean(average_episode_reward))
+    print("Average cumulative episode reward:",
+          np.mean(cumulative_episode_reward))
+
+    plot_save_rewards(env, cumulative_episode_reward, average_episode_reward)
 
 
-def plot_save(env, cumulative_episode_reward, average_episode_reward,
-              save_flag=True):
+def plot_save_rewards(env, cumulative_episode_reward, average_episode_reward):
     """
-    Plot or save results of evaluation.
+    Plot and save results of evaluation.
+
     :param env: Instance of MyEnvironment class; used to name the folder for saving plots
     :param cumulative_episode_reward: 2D-array, containing all episodes and the cumulative reward per step per episode
     :param average_episode_reward: 2D-array, episode x average reward per step per episode
-    :param save_flag: Set true to save plots instead of showing them instantly
     :return: None
     """
 
-    # Plot/Save average reward per episode
+    # Plot & save average reward per episode
     plt.figure()
     plt.title("Average reward per episode")
     plt.xlabel("Episode")
     plt.ylabel("Average reward")
     plt.plot(average_episode_reward)
-    if save_flag:
-        plt.savefig("{}/avg_reward.png".format(env.save_folder))
-        plt.close()
+    plt.savefig("{}/avg_reward.png".format(env.save_folder))
+    plt.close()
 
-    # Plot/Save cumulative reward per episode
+    # Plot & save cumulative reward per episode
     plt.figure()
     plt.title("Cumulative reward per episode")
     plt.xlabel("Episode")
     plt.ylabel("Cumulative reward")
     plt.plot(cumulative_episode_reward)
-
-    if save_flag:
-        plt.savefig("{}/cum_reward.png".format(env.save_folder))
-        plt.close()
-    else:
-        plt.show()
+    plt.savefig("{}/cum_reward.png".format(env.save_folder))
+    plt.close()
 
 
-def render(env, sess, policy_grad, episodes=10):
+def render(env, sess, actor, episodes=10):
     """
     Renders the learned agent on a given instance of MyEnvironment class.
 
     :param env: MyEnvironment instance, on which the agent is evaluated on
     :param sess: Tensorflow session
-    :param policy_grad: The policy network used for generating actions
+    :param actor: The actor (policy network) used for generating actions
     :param episodes: Number of episodes used for rendering
-    :return: True if finished without errors
+    :return: None
     """
 
     time_steps = 10000
 
     print("\nRENDER: {} episodes with {} time steps each (or until 'done')"
           .format(episodes, time_steps))
-
-    # Unpack the policy network
-    (pl_state, pl_actions, pl_advantages,
-        pl_calculated, pl_optimizer) = policy_grad
 
     for e in range(episodes):
 
@@ -160,33 +126,5 @@ def render(env, sess, policy_grad, episodes=10):
                 print("Episode ended after {} time steps!".format(t))
                 break
 
-            # Get probabilites of actions to take
-            obs_vector = np.expand_dims(observation, axis=0)
-            probs = sess.run(
-                pl_calculated,
-                feed_dict={pl_state: obs_vector})
-
-            # Stochastically generate an action using the policy output probs
-            probs_sum = 0
-            action_i = None
-            rnd = random.uniform(0, 1)
-            for k in range(len(env.action_space)):
-                probs_sum += probs[0][k]
-                if rnd < probs_sum:
-                    action_i = k
-                    break
-                elif k == (len(env.action_space) - 1):
-                    action_i = k
-                    break
-
-            # Get the action (not only the index)
-            # and take the action in the environment
-            # Try/Except: Some env need action in an array
-            action = env.action_space[action_i]
-            try:
-                observation, reward, done, info = env.step(action)
-            except AssertionError:
-                action = np.array([action])
-                observation, reward, done, info = env.step(action)
-
-    return True
+            action = actor.get_action(sess, observation)
+            observation, _, done, _ = env.step(action)

@@ -41,7 +41,7 @@ import quanser_robots
 
 from NAC_by_studywolf.my_environment import MyEnvironment
 from NAC_by_studywolf.critic_network import value_gradient
-from NAC_by_studywolf.actor_network import policy_gradient
+from NAC_by_studywolf.actor_network import Actor
 from NAC_by_studywolf.natural_policy_gradient import run_batch
 from NAC_by_studywolf import Evaluation
 
@@ -73,16 +73,16 @@ CONTINUOUS = False
 COMPLEX_POLICY_NET = False
 
 # Select Environment
-ENVIRONMENT = 2
+ENVIRONMENT = 1
 
 """
     0: Name of the Gym/Quanser environment.
     1: If the environment is descrete or continuous.
     2: Chose the discretization of continuous environments (discrete = 0).
        Only important, if CONTINUOUS = False.
-    3: How much steps should the agent perform before updating parameters.
-       If the trajectory ends before that (done == True), a new trajectory
-       is started.
+    3: Batch size. How much steps should the agent perform before updating 
+       parameters. If the trajectory ends before that (done == True), a new 
+       trajectory is started.
     4: How many updates (of parameters) do we want.
     5: Discount factor for expected monte carlo return.
 """
@@ -90,8 +90,7 @@ ENVIRONMENT = 2
 env_dict = {1: ['CartPole-v0',          'discrete',     0, 200, 300, 0.97],
 
             2: ['DoublePendulum-v0',    'continuous',   9, 2000, 300, 0.97],
-                # Divergiert ca nach 150 batches
-                # Divergiert nicht mehr bei 2000 nodes
+                # Does not diverge with batch size of 2000
 
             3: ['Qube-v0',              'continuous',   3, 200, 300, 0.97],
             4: ['BallBalancerSim-v0',   'continuous',   3, 200, 300, 0.97],
@@ -121,7 +120,7 @@ for run in range(1):
 
     print("Generating Neural Networks ... ", end="")
     sys.stdout.flush()
-    policy_grad = policy_gradient(env, sess, CONTINUOUS, COMPLEX_POLICY_NET)
+    actor = Actor(env, CONTINUOUS, COMPLEX_POLICY_NET)
     value_grad = value_gradient(env)
     print("Done!")
 
@@ -138,17 +137,16 @@ for run in range(1):
 
         # Act in the env and update weights after collecting data
         reward, n_episodes = \
-            run_batch(env, policy_grad, value_grad, sess, u, CONTINUOUS)
+            run_batch(env, actor, value_grad, sess, u, CONTINUOUS) # TODO
 
         max_rewards.append(np.max(reward))
         total_episodes.append(n_episodes)
         times.append(time.time() - start_time)
     print('Average time: %.3f' % (np.sum(times) / num_of_updates))
 
-    # Evaluate the result (& eventually render)
-    Evaluation.evaluate(env, sess, policy_grad)
+    Evaluation.evaluate(env, sess, actor)
 
     if RENDER:
-        Evaluation.render(env, sess, policy_grad)
+        Evaluation.render(env, sess, actor)
 
     sess.close()

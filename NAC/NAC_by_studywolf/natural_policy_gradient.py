@@ -5,7 +5,7 @@ import quanser_robots
 import warnings
 
 
-def run_batch(env, policy_grad, value_grad, sess, num_traj,
+def run_batch(env, actor, value_grad, sess, num_traj,
               continuous=False, printing=False):
     """
     TODO
@@ -21,7 +21,7 @@ def run_batch(env, policy_grad, value_grad, sess, num_traj,
 
     # Unpack the policy network (generates control policy)
     (pl_state, pl_actions, pl_advantages,
-        pl_probabilities, pl_train_vars) = policy_grad
+        pl_probabilities, pl_train_vars) = actor.get_net_variables()
 
     # Unpack the value network (estimates expected reward)
     (vfa_state_input, vfa_true_vf_input,

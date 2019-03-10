@@ -4,10 +4,50 @@ import gym
 import quanser_robots
 import numpy as np
 import sys
+import random
 
 
-def policy_gradient(env, sess, continuous=False, complex_policy=True,
-                    PRINTING=False, hidden_layer_size=100):
+class Actor:
+    def __init__(self, env, continuous=False, complex_policy=True,
+                    hidden_layer_size=100, printing=False):
+
+        self.env = env
+        self.pl_state_input, self.pl_actions_input, self.pl_advantages_input, \
+            self.pl_probabilities, self.pl_train_vars \
+            = create_policy_net(env, continuous, complex_policy,
+                                hidden_layer_size, printing)
+
+    def get_action(self, sess, observation):
+
+        # Get probabilites of actions to take
+        obs_vector = np.expand_dims(observation, axis=0)
+        probs = sess.run(
+            self.pl_probabilities,
+            feed_dict={self.pl_state_input: obs_vector})
+
+        # Stochastically generate an action using the policy output probs
+        probs_sum = 0
+        action_i = None
+        rnd = random.uniform(0, 1)
+        for k in range(len(self.env.action_space)):
+            probs_sum += probs[0][k]
+            if rnd < probs_sum:
+                action_i = k
+                break
+            elif k == (len(self.env.action_space) - 1):
+                action_i = k
+                break
+
+        return self.env.action_space[action_i]
+
+    def get_net_variables(self):
+        return self.pl_state_input, self.pl_actions_input, \
+               self.pl_advantages_input, self.pl_probabilities, \
+               self.pl_train_vars
+
+
+def create_policy_net(env, continuous=False, complex_policy=True,
+                      hidden_layer_size=100, printing=False):
     """
     Neural Network to approximate our policy.
 
@@ -110,9 +150,9 @@ def policy_gradient(env, sess, continuous=False, complex_policy=True,
             #
             # weight_dims = [(4, 10), (10,), (10, 2), (2,)]
 
-            print("\nWEIGHT INDICES:", weight_indices) if PRINTING else ...
-            print("WEIGHT SIZES:", weight_sizes) if PRINTING else ...
-            print("WEIGHT DIMS:", weight_dims) if PRINTING else ...
+            print("\nWEIGHT INDICES:", weight_indices) if printing else ...
+            print("WEIGHT SIZES:", weight_sizes) if printing else ...
+            print("WEIGHT DIMS:", weight_dims) if printing else ...
 
         else:
             pl_weights = tf.get_variable("pl_weights", [state_dim, action_dim])
@@ -152,7 +192,7 @@ def policy_gradient(env, sess, continuous=False, complex_policy=True,
         # Returns a list which only contains pl_weights, as it is our only
         # trainable variable: [tf.Variable with shape =(4, 2)]
         pl_train_vars = tf.trainable_variables()
-        print("\nSHAPE A:", pl_train_vars) if PRINTING else ...
+        print("\nSHAPE A:", pl_train_vars) if printing else ...
 
         # ------------------------ π(a|s) -------------------------- #
         if continuous:
@@ -169,7 +209,7 @@ def policy_gradient(env, sess, continuous=False, complex_policy=True,
             # one probability number.
             # Results in shape (200, 2)
             action_prob = tf.multiply(pl_probabilities, pl_actions_input)
-            print("SHAPE B:", action_prob.shape) if PRINTING else ...
+            print("SHAPE B:", action_prob.shape) if printing else ...
 
             # Now we sum up each row  to get rid of the 0s.
             # This means we end up with a tensor which  has just 1 dimension with
@@ -177,12 +217,12 @@ def policy_gradient(env, sess, continuous=False, complex_policy=True,
             # have the probability of the action, that we took.
             # Results in shape (200,)
             action_prob = tf.reduce_sum(action_prob, axis=[1])
-            print("SHAPE C:", action_prob.shape) if PRINTING else ...
+            print("SHAPE C:", action_prob.shape) if printing else ...
 
         # ----------------------- log(π(a|s)) ----------------------- #
 
         action_log_prob = tf.log(action_prob)
-        print("SHAPE D:", action_log_prob.shape) if PRINTING else ...
+        print("SHAPE D:", action_log_prob.shape) if printing else ...
 
         # ------------------- ∇_θ log(π(a|s)) ----------------------- #
         # Calculate the gradient of the log probability at each point in time
@@ -202,16 +242,16 @@ def policy_gradient(env, sess, continuous=False, complex_policy=True,
         if complex_policy:
             g_log_prob = [tf.gradients(action_log_prob_flat[i], pl_train_vars)
                         for i in range(num_of_steps)]
-            print("SHAPE E:", g_log_prob) if PRINTING else ...
+            print("SHAPE E:", g_log_prob) if printing else ...
 
             g_log_prob = [[tf.reshape(y, [-1, 1]) for y in x] for x in g_log_prob]
-            print("SHAPE F:", g_log_prob) if PRINTING else ...
+            print("SHAPE F:", g_log_prob) if printing else ...
 
             g_log_prob = [tf.concat(x, 0) for x in g_log_prob]
-            print("SHAPE G:", g_log_prob) if PRINTING else ...
+            print("SHAPE G:", g_log_prob) if printing else ...
 
             g_log_prob = tf.stack(g_log_prob)
-            print("SHAPE H:", g_log_prob.shape) if PRINTING else ...
+            print("SHAPE H:", g_log_prob.shape) if printing else ...
 
 
         else:
@@ -241,13 +281,13 @@ def policy_gradient(env, sess, continuous=False, complex_policy=True,
         # derivative which we have calculated for that time step.
         # Results in shape (200, 8, 1)
         grad_j = tf.multiply(g_log_prob, adv_reshaped)
-        print("SHAPE I:", grad_j.shape) if PRINTING else ...
+        print("SHAPE I:", grad_j.shape) if printing else ...
 
         # Get the mean (sum over time and divide by 1/time steps) to get the
         # expectation E. Results in shape (8, 1).
         grad_j = tf.reduce_sum(grad_j, reduction_indices=[0])
         grad_j = 1.00 / env.time_steps * grad_j
-        print("SHAPE J:", grad_j.shape) if PRINTING else ...
+        print("SHAPE J:", grad_j.shape) if printing else ...
 
         # --------------- Fischer Information Matrix --------------- #
 
@@ -256,13 +296,13 @@ def policy_gradient(env, sess, continuous=False, complex_policy=True,
         # Results in shape (200, 8, 8)
         x_times_xT_fct = lambda x: tf.matmul(x, tf.transpose(x))
         fisher = tf.map_fn(x_times_xT_fct, g_log_prob)
-        print("SHAPE K:", fisher.shape) if PRINTING else ...
+        print("SHAPE K:", fisher.shape) if printing else ...
 
         # Get the mean (sum over time and divide by 1/time steps) to get the
         # expectation E. Results in shape (8, 8).
         fisher = tf.reduce_sum(fisher, reduction_indices=[0])
         fisher = 1.0 / env.time_steps * fisher
-        print("SHAPE L:", fisher.shape) if PRINTING else ...
+        print("SHAPE L:", fisher.shape) if printing else ...
 
 
         # Result: fisher = E[∇_θ log(π(a|s)) ∇_θ log(π(a|s))^T]
@@ -290,7 +330,7 @@ def policy_gradient(env, sess, continuous=False, complex_policy=True,
 
         # Calculate natural policy gradient ascent update
         fisher_inv_grad_j = tf.matmul(fisher_inv, grad_j)
-        print("SHAPE M:", fisher_inv_grad_j.shape) if PRINTING else ...
+        print("SHAPE M:", fisher_inv_grad_j.shape) if printing else ...
 
         # TODO: How does learning rate changes change the output?
         # Calculate a learning rate normalized such that a constant change
@@ -312,13 +352,13 @@ def policy_gradient(env, sess, continuous=False, complex_policy=True,
                 w_dim = weight_dims[ind]
 
                 print("({}) WEIGHT Index: {}, Size: {}, Dims: {}:"
-                      .format(ind, w_ind, w_siz, w_dim)) if PRINTING else ...
+                      .format(ind, w_ind, w_siz, w_dim)) if printing else ...
 
                 update_tensor = tf.slice(pl_update, w_ind, w_siz)
-                print("SHAPE N:", update_tensor.shape) if PRINTING else ...
+                print("SHAPE N:", update_tensor.shape) if printing else ...
 
                 update_tensor = tf.reshape(update_tensor, w_dim)
-                print("SHAPE O:", update_tensor.shape) if PRINTING else ...
+                print("SHAPE O:", update_tensor.shape) if printing else ...
 
                 pl_train_vars[ind] = tf.assign_add(pl_train_vars[ind], update_tensor)
 
