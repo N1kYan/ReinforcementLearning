@@ -40,10 +40,10 @@ import gym
 import quanser_robots
 
 from NAC_by_studywolf.my_environment import MyEnvironment
-from NAC_by_studywolf.critic_network import value_gradient
-from NAC_by_studywolf.actor_network import Actor
-from NAC_by_studywolf.natural_policy_gradient import run_batch
-from NAC_by_studywolf import Evaluation
+from NAC_by_studywolf.critic import value_gradient
+from NAC_by_studywolf.actor import Actor
+from NAC_by_studywolf.nac import run_batch
+from NAC_by_studywolf import evaluation
 
 # ----------------------------- GOALS ------------------------------------- #
 
@@ -144,9 +144,9 @@ for run in range(1):
         times.append(time.time() - start_time)
     print('Average time: %.3f' % (np.sum(times) / num_of_updates))
 
-    Evaluation.evaluate(env, sess, actor)
+    evaluation.evaluate(env, sess, actor)
 
     if RENDER:
-        Evaluation.render(env, sess, actor)
+        evaluation.render(env, sess, actor)
 
     sess.close()

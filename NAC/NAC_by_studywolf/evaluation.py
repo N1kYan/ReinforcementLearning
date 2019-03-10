@@ -7,7 +7,7 @@ import sys
 import matplotlib.pyplot as plt
 import os
 import datetime
-from NAC_by_studywolf.actor_network import Actor
+from NAC_by_studywolf.actor import Actor
 
 
 def evaluate(env, sess, actor, episodes=25):
@@ -48,7 +48,7 @@ def evaluate(env, sess, actor, episodes=25):
                 average_episode_reward.append(np.mean(rewards))
                 break
 
-            action = actor.get_action(sess, observation)
+            action, _ = actor.get_action(sess, observation)
             observation, reward, done, _ = env.step(action)
 
             undiscounted_return += reward
@@ -119,12 +119,12 @@ def render(env, sess, actor, episodes=10):
 
             # Render environment
             env.render()
-            time.sleep(0.1)
+            time.sleep(0.01)
 
             # Break loop, if episode has finished
             if done:
                 print("Episode ended after {} time steps!".format(t))
                 break
 
-            action = actor.get_action(sess, observation)
+            action, _ = actor.get_action(sess, observation)
             observation, _, done, _ = env.step(action)

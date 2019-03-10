@@ -1,6 +1,8 @@
 import tensorflow as tf
 
 
+
+
 def value_gradient(env, adam_learn_rate=0.1):
     """
     Function approximation of the value function for states in our environment.

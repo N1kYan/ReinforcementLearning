@@ -17,6 +17,12 @@ class Actor:
             = create_policy_net(env, continuous, complex_policy,
                                 hidden_layer_size, printing)
 
+    def update(self, sess, batch_states, batch_actions, batch_advantages):
+        sess.run(self.pl_train_vars,
+                 feed_dict={self.pl_state_input: batch_states,
+                            self.pl_actions_input: batch_actions,
+                            self.pl_advantages_input: batch_advantages})
+
     def get_action(self, sess, observation):
 
         # Get probabilites of actions to take
@@ -27,7 +33,7 @@ class Actor:
 
         # Stochastically generate an action using the policy output probs
         probs_sum = 0
-        action_i = None
+        action_i = None  # Action index
         rnd = random.uniform(0, 1)
         for k in range(len(self.env.action_space)):
             probs_sum += probs[0][k]
@@ -38,12 +44,24 @@ class Actor:
                 action_i = k
                 break
 
-        return self.env.action_space[action_i]
+        return self.env.action_space[action_i], action_i
 
     def get_net_variables(self):
+        """
+        This method returns the variables of our policy network. This method
+        shall be used for development purposes only. If development has
+        finished, a new method imbedding the desired functionality shall be
+        created.
+
+        :return: placeholder state variable,
+            placeholder action variable,
+            placeholder advantages variable,
+            network output variable (= probabilites of actions),
+            trainable weights variable
+        """
         return self.pl_state_input, self.pl_actions_input, \
-               self.pl_advantages_input, self.pl_probabilities, \
-               self.pl_train_vars
+            self.pl_advantages_input, self.pl_probabilities, \
+            self.pl_train_vars
 
 
 def create_policy_net(env, continuous=False, complex_policy=True,

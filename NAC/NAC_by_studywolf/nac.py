@@ -72,25 +72,7 @@ def run_batch(env, actor, value_grad, sess, num_traj,
             batch_actions.append(action)
 
         else:
-            probs = sess.run(
-                pl_probabilities,
-                feed_dict={pl_state: obs_vector})
-
-            print(", PROBS:", probs, end='') if printing else ...
-
-            # Check which action to take
-            # stochastically generate action using the policy output
-            probs_sum = 0
-            action_i = None
-            rnd = random.uniform(0, 1)
-            for k in range(len(env.action_space)):
-                probs_sum += probs[0][k]
-                if rnd < probs_sum:
-                    action_i = k
-                    break
-                elif k == (len(env.action_space) - 1):
-                    action_i = k
-                    break
+            action, action_i = actor.get_action(sess, observation)
 
             # Make one-hot action array
             action_array = np.zeros(len(env.action_space))
@@ -98,25 +80,13 @@ def run_batch(env, actor, value_grad, sess, num_traj,
             batch_actions.append(action_array)
             print(", ACTION ARRAY: ", action_array, end='') if printing else ...
 
-            # Get the action (not only the index)
-            # and take the action in the environment
-            # Try/Except: Some env need action in an array
-            action = env.action_space[action_i]  # TODO: if action not 1D
+        print(", ACTION:", action, end='') if printing else ...
 
-        print(", ACTION-1:", action, end='') if printing else ...
-
-        # record the transition
+        # Record transition
         batch_states.append(observation)
         old_observation = observation
 
-        try:
-            observation, reward, done, info = env.step(action)
-        except AssertionError:
-            action = np.array([action])
-            observation, reward, done, info = env.step(action)
-
-        print(", ACTION-2: ", action) if printing else ...
-
+        observation, reward, done, info = env.step(action)
         traj_transitions.append((old_observation, action, reward))
         traj_reward += reward
 
@@ -185,9 +155,6 @@ def run_batch(env, actor, value_grad, sess, num_traj,
           np.asarray(batch_advantages).shape,
           np.asarray(batch_actions).shape) if printing else ...
 
-    sess.run(pl_train_vars,
-             feed_dict={pl_state: batch_states,
-                        pl_advantages: batch_advantages,
-                        pl_actions: batch_actions})
+    actor.update(sess, batch_states, batch_actions, batch_advantages)
 
     return batch_traj_rewards, n_trajectories
