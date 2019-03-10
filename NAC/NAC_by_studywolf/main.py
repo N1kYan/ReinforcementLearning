@@ -57,25 +57,29 @@ from NAC_by_studywolf import Evaluation
 # TODO: Print Results to a file including parameters
 # TODO: Continuous actions
 # TODO: Improvements: https://github.com/rgilman33/simple-A2C/blob/master/3_A2C-nstep-TUTORIAL.ipynb
+# TODO: Some paper said, not taking batches, where we only had 1 episode because
+#   it does not yield any improvements to update the weights of perffect episodes.
 
 # ---------------------- VARIABLES & CONSTANTS ------------------------------ #
 # Select Rendering
 RENDER = True
 
-# Select debugging console printing
-PRINTING = False
-
 # Select how we treat actions
 # IMPORTANT: Only False works yet
 CONTINUOUS = False
 
+# Select complexity of policy network
+# IMPORTANT: Only False works yet
+COMPLEX_POLICY_NET = False
+
 # Select Environment
-ENVIRONMENT = 1
+ENVIRONMENT = 2
 
 """
     0: Name of the Gym/Quanser environment.
     1: If the environment is descrete or continuous.
     2: Chose the discretization of continuous environments (discrete = 0).
+       Only important, if CONTINUOUS = False.
     3: How much steps should the agent perform before updating parameters.
        If the trajectory ends before that (done == True), a new trajectory
        is started.
@@ -84,7 +88,11 @@ ENVIRONMENT = 1
 """
 
 env_dict = {1: ['CartPole-v0',          'discrete',     0, 200, 300, 0.97],
-            2: ['DoublePendulum-v0',    'continuous',   5, 200, 300, 0.97],
+
+            2: ['DoublePendulum-v0',    'continuous',   9, 2000, 300, 0.97],
+                # Divergiert ca nach 150 batches
+                # Divergiert nicht mehr bei 2000 nodes
+
             3: ['Qube-v0',              'continuous',   3, 200, 300, 0.97],
             4: ['BallBalancerSim-v0',   'continuous',   3, 200, 300, 0.97],
             5: ['Levitation-v1',        'continuous',   5, 200, 300, 0.97],
@@ -99,13 +107,8 @@ env_details = env_dict[ENVIRONMENT]
 print("Generating {} environment:".format(env_details[0]))
 env = MyEnvironment(env_details=env_details)
 
-# ----------------------- GENERATE NETWORKS --------------------------------- #
 
-print("Generating Neural Networks ... ", end="")
-sys.stdout.flush()
-policy_grad = policy_gradient(env, CONTINUOUS)
-value_grad = value_gradient(env)
-print("Done!")
+
 
 # ----------------------- TRAINING NETWORKS --------------------------------- #
 # We run the same algorithm 10 times and save the results
@@ -113,6 +116,15 @@ for run in range(1):
 
     # Initialize the session
     sess = tf.InteractiveSession()
+
+    # ----------------------- GENERATE NETWORKS ----------------------------- #
+
+    print("Generating Neural Networks ... ", end="")
+    sys.stdout.flush()
+    policy_grad = policy_gradient(env, sess, CONTINUOUS, COMPLEX_POLICY_NET)
+    value_grad = value_gradient(env)
+    print("Done!")
+
     sess.run(tf.global_variables_initializer())
 
     max_rewards = []
@@ -126,8 +138,7 @@ for run in range(1):
 
         # Act in the env and update weights after collecting data
         reward, n_episodes = \
-            run_batch(env, policy_grad, value_grad, sess, u,
-                      PRINTING, CONTINUOUS)
+            run_batch(env, policy_grad, value_grad, sess, u, CONTINUOUS)
 
         max_rewards.append(np.max(reward))
         total_episodes.append(n_episodes)
@@ -135,6 +146,9 @@ for run in range(1):
     print('Average time: %.3f' % (np.sum(times) / num_of_updates))
 
     # Evaluate the result (& eventually render)
-    Evaluation.evaluate(env, sess, policy_grad, RENDER)
+    Evaluation.evaluate(env, sess, policy_grad)
+
+    if RENDER:
+        Evaluation.render(env, sess, policy_grad)
 
     sess.close()

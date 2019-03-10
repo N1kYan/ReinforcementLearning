@@ -9,7 +9,7 @@ import os
 import datetime
 
 
-def evaluate(env, sess, policy_grad, render=False, episodes=25):
+def evaluate(env, sess, policy_grad, episodes=25):
     """
     Evaluates the learned agent on a given instance of MyEnvironment class.
     Then runs plot_save.
@@ -119,3 +119,74 @@ def plot_save(env, cumulative_episode_reward, average_episode_reward,
         plt.close()
     else:
         plt.show()
+
+
+def render(env, sess, policy_grad, episodes=10):
+    """
+    Renders the learned agent on a given instance of MyEnvironment class.
+
+    :param env: MyEnvironment instance, on which the agent is evaluated on
+    :param sess: Tensorflow session
+    :param policy_grad: The policy network used for generating actions
+    :param episodes: Number of episodes used for rendering
+    :return: True if finished without errors
+    """
+
+    time_steps = 10000
+
+    print("\nRENDER: {} episodes with {} time steps each (or until 'done')"
+          .format(episodes, time_steps))
+
+    # Unpack the policy network
+    (pl_state, pl_actions, pl_advantages,
+        pl_calculated, pl_optimizer) = policy_grad
+
+    for e in range(episodes):
+
+        print("Episode {} ... ".format(e), end='')
+        sys.stdout.flush()
+
+        done = False
+        observation = env.reset()
+
+        for t in range(time_steps):
+
+            # Render environment
+            env.render()
+            time.sleep(0.1)
+
+            # Break loop, if episode has finished
+            if done:
+                print("Episode ended after {} time steps!".format(t))
+                break
+
+            # Get probabilites of actions to take
+            obs_vector = np.expand_dims(observation, axis=0)
+            probs = sess.run(
+                pl_calculated,
+                feed_dict={pl_state: obs_vector})
+
+            # Stochastically generate an action using the policy output probs
+            probs_sum = 0
+            action_i = None
+            rnd = random.uniform(0, 1)
+            for k in range(len(env.action_space)):
+                probs_sum += probs[0][k]
+                if rnd < probs_sum:
+                    action_i = k
+                    break
+                elif k == (len(env.action_space) - 1):
+                    action_i = k
+                    break
+
+            # Get the action (not only the index)
+            # and take the action in the environment
+            # Try/Except: Some env need action in an array
+            action = env.action_space[action_i]
+            try:
+                observation, reward, done, info = env.step(action)
+            except AssertionError:
+                action = np.array([action])
+                observation, reward, done, info = env.step(action)
+
+    return True

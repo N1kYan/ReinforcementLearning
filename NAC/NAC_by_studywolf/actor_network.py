@@ -6,7 +6,8 @@ import numpy as np
 import sys
 
 
-def policy_gradient(env, continuous=False):
+def policy_gradient(env, sess, continuous=False, complex_policy=True,
+                    PRINTING=False, hidden_layer_size=100):
     """
     Neural Network to approximate our policy.
 
@@ -45,6 +46,7 @@ def policy_gradient(env, continuous=False):
             action_dim = env.action_dimensions
         else:
             action_dim = len(env.action_space)
+
         act_state_dim = state_dim * action_dim
 
         # -------------------- Input Variables -------------------- #
@@ -78,37 +80,79 @@ def policy_gradient(env, continuous=False):
 
         # ------------------------ Weights ------------------------ #
 
-        pl_weights = tf.get_variable("pl_weights", [state_dim, action_dim])
+        if complex_policy:
+
+            # Input layer, hidden dense layer (size 10), bias b1 & ReLu activation
+            w1 = tf.get_variable("pl_w1", [state_dim, hidden_layer_size])
+            b1 = tf.get_variable("pl_b1", [hidden_layer_size])
+
+            # Output times 2nd weights plus 2nd bias
+            w2 = tf.get_variable("pl_w2", [hidden_layer_size, action_dim])
+            b2 = tf.get_variable("pl_b2", [action_dim])
+
+            # weight_dims = [(state_dim, hidden_layer_size),
+            #                (10,),
+            #                (hidden_layer_size, action_dim),
+            #                (2,)]
+
+            weight_dims = [w1.get_shape().as_list(),
+                           b1.get_shape().as_list(),
+                           w2.get_shape().as_list(),
+                           b2.get_shape().as_list()]
+
+            weight_sizes = [np.prod(x) for x in weight_dims]
+            weight_indices = np.insert(np.cumsum(weight_sizes)[:-1], 0, 0)
+            weight_sizes = [[x, 1] for x in weight_sizes]
+            weight_indices = [[x, 0] for x in weight_indices]
+
+            # weight_indices = [(0, 1), (40, 1), (50, 1), (70, 1)]
+            # weight_sizes = [(40, 1), (10, 1), (20, 1), (2, 1)]
+            #
+            # weight_dims = [(4, 10), (10,), (10, 2), (2,)]
+
+            print("\nWEIGHT INDICES:", weight_indices) if PRINTING else ...
+            print("WEIGHT SIZES:", weight_sizes) if PRINTING else ...
+            print("WEIGHT DIMS:", weight_dims) if PRINTING else ...
+
+        else:
+            pl_weights = tf.get_variable("pl_weights", [state_dim, action_dim])
 
         # ------------------------ Network ------------------------ #
 
-        # This is our network. It is simple, linear
-        # and has just 1 weight tensor.
-        linear = tf.matmul(pl_state_input, pl_weights)
-
-        if continuous:
-            # Tangenz-H: -1 < x 1
-            pl_probabilities = tf.nn.tanh(linear)
-
-            bias = [(env.action_space_high[i] + env.action_space_low[i])
-                    / 2 for i in range(action_dim)]
-
-            # Scale, so it matches the action range
-            # TODO: What if max action = inf
-
-            pl_probabilities = tf.map_fn(
-                lambda x: x - bias * env.action_space_high,
-                pl_probabilities)
+        if complex_policy:
+            h1 = tf.nn.relu(tf.matmul(pl_state_input, w1) + b1)
+            pl_probabilities_t = tf.nn.softmax(tf.matmul(h1, w2) + b2)
+            pl_probabilities = tf.Print(pl_probabilities_t, [pl_probabilities_t, w1, w2])
 
         else:
-            # Softmax function: sum(probabilities) = 1
-            pl_probabilities = tf.nn.softmax(linear)
+            # This is our network. It is simple, linear
+            # and has just 1 weight tensor.
+            linear = tf.matmul(pl_state_input, pl_weights)
+
+            if continuous:
+                # Tangenz-H: -1 < x 1
+                pl_probabilities = tf.nn.tanh(linear)
+
+                bias = [(env.action_space_high[i] + env.action_space_low[i])
+                        / 2 for i in range(action_dim)]
+
+                # Scale, so it matches the action range
+                # TODO: What if max action = inf
+
+                pl_probabilities = tf.map_fn(
+                    lambda x: x - bias * env.action_space_high,
+                    pl_probabilities)
+
+            else:
+                # Softmax function: sum(probabilities) = 1
+                pl_probabilities = tf.nn.softmax(linear)
 
         # ------------------- Trainable Vars ------------------------ #
 
         # Returns a list which only contains pl_weights, as it is our only
         # trainable variable: [tf.Variable with shape =(4, 2)]
         pl_train_vars = tf.trainable_variables()
+        print("\nSHAPE A:", pl_train_vars) if PRINTING else ...
 
         # ------------------------ π(a|s) -------------------------- #
         if continuous:
@@ -125,6 +169,7 @@ def policy_gradient(env, continuous=False):
             # one probability number.
             # Results in shape (200, 2)
             action_prob = tf.multiply(pl_probabilities, pl_actions_input)
+            print("SHAPE B:", action_prob.shape) if PRINTING else ...
 
             # Now we sum up each row  to get rid of the 0s.
             # This means we end up with a tensor which  has just 1 dimension with
@@ -132,10 +177,12 @@ def policy_gradient(env, continuous=False):
             # have the probability of the action, that we took.
             # Results in shape (200,)
             action_prob = tf.reduce_sum(action_prob, axis=[1])
+            print("SHAPE C:", action_prob.shape) if PRINTING else ...
 
         # ----------------------- log(π(a|s)) ----------------------- #
 
         action_log_prob = tf.log(action_prob)
+        print("SHAPE D:", action_log_prob.shape) if PRINTING else ...
 
         # ------------------- ∇_θ log(π(a|s)) ----------------------- #
         # Calculate the gradient of the log probability at each point in time
@@ -147,20 +194,35 @@ def policy_gradient(env, continuous=False):
         # Results in shape (200,)
         action_log_prob_flat = tf.reshape(action_log_prob, (-1,))
 
-        num_of_steps = action_log_prob.get_shape()[0]
-        print(num_of_steps)
 
         # TODO: Do we want to take gradient of scalar and all weights
         # Take the gradient of each action w.r.t. the trainable weights
         # Results in shape (200, 4, 2): List with 200 tensors of shape (4, 2)
-        g_log_prob = [tf.gradients(action_log_prob_flat[i], pl_train_vars)[0]
-                      for i in range(num_of_steps)]
+        num_of_steps = action_log_prob.get_shape()[0]
+        if complex_policy:
+            g_log_prob = [tf.gradients(action_log_prob_flat[i], pl_train_vars)
+                        for i in range(num_of_steps)]
+            print("SHAPE E:", g_log_prob) if PRINTING else ...
 
-        # Results in shape (200, 4, 2)
-        g_log_prob = tf.stack(g_log_prob)
+            g_log_prob = [[tf.reshape(y, [-1, 1]) for y in x] for x in g_log_prob]
+            print("SHAPE F:", g_log_prob) if PRINTING else ...
 
-        # Results in shape (200, 8, 1)
-        g_log_prob = tf.reshape(g_log_prob, (env.time_steps, act_state_dim, 1))
+            g_log_prob = [tf.concat(x, 0) for x in g_log_prob]
+            print("SHAPE G:", g_log_prob) if PRINTING else ...
+
+            g_log_prob = tf.stack(g_log_prob)
+            print("SHAPE H:", g_log_prob.shape) if PRINTING else ...
+
+
+        else:
+            g_log_prob = [tf.gradients(action_log_prob_flat[i], pl_train_vars)[0]
+                        for i in range(num_of_steps)]
+
+            # Results in shape (200, 4, 2)
+            g_log_prob = tf.stack(g_log_prob)
+
+            # Results in shape (200, 8, 1)
+            g_log_prob = tf.reshape(g_log_prob, (env.time_steps, act_state_dim, 1))
 
         # ------------------- ∇_θ J(θ) ----------------------- #
 
@@ -179,11 +241,13 @@ def policy_gradient(env, continuous=False):
         # derivative which we have calculated for that time step.
         # Results in shape (200, 8, 1)
         grad_j = tf.multiply(g_log_prob, adv_reshaped)
+        print("SHAPE I:", grad_j.shape) if PRINTING else ...
 
         # Get the mean (sum over time and divide by 1/time steps) to get the
         # expectation E. Results in shape (8, 1).
         grad_j = tf.reduce_sum(grad_j, reduction_indices=[0])
         grad_j = 1.00 / env.time_steps * grad_j
+        print("SHAPE J:", grad_j.shape) if PRINTING else ...
 
         # --------------- Fischer Information Matrix --------------- #
 
@@ -192,11 +256,14 @@ def policy_gradient(env, continuous=False):
         # Results in shape (200, 8, 8)
         x_times_xT_fct = lambda x: tf.matmul(x, tf.transpose(x))
         fisher = tf.map_fn(x_times_xT_fct, g_log_prob)
+        print("SHAPE K:", fisher.shape) if PRINTING else ...
 
         # Get the mean (sum over time and divide by 1/time steps) to get the
         # expectation E. Results in shape (8, 8).
         fisher = tf.reduce_sum(fisher, reduction_indices=[0])
         fisher = 1.0 / env.time_steps * fisher
+        print("SHAPE L:", fisher.shape) if PRINTING else ...
+
 
         # Result: fisher = E[∇_θ log(π(a|s)) ∇_θ log(π(a|s))^T]
 
@@ -223,6 +290,7 @@ def policy_gradient(env, continuous=False):
 
         # Calculate natural policy gradient ascent update
         fisher_inv_grad_j = tf.matmul(fisher_inv, grad_j)
+        print("SHAPE M:", fisher_inv_grad_j.shape) if PRINTING else ...
 
         # TODO: How does learning rate changes change the output?
         # Calculate a learning rate normalized such that a constant change
@@ -236,12 +304,32 @@ def policy_gradient(env, continuous=False):
         # Multiply natural gradient by a learning rate
         pl_update = tf.multiply(learn_rate, fisher_inv_grad_j)
 
-        # Reshape to (2, 4) because our weight tensor has this shape
-        pl_update = tf.reshape(pl_update, (state_dim, action_dim))
+        if complex_policy:
 
-        # Update trainable parameters which in our case is just one tensor
-        # NOTE: Whenever pl_train_vars is fetched they're also updated
-        pl_train_vars[0] = tf.assign_add(pl_train_vars[0], pl_update)
+            for ind in range(len(pl_train_vars)):
+                w_ind = weight_indices[ind]
+                w_siz = weight_sizes[ind]
+                w_dim = weight_dims[ind]
+
+                print("({}) WEIGHT Index: {}, Size: {}, Dims: {}:"
+                      .format(ind, w_ind, w_siz, w_dim)) if PRINTING else ...
+
+                update_tensor = tf.slice(pl_update, w_ind, w_siz)
+                print("SHAPE N:", update_tensor.shape) if PRINTING else ...
+
+                update_tensor = tf.reshape(update_tensor, w_dim)
+                print("SHAPE O:", update_tensor.shape) if PRINTING else ...
+
+                pl_train_vars[ind] = tf.assign_add(pl_train_vars[ind], update_tensor)
+
+
+        else:
+            # Reshape to (2, 4) because our weight tensor has this shape
+            pl_update = tf.reshape(pl_update, (state_dim, action_dim))
+
+            # Update trainable parameters which in our case is just one tensor
+            # NOTE: Whenever pl_train_vars is fetched they're also updated
+            pl_train_vars[0] = tf.assign_add(pl_train_vars[0], pl_update)
 
         return pl_state_input, pl_actions_input, pl_advantages_input, \
             pl_probabilities, pl_train_vars

@@ -6,7 +6,7 @@ import warnings
 
 
 def run_batch(env, policy_grad, value_grad, sess, num_traj,
-              printing=False, continuous=True):
+              continuous=False, printing=False):
     """
     TODO
     :param env:
@@ -181,6 +181,10 @@ def run_batch(env, policy_grad, value_grad, sess, num_traj,
                         vfa_true_vf_input: batch_disc_returns_vec})
 
     # ---------------- UPDATE POLICY NETWORK -------------------------------- #
+    print("Policy update:", np.asarray(batch_states).shape,
+          np.asarray(batch_advantages).shape,
+          np.asarray(batch_actions).shape) if printing else ...
+
     sess.run(pl_train_vars,
              feed_dict={pl_state: batch_states,
                         pl_advantages: batch_advantages,
