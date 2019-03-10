@@ -23,6 +23,12 @@ def evaluate(env, sess, actor, episodes=25):
     :return: None
     """
 
+    # Create folder for saving
+    try:
+        os.makedirs(env.save_folder)
+    except FileExistsError:
+        pass
+
     time_steps = 10000
 
     print("\nEVALUATION: {} episodes with {} time steps each (or until 'done')"
@@ -61,6 +67,31 @@ def evaluate(env, sess, actor, episodes=25):
 
     plot_save_rewards(env, cumulative_episode_reward, average_episode_reward)
 
+    # -------------------- SAVE HYPERPARAMETERS ----------------------------- #
+    param_file = open(
+        "{}/parameters".format(env.save_folder), 'w')
+
+    param_string = \
+        "Environment name: {}\n"\
+        "Is Env discrete/continuous: {}\n"\
+        "Do we use continuous actions (or discretize): {}\n"\
+        "If continuous=False, how do we discretize: {}\n"\
+        "Learning Epochs/num of Updates: {}\n" \
+        "Batch size: {}\n" \
+        "Do we use complex actor network: {}\n" \
+        "If yes, how many nodes in hidden layer: {}\n"\
+        "Discount factor for monte carlo return: {}\n"\
+        "Network generation time: {} seconds\n"\
+        "Learning rate actor: {}"\
+        "Learning rate for Adam optimizer in critic: {}"\
+        .format(env.name, env.action_form, env.continuous, env.discretization,
+                env.num_of_updates, env.time_steps, env.complex_policy,
+                env.hidden_layer_size, env.mc_discount_factor,
+                env.network_generation_time, env.learning_rate_actor,
+                env.learning_rate_critic)
+    param_file.write(param_string)
+    param_file.close()
+
 
 def plot_save_rewards(env, cumulative_episode_reward, average_episode_reward):
     """
@@ -72,12 +103,22 @@ def plot_save_rewards(env, cumulative_episode_reward, average_episode_reward):
     :return: None
     """
 
+    mean_avg_rew = np.mean(average_episode_reward)
+    mean_cum_rew = np.mean(cumulative_episode_reward)
+    episodes = len(average_episode_reward)
+
     # Plot & save average reward per episode
     plt.figure()
     plt.title("Average reward per episode")
     plt.xlabel("Episode")
     plt.ylabel("Average reward")
-    plt.plot(average_episode_reward)
+    plt.plot(average_episode_reward, label="Mean per episode")
+
+    y_mean = [mean_avg_rew] * episodes
+    plt.plot(range(episodes), y_mean,
+             label='Overall mean (' + str(mean_avg_rew) + ')', linestyle='--')
+
+    plt.legend(loc='upper right')
     plt.savefig("{}/avg_reward.png".format(env.save_folder))
     plt.close()
 
@@ -86,7 +127,13 @@ def plot_save_rewards(env, cumulative_episode_reward, average_episode_reward):
     plt.title("Cumulative reward per episode")
     plt.xlabel("Episode")
     plt.ylabel("Cumulative reward")
-    plt.plot(cumulative_episode_reward)
+    plt.plot(cumulative_episode_reward, label="Mean per episode")
+
+    y_mean = [mean_cum_rew] * episodes
+    plt.plot(range(episodes), y_mean,
+             label='Overall mean (' + str(mean_cum_rew) + ')', linestyle='--')
+
+    plt.legend(loc='upper right')
     plt.savefig("{}/cum_reward.png".format(env.save_folder))
     plt.close()
 

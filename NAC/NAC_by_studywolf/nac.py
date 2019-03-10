@@ -5,19 +5,19 @@ import quanser_robots
 import warnings
 
 
-def run_batch(env, actor, value_grad, sess, num_traj,
-              continuous=False, printing=False):
+def run_batch(env, actor, value_grad, sess, num_traj, printing=False):
     """
     TODO
     :param env:
-    :param policy_grad:
+    :param actor:
     :param value_grad:
     :param sess:
     :param num_traj:
     :param printing:
-    :param continuous:
     :return:
     """
+
+    continuous = env.continuous
 
     # Unpack the policy network (generates control policy)
     (pl_state, pl_actions, pl_advantages,
@@ -85,8 +85,10 @@ def run_batch(env, actor, value_grad, sess, num_traj,
         # Record transition
         batch_states.append(observation)
         old_observation = observation
-
+        # print("B4:", t, action)
         observation, reward, done, info = env.step(action)
+        # print("After:", t, observation, reward, done)
+
         traj_transitions.append((old_observation, action, reward))
         traj_reward += reward
 
@@ -106,7 +108,7 @@ def run_batch(env, actor, value_grad, sess, num_traj,
                 decrease = 1
                 for p in range(future_transitions_n):
                     discounted_return += traj_transitions[p + i_trans][2] * decrease
-                    decrease = decrease * env.discount_factor
+                    decrease = decrease * env.mc_discount_factor
 
                 # save disc reward to update critic params in its direction
                 batch_discounted_returns.append(discounted_return)

@@ -8,14 +8,12 @@ import random
 
 
 class Actor:
-    def __init__(self, env, continuous=False, complex_policy=True,
-                    hidden_layer_size=100, printing=False):
+    def __init__(self, env, printing=False):
 
         self.env = env
         self.pl_state_input, self.pl_actions_input, self.pl_advantages_input, \
             self.pl_probabilities, self.pl_train_vars \
-            = create_policy_net(env, continuous, complex_policy,
-                                hidden_layer_size, printing)
+            = create_policy_net(env, printing)
 
     def update(self, sess, batch_states, batch_actions, batch_advantages):
         sess.run(self.pl_train_vars,
@@ -64,8 +62,7 @@ class Actor:
             self.pl_train_vars
 
 
-def create_policy_net(env, continuous=False, complex_policy=True,
-                      hidden_layer_size=100, printing=False):
+def create_policy_net(env, printing=False):
     """
     Neural Network to approximate our policy.
 
@@ -100,7 +97,7 @@ def create_policy_net(env, continuous=False, complex_policy=True,
 
         # TODO: Actions can have several dimensions
         state_dim = env.observation_space.shape[0]
-        if continuous:
+        if env.continuous:
             action_dim = env.action_dimensions
         else:
             action_dim = len(env.action_space)
@@ -138,20 +135,15 @@ def create_policy_net(env, continuous=False, complex_policy=True,
 
         # ------------------------ Weights ------------------------ #
 
-        if complex_policy:
+        if env.complex_policy:
 
             # Input layer, hidden dense layer (size 10), bias b1 & ReLu activation
-            w1 = tf.get_variable("pl_w1", [state_dim, hidden_layer_size])
-            b1 = tf.get_variable("pl_b1", [hidden_layer_size])
+            w1 = tf.get_variable("pl_w1", [state_dim, env.hidden_layer_size])
+            b1 = tf.get_variable("pl_b1", [env.hidden_layer_size])
 
             # Output times 2nd weights plus 2nd bias
-            w2 = tf.get_variable("pl_w2", [hidden_layer_size, action_dim])
+            w2 = tf.get_variable("pl_w2", [env.hidden_layer_size, action_dim])
             b2 = tf.get_variable("pl_b2", [action_dim])
-
-            # weight_dims = [(state_dim, hidden_layer_size),
-            #                (10,),
-            #                (hidden_layer_size, action_dim),
-            #                (2,)]
 
             weight_dims = [w1.get_shape().as_list(),
                            b1.get_shape().as_list(),
@@ -177,7 +169,7 @@ def create_policy_net(env, continuous=False, complex_policy=True,
 
         # ------------------------ Network ------------------------ #
 
-        if complex_policy:
+        if env.complex_policy:
             h1 = tf.nn.relu(tf.matmul(pl_state_input, w1) + b1)
             pl_probabilities_t = tf.nn.softmax(tf.matmul(h1, w2) + b2)
             pl_probabilities = tf.Print(pl_probabilities_t, [pl_probabilities_t, w1, w2])
@@ -187,7 +179,7 @@ def create_policy_net(env, continuous=False, complex_policy=True,
             # and has just 1 weight tensor.
             linear = tf.matmul(pl_state_input, pl_weights)
 
-            if continuous:
+            if env.continuous:
                 # Tangenz-H: -1 < x 1
                 pl_probabilities = tf.nn.tanh(linear)
 
@@ -213,7 +205,7 @@ def create_policy_net(env, continuous=False, complex_policy=True,
         print("\nSHAPE A:", pl_train_vars) if printing else ...
 
         # ------------------------ π(a|s) -------------------------- #
-        if continuous:
+        if env.continuous:
             action_prob = tf.map_fn(lambda x: 1, pl_probabilities)
         else:
             # Calculate the probability of the chosen action given the state
@@ -257,7 +249,7 @@ def create_policy_net(env, continuous=False, complex_policy=True,
         # Take the gradient of each action w.r.t. the trainable weights
         # Results in shape (200, 4, 2): List with 200 tensors of shape (4, 2)
         num_of_steps = action_log_prob.get_shape()[0]
-        if complex_policy:
+        if env.complex_policy:
             g_log_prob = [tf.gradients(action_log_prob_flat[i], pl_train_vars)
                         for i in range(num_of_steps)]
             print("SHAPE E:", g_log_prob) if printing else ...
@@ -350,19 +342,20 @@ def create_policy_net(env, continuous=False, complex_policy=True,
         fisher_inv_grad_j = tf.matmul(fisher_inv, grad_j)
         print("SHAPE M:", fisher_inv_grad_j.shape) if printing else ...
 
+
         # TODO: How does learning rate changes change the output?
         # Calculate a learning rate normalized such that a constant change
         # in the output control policy is achieved each update, preventing
         # any parameter changes that hugely change the output
         learn_rate = tf.sqrt(tf.divide(
-            0.001,
+            env.learning_rate_actor,
             tf.matmul(tf.transpose(grad_j), fisher_inv_grad_j)
         ))
 
         # Multiply natural gradient by a learning rate
         pl_update = tf.multiply(learn_rate, fisher_inv_grad_j)
 
-        if complex_policy:
+        if env.complex_policy:
 
             for ind in range(len(pl_train_vars)):
                 w_ind = weight_indices[ind]

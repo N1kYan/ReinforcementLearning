@@ -1,37 +1,3 @@
-""" Copyright (C) 2018 Travis DeWolf
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
-Learning cart-pole with a policy network and value network.
-The policy network learns the actions to take, and the value network learns
-the expected reward from a given state, for use in calculating the advantage
-function.
-
-The value network is updated with a 2 norm loss * .5 without the sqrt on the
-difference from the calculated expected cost. The value network is used to
-calculated the advantage function at each point in time.
-
-The policy network is updated by calculating the natural policy gradient and
-advantage function, with a learning rate calculated to normalize the KL
-divergence of the policy network output. This works to prevent any parameter
-updates from drastically changing behaviour of the system.
-
-Adapted from KVFrans:
-github.com/kvfrans/openai-cartpole/blob/master/cartpole-policygradient.py
-"""
-
 import tensorflow as tf
 import numpy as np
 import sys
@@ -67,10 +33,14 @@ RENDER = True
 # Select how we treat actions
 # IMPORTANT: Only False works yet
 CONTINUOUS = False
+HIDDEN_LAYER_SIZE = 10
 
 # Select complexity of policy network
 # IMPORTANT: Only False works yet
 COMPLEX_POLICY_NET = False
+
+# Load weights from file and use them
+LOAD_WEIGHTS = True # TODO
 
 # Select Environment
 ENVIRONMENT = 1
@@ -85,18 +55,20 @@ ENVIRONMENT = 1
        trajectory is started.
     4: How many updates (of parameters) do we want.
     5: Discount factor for expected monte carlo return.
+    6: Learning rate for actor model. sqrt(learning_rate/ Grad_j^T * F^-1).
+    7: Learning rate for Adam optimizer in the critic model.
 """
 
-env_dict = {1: ['CartPole-v0',          'discrete',     0, 200, 300, 0.97],
+env_dict = {1: ['CartPole-v0',          'discrete',     [0],    500, 300, 0.97, 0.001, 0.1],
 
-            2: ['DoublePendulum-v0',    'continuous',   9, 2000, 300, 0.97],
+            2: ['DoublePendulum-v0',    'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
                 # Does not diverge with batch size of 2000
 
-            3: ['Qube-v0',              'continuous',   3, 200, 300, 0.97],
-            4: ['BallBalancerSim-v0',   'continuous',   3, 200, 300, 0.97],
-            5: ['Levitation-v1',        'continuous',   5, 200, 300, 0.97],
-            6: ['Pendulum-v0',          'continuous',   3, 200, 300, 0.97],
-            7: ['CartpoleStabRR-v0',    'continuous',   3, 200, 300, 0.97]}
+            3: ['Qube-v0',              'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
+            4: ['BallBalancerSim-v0',   'continuous',   [5, 5], 500, 300, 0.97, 0.001, 0.1],
+            5: ['Levitation-v1',        'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
+            6: ['Pendulum-v0',          'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
+            7: ['CartpoleStabRR-v0',    'continuous',   [3],    200, 300, 0.97, 0.001, 0.1]}
 
 assert ENVIRONMENT in env_dict.keys()
 env_details = env_dict[ENVIRONMENT]
@@ -104,49 +76,50 @@ env_details = env_dict[ENVIRONMENT]
 
 # ---------------------- GENERATE ENVIRONMENT ------------------------------- #
 print("Generating {} environment:".format(env_details[0]))
-env = MyEnvironment(env_details=env_details)
+env = MyEnvironment(env_details, CONTINUOUS,
+                    COMPLEX_POLICY_NET, HIDDEN_LAYER_SIZE)
 
+# Initialize the session
+sess = tf.InteractiveSession()
 
+# ----------------------- GENERATE NETWORKS --------------------------------- #
 
+print("Generating Neural Networks ... ", end="")
+start_time = time.time()
+sys.stdout.flush()
+actor = Actor(env)
+value_grad = value_gradient(env)
+env.network_generation_time = int(time.time() - start_time)
+print("Done! (Time: " + str(env.network_generation_time) + " seconds)")
+
+sess.run(tf.global_variables_initializer())
 
 # ----------------------- TRAINING NETWORKS --------------------------------- #
-# We run the same algorithm 10 times and save the results
-for run in range(1):
 
-    # Initialize the session
-    sess = tf.InteractiveSession()
+max_rewards = []
+total_episodes = []
+times = []
 
-    # ----------------------- GENERATE NETWORKS ----------------------------- #
+for u in range(env.num_of_updates):
+    start_time = time.time()
 
-    print("Generating Neural Networks ... ", end="")
-    sys.stdout.flush()
-    actor = Actor(env, CONTINUOUS, COMPLEX_POLICY_NET)
-    value_grad = value_gradient(env)
-    print("Done!")
+    # Act in the env and update weights after collecting data
+    reward, n_episodes = \
+        run_batch(env, actor, value_grad, sess, u)
 
-    sess.run(tf.global_variables_initializer())
+    max_rewards.append(np.max(reward))
+    total_episodes.append(n_episodes)
+    times.append(time.time() - start_time)
+print('Average time: %.3f' % (np.sum(times) / env.num_of_updates))
 
-    max_rewards = []
-    total_episodes = []
-    times = []
+# ------------------- EVALUATE | SAVE | RENDER ------------------------------ #
 
-    num_of_updates = env_details[4]
+evaluation.evaluate(env, sess, actor)
 
-    for u in range(num_of_updates):
-        start_time = time.time()
+saver = tf.train.Saver()
+saver.save(sess, '{}/model/nac_model'.format(env.save_folder))
 
-        # Act in the env and update weights after collecting data
-        reward, n_episodes = \
-            run_batch(env, actor, value_grad, sess, u, CONTINUOUS) # TODO
+if RENDER:
+    evaluation.render(env, sess, actor)
 
-        max_rewards.append(np.max(reward))
-        total_episodes.append(n_episodes)
-        times.append(time.time() - start_time)
-    print('Average time: %.3f' % (np.sum(times) / num_of_updates))
-
-    evaluation.evaluate(env, sess, actor)
-
-    if RENDER:
-        evaluation.render(env, sess, actor)
-
-    sess.close()
+sess.close()
