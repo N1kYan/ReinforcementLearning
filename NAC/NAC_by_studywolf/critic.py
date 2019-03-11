@@ -3,7 +3,7 @@ import tensorflow as tf
 
 
 
-def value_gradient(env, adam_learn_rate=0.1):
+def value_gradient(env):
     """
     Function approximation of the value function for states in our environment.
     We use a neural network with the following structure:
@@ -53,7 +53,7 @@ def value_gradient(env, adam_learn_rate=0.1):
         # Computes the gradients of the network and applies them again so the
         # 'loss' value will be minimized. This is done via the Adam algorithm.
         vfa_optimizer = tf.train.\
-            AdamOptimizer(adam_learn_rate).minimize(vfa_loss)
+            AdamOptimizer(env.learning_rate_critic).minimize(vfa_loss)
 
         return vfa_state_input, vfa_true_vf_input, \
             vfa_nn_output, vfa_optimizer, vfa_loss
