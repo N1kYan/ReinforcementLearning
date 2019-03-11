@@ -20,7 +20,6 @@ from NAC_by_studywolf import evaluation
 # Levitation: "Levitation-v1"
 
 # ----------------------------- TODOS --------------------------------------- #
-# TODO: Print Results to a file including parameters
 # TODO: Continuous actions
 # TODO: Improvements: https://github.com/rgilman33/simple-A2C/blob/master/3_A2C-nstep-TUTORIAL.ipynb
 # TODO: Some paper said, not taking batches, where we only had 1 episode because
@@ -59,13 +58,13 @@ ENVIRONMENT = 1
     7: Learning rate for Adam optimizer in the critic model.
 """
 
-env_dict = {1: ['CartPole-v0',          'discrete',     [0],    500, 300, 0.97, 0.001, 0.1],
+env_dict = {1: ['CartPole-v0',          'discrete',     [0],    200, 300, 0.97, 0.001, 0.1],
 
             2: ['DoublePendulum-v0',    'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
                 # Does not diverge with batch size of 2000
 
             3: ['Qube-v0',              'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
-            4: ['BallBalancerSim-v0',   'continuous',   [5, 5], 500, 300, 0.97, 0.001, 0.1],
+            4: ['BallBalancerSim-v0',   'continuous',   [5, 5], 2000, 300, 0.97, 0.001, 0.1],
             5: ['Levitation-v1',        'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
             6: ['Pendulum-v0',          'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
             7: ['CartpoleStabRR-v0',    'continuous',   [3],    200, 300, 0.97, 0.001, 0.1]}
@@ -73,53 +72,76 @@ env_dict = {1: ['CartPole-v0',          'discrete',     [0],    500, 300, 0.97, 
 assert ENVIRONMENT in env_dict.keys()
 env_details = env_dict[ENVIRONMENT]
 
-
-# ---------------------- GENERATE ENVIRONMENT ------------------------------- #
-print("Generating {} environment:".format(env_details[0]))
-env = MyEnvironment(env_details, CONTINUOUS,
-                    COMPLEX_POLICY_NET, HIDDEN_LAYER_SIZE)
-
 # Initialize the session
 sess = tf.InteractiveSession()
 
-# ----------------------- GENERATE NETWORKS --------------------------------- #
+if LOAD_WEIGHTS:
+    # # ---------------------- GENERATE ENVIRONMENT ------------------------------- #
+    # print("Generating {} environment:".format(env_details[0]))
+    # env = MyEnvironment(env_details, CONTINUOUS,
+    #                     COMPLEX_POLICY_NET, HIDDEN_LAYER_SIZE)
+    #
+    # # ----------------------- GENERATE NETWORKS --------------------------------- #
+    #
+    # print("Generating Neural Networks ... ", end="")
+    # start_time = time.time()
+    # sys.stdout.flush()
+    # actor = Actor(env)
+    # value_grad = value_gradient(env)
+    # env.network_generation_time = int(time.time() - start_time)
+    # print("Done! (Time: " + str(env.network_generation_time) + " seconds)")
+    #
+    # sess.run(tf.global_variables_initializer())
 
-print("Generating Neural Networks ... ", end="")
-start_time = time.time()
-sys.stdout.flush()
-actor = Actor(env)
-value_grad = value_gradient(env)
-env.network_generation_time = int(time.time() - start_time)
-print("Done! (Time: " + str(env.network_generation_time) + " seconds)")
+    saver = tf.train.import_meta_graph('nac_model.meta')
+    saver.restore(sess, tf.train.latest_checkpoint('checkpoint'))
 
-sess.run(tf.global_variables_initializer())
+else:
 
-# ----------------------- TRAINING NETWORKS --------------------------------- #
 
-max_rewards = []
-total_episodes = []
-times = []
+    # ---------------------- GENERATE ENVIRONMENT ------------------------------- #
+    print("Generating {} environment:".format(env_details[0]))
+    env = MyEnvironment(env_details, CONTINUOUS,
+                        COMPLEX_POLICY_NET, HIDDEN_LAYER_SIZE)
 
-for u in range(env.num_of_updates):
+    # ----------------------- GENERATE NETWORKS --------------------------------- #
+
+    print("Generating Neural Networks ... ", end="")
     start_time = time.time()
+    sys.stdout.flush()
+    actor = Actor(env)
+    value_grad = value_gradient(env)
+    env.network_generation_time = int(time.time() - start_time)
+    print("Done! (Time: " + str(env.network_generation_time) + " seconds)")
 
-    # Act in the env and update weights after collecting data
-    reward, n_episodes = \
-        run_batch(env, actor, value_grad, sess, u)
+    sess.run(tf.global_variables_initializer())
 
-    max_rewards.append(np.max(reward))
-    total_episodes.append(n_episodes)
-    times.append(time.time() - start_time)
-print('Average time: %.3f' % (np.sum(times) / env.num_of_updates))
+    # ----------------------- TRAINING NETWORKS --------------------------------- #
 
-# ------------------- EVALUATE | SAVE | RENDER ------------------------------ #
+    max_rewards = []
+    total_episodes = []
+    times = []
 
-evaluation.evaluate(env, sess, actor)
+    for u in range(env.num_of_updates):
+        start_time = time.time()
 
-saver = tf.train.Saver()
-saver.save(sess, '{}/model/nac_model'.format(env.save_folder))
+        # Act in the env and update weights after collecting data
+        reward, n_episodes = \
+            run_batch(env, actor, value_grad, sess, u)
 
-if RENDER:
-    evaluation.render(env, sess, actor)
+        max_rewards.append(np.max(reward))
+        total_episodes.append(n_episodes)
+        times.append(time.time() - start_time)
+    print('Average time: %.3f' % (np.sum(times) / env.num_of_updates))
+
+    # ------------------- EVALUATE | SAVE | RENDER ------------------------------ #
+
+    evaluation.evaluate(env, sess, actor)
+
+    saver = tf.train.Saver()
+    saver.save(sess, '{}/model/nac_model'.format(env.save_folder))
+
+    if RENDER:
+        evaluation.render(env, sess, actor)
 
 sess.close()

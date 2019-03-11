@@ -85,7 +85,9 @@ def run_batch(env, actor, value_grad, sess, num_traj, printing=False):
         # Record transition
         batch_states.append(observation)
         old_observation = observation
+        # print("B4:", t, action)
         observation, reward, done, info = env.step(action)
+        print("After:", t, observation, reward, done)
 
         traj_transitions.append((old_observation, action, reward))
         traj_reward += reward
