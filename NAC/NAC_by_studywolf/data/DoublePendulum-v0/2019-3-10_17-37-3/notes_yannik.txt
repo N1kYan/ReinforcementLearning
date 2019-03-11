@@ -1,0 +1,7 @@
+Average cumulative episode reward: 227.09368174738978
+
+Critic ADAM lr: 0.5
+Discrete Actions: 9
+Batc-Size / Steps per Update: 5000
+Updates: 1000
+Discounting: 0.99
