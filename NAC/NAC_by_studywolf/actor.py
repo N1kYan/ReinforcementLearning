@@ -8,12 +8,12 @@ import random
 
 
 class Actor:
-    def __init__(self, env, printing=False):
+    def __init__(self, env, loaded_weights=None, printing=True):
 
         self.env = env
         self.pl_state_input, self.pl_actions_input, self.pl_advantages_input, \
             self.pl_probabilities, self.pl_train_vars \
-            = create_policy_net(env, printing)
+            = create_policy_net(env, loaded_weights, printing)
 
     def update(self, sess, batch_states, batch_actions, batch_advantages):
         sess.run(self.pl_train_vars,
@@ -62,7 +62,7 @@ class Actor:
             self.pl_train_vars
 
 
-def create_policy_net(env, printing=False):
+def create_policy_net(env, loaded_weights, printing=False):
     """
     Neural Network to approximate our policy.
 
@@ -136,6 +136,7 @@ def create_policy_net(env, printing=False):
         # ------------------------ Weights ------------------------ #
 
         if env.complex_policy:
+            print("TEEEEEEEST")
 
             # Input layer, hidden dense layer (size 10), bias b1 & ReLu activation
             w1 = tf.get_variable("pl_w1", [state_dim, env.hidden_layer_size])
@@ -165,7 +166,10 @@ def create_policy_net(env, printing=False):
             print("WEIGHT DIMS:", weight_dims) if printing else ...
 
         else:
-            pl_weights = tf.get_variable("pl_weights", [state_dim, action_dim])
+            if loaded_weights is None:
+                pl_weights = tf.get_variable("pl_weights", [state_dim, action_dim])
+            else:
+                pl_weights = tf.get_variable("pl_weights", initializer=loaded_weights)
 
         # ------------------------ Network ------------------------ #
 
@@ -195,7 +199,7 @@ def create_policy_net(env, printing=False):
 
             else:
                 # Softmax function: sum(probabilities) = 1
-                pl_probabilities = tf.nn.softmax(linear)
+                pl_probabilities = tf.nn.softmax(linear, name="pl_probabilities")
 
         # ------------------- Trainable Vars ------------------------ #
 
