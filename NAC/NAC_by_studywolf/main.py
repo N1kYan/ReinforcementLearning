@@ -6,11 +6,11 @@ import gym
 import quanser_robots
 import random
 
-from NAC_by_studywolf.my_environment import MyEnvironment
-from NAC_by_studywolf.critic import value_gradient
-from NAC_by_studywolf.actor import Actor
-from NAC_by_studywolf.nac import run_batch
-from NAC_by_studywolf import evaluation
+from my_environment import MyEnvironment
+from critic import value_gradient
+from actor import Actor
+from nac import run_batch
+import evaluation
 
 # ----------------------------- GOALS ------------------------------------- #
 
@@ -43,7 +43,7 @@ COMPLEX_POLICY_NET = False
 LOAD_WEIGHTS = False
 
 # Select Environment
-ENVIRONMENT = 11
+ENVIRONMENT = 12
 
 """
     0: Name of the Gym/Quanser environment.
@@ -69,7 +69,8 @@ env_dict = {1: ['CartPole-v0',          'discrete',     [0],    500, 300, 0.97, 
             4: ['BallBalancerSim-v0',   'continuous',   [5, 5], 2000, 300, 0.97, 0.001, 0.1],
             5: ['Levitation-v1',        'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
             6: ['Pendulum-v0',          'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
-            11: ['CartpoleStabRR-v0',   'discrete',     [0],    500, 300, 0.97, 0.001, 0.1]}
+            11: ['CartpoleStabRR-v0',   'discrete',     [0],    500, 300, 0.97, 0.001, 0.1],
+            12: ['CartpoleStabShort-v0',   'continuous',     [3],    200, 300, 0.97, 0.001, 0.1]}
 
 assert ENVIRONMENT in env_dict.keys()
 env_details = env_dict[ENVIRONMENT]
@@ -96,9 +97,9 @@ if LOAD_WEIGHTS:
 
     # ---------------------- GENERATE ENVIRONMENT ------------------------------- #
     print("Generating {} environment:".format(env_details[0]))
-    env = MyEnvironment(env_details, CONTINUOUS,
-                        COMPLEX_POLICY_NET, HIDDEN_LAYER_SIZE)
-
+    # env = MyEnvironment(env_details, CONTINUOUS,
+    #                    COMPLEX_POLICY_NET, HIDDEN_LAYER_SIZE)
+    env = gym.make(env_details[0])
     # # ----------------------- GENERATE NETWORKS --------------------------------- #
 
     # print("Generating Neural Networks ... ", end="")
