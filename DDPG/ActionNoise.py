@@ -40,7 +40,7 @@ class Gaussian:
         :return: Action noise sample
         """
         action_noise = np.random.multivariate_normal(mean=self.mu, cov=self.covariance_matrix, size=self.size)
-        # self.sigma = self.sigma * (1-self.decay**10)
+        # self.sigma = self.sigma * (1-self.decay)
         self.covariance_matrix = self.sigma * np.eye(self.size)
         return action_noise[0]
 

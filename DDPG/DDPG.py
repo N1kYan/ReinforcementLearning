@@ -172,7 +172,7 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
     cumulative_episode_reward = []
     for e in range(1, epochs + 1):
         state = env.reset()
-        noise.reset()
+        # noise.reset()
         cumulative_reward = 0
         episode_rewards = []
         t = 0
@@ -185,9 +185,9 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
             # Output action from actor network / current policy given the current state
             state = torch.from_numpy(state).float().to(device)
             actor_local.eval()
+            # Activation function tanh returns [-1, 1] so we multiply by
+            # the highest possible action to map it to our action space.
             with torch.no_grad():
-                # Activation function tanh returns [-1, 1] so we multiply by
-                # the highest possible action to map it to our action space.
                 if epsilon is not None:
                     rand = np.random.rand()
                     if rand > epsilon:
@@ -225,15 +225,16 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
         env.close()
         scores_deque.append(cumulative_reward)
         average_episode_reward.append(np.mean(episode_rewards))
-        print('\rEpisode {}\tAverage Reward: {}\tSteps: {}\tEpsilon: {}\t({:.2f} min elapsed)'.
-              format(e, np.mean(scores_deque), t, epsilon, (time.time() - time_start) / 60), end="")
+        print('\rEpisode {}\tAverage Reward: {}\tSteps: {}\tSigma: {}\t({:.2f} min elapsed)'.
+              format(e, np.mean(scores_deque), t, noise.sigma, (time.time() - time_start) / 60), end="")
         if e % epoch_checkpoint == 0:
             # Decrease epsilon (percentage of random actions) every epoch checkpoint
             if epsilon is not None and epsilon_decrease is not None:
                 epsilon = epsilon * epsilon_decrease
+            noise.sigma = noise.sigma - 0.1
             # Print cumulative reward per episode averaged over #epoch_checkpoint episodes
-            print('\rEpisode {}\tAverage Reward: {:.3f}\tEpsilon: {}\t({:.2f} min elapsed)'.
-                  format(e, np.mean(scores_deque), epsilon, (time.time() - time_start) / 60))
+            print('\rEpisode {}\tAverage Reward: {:.3f}\tSigma: {}\t({:.2f} min elapsed)'.
+                  format(e, np.mean(scores_deque), noise.sigma, (time.time() - time_start) / 60))
 
     # ----------------------- Plotting, Saving, etc. ----------------------- #
 
@@ -327,11 +328,11 @@ def main():
     GAUSS_NOISE = Gaussian(size=env_action_size, seed=random_seed, mu=0.0, sigma=1.0, decay=0.0)
 
     # Replay memory
-    MEMORY = ReplayBuffer(action_size=env_specs[1], buffer_size=int(1e6), batch_size=128,
+    MEMORY = ReplayBuffer(action_size=env_specs[1], buffer_size=int(1e6), batch_size=256,
                           seed=random_seed)
 
     # Run training procedure with defined hyperparameters
-    ACTOR = training(epochs=5000, max_steps=10000, epoch_checkpoint=100, noise=GAUSS_NOISE, epsilon=None,
+    ACTOR = training(epochs=10000, max_steps=10000, epoch_checkpoint=1000, noise=GAUSS_NOISE, epsilon=None,
                      epsilon_decrease=None, add_noise=True, lr_actor=1e-4, lr_critic=1e-3, weight_decay=0,
                      gamma=0.99, memory=MEMORY, tau=1e-3, seed=random_seed, save_flag=True, load_flag=False,
                      load_path='actor22-1-18', render=True)
