@@ -63,7 +63,7 @@ def evaluate(env, sess, actor, episodes=100):
     plot_save_rewards(env, cumulative_episode_reward, average_episode_reward)
 
     # -------------------- SAVE HYPERPARAMETERS ----------------------------- #
-    param_file = open("{}/parameters".format(env.save_folder), 'w')
+    param_file = open("{}/parameters.txt".format(env.save_folder), 'w')
 
     param_string = \
         "Environment name: {}\n"\
@@ -84,7 +84,7 @@ def evaluate(env, sess, actor, episodes=100):
     param_file.close()
 
     # ------------------------- SAVE RESULTS -------------------------------- #
-    results_file = open("{}/results".format(env.save_folder), 'w')
+    results_file = open("{}/results.txt".format(env.save_folder), 'w')
 
     results_string = \
         "Average transition reward: {}\n"\
