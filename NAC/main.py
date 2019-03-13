@@ -8,7 +8,7 @@ import random
 from my_environment import MyEnvironment
 from critic import Critic
 from actor import Actor
-from nac import run_batch
+from nac import NAC
 import evaluation
 
 # ----------------------------- GOALS ------------------------------------- #
@@ -17,16 +17,9 @@ import evaluation
 # DoubleCartPole: "DoublePendulum-v0"
 # FurutaPend: "Qube-v0"
 # BallBalancer: "BallBalancerSim-v0"
-# Levitation: "Levitation-v1"
-
-# ----------------------------- TODOS --------------------------------------- #
-# TODO: Continuous actions
-# TODO: Improvements: https://github.com/rgilman33/simple-A2C/blob/master/3_A2C-nstep-TUTORIAL.ipynb
-# TODO: Some paper said, not taking batches, where we only had 1 episode because
-#   it does not yield any improvements to update the weights of perffect episodes.
 
 # ---------------------- VARIABLES & CONSTANTS ------------------------------ #
-# Select Rendering
+# Do we want to render the environment after evaluation?
 RENDER = True
 
 # Select how we treat actions
@@ -41,8 +34,10 @@ COMPLEX_POLICY_NET = False
 # Load weights from file and use them
 LOAD_WEIGHTS = False
 
+# -------------------------- ENVIRONMENT ------------------------------------ #
+
 # Select Environment
-ENVIRONMENT = 11
+ENVIRONMENT = 1
 
 """
     0: Name of the Gym/Quanser environment.
@@ -58,14 +53,14 @@ ENVIRONMENT = 11
     7: Learning rate for Adam optimizer in the critic model.
 """
 
-env_dict = {1: ['CartPole-v0',          'discrete',     [0],    500, 300, 0.97, 0.001, 0.1],
+env_dict = {1: ['CartPole-v0',          'discrete',     [0],    200, 300, 0.97, 0.001, 0.1],
 
 
             2: ['DoublePendulum-v0',    'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
                 # Does not diverge with batch size of 2000
 
             3: ['Qube-v0',              'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
-            4: ['BallBalancerSim-v0',   'continuous',   [5, 5], 2000, 300, 0.97, 0.001, 0.1],
+            4: ['BallBalancerSim-v0',   'continuous',   [5, 5], 4000, 300, 1, 0.001, 0.1],
             5: ['Levitation-v1',        'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
             6: ['Pendulum-v0',          'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
             11: ['CartpoleStabRR-v0',   'discrete',     [0],    500, 300, 0.97, 0.001, 0.1]}
@@ -73,24 +68,19 @@ env_dict = {1: ['CartPole-v0',          'discrete',     [0],    500, 300, 0.97, 
 assert ENVIRONMENT in env_dict.keys()
 env_details = env_dict[ENVIRONMENT]
 
+# --------------------------------------------------------------------------- #
+
 
 
 if LOAD_WEIGHTS:
-    # sess = tf.InteractiveSession()
-    # saver = tf.train.import_meta_graph('model/nac_model.meta')
-    # saver.restore(sess, tf.train.latest_checkpoint('model/'))
-    # graph = tf.get_default_graph()
-    # loaded_weights = graph.get_tensor_by_name("policy/pl_weights:0")
-    # print(loaded_weights)
-    # sess.close()
 
     sess = tf.InteractiveSession()
     saver = tf.train.import_meta_graph('model/nac_model.meta')
     saver.restore(sess, tf.train.latest_checkpoint('model/'))
     graph = tf.get_default_graph()
 
-    pl_probabilities = graph.get_tensor_by_name("policy/pl_probabilities:0")
-    pl_state_input = graph.get_tensor_by_name("policy/pl_state_input:0")
+    pl_probabilities = graph.get_tensor_by_name("actor/probabilities:0")
+    pl_state_input = graph.get_tensor_by_name("actor/state_input:0")
 
 
     # ---------------------- GENERATE ENVIRONMENT ------------------------------- #
@@ -163,6 +153,7 @@ else:
     sys.stdout.flush()
     actor = Actor(env)
     critic = Critic(env)
+    nac = NAC(env, actor, critic)
     env.network_generation_time = int(time.time() - start_time)
     print("Done! (Time: " + str(env.network_generation_time) + " seconds)")
 
@@ -178,11 +169,13 @@ else:
         start_time = time.time()
 
         # Act in the env and update weights after collecting data
-        reward, n_episodes = \
-            run_batch(env, actor, critic, sess, u)
+        batch_traj_rewards = nac.run_batch(sess)
 
-        max_rewards.append(np.max(reward))
-        total_episodes.append(n_episodes)
+        print('Update {} with {} trajectories with rewards of: {}'
+              .format(u, len(batch_traj_rewards), batch_traj_rewards))
+
+        max_rewards.append(np.max(batch_traj_rewards))
+        total_episodes.append(len(batch_traj_rewards))
         times.append(time.time() - start_time)
     print('Average time: %.3f' % (np.sum(times) / env.num_of_updates))
 
