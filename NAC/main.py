@@ -37,7 +37,7 @@ LOAD_WEIGHTS = False
 # -------------------------- ENVIRONMENT ------------------------------------ #
 
 # Select Environment
-ENVIRONMENT = 1
+ENVIRONMENT = 4
 
 """
     0: Name of the Gym/Quanser environment.
@@ -60,7 +60,7 @@ env_dict = {1: ['CartPole-v0',          'discrete',     [0],    200, 300, 0.97, 
                 # Does not diverge with batch size of 2000
 
             3: ['Qube-v0',              'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
-            4: ['BallBalancerSim-v0',   'continuous',   [5, 5], 4000, 300, 1, 0.001, 0.1],
+            4: ['BallBalancerSim-v0',   'continuous',   [3, 3], 2000, 500, 1, 0.001, 0.1],
             5: ['Levitation-v1',        'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
             6: ['Pendulum-v0',          'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
             11: ['CartpoleStabRR-v0',   'discrete',     [0],    500, 300, 0.97, 0.001, 0.1]}
