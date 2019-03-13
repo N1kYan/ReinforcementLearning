@@ -11,25 +11,9 @@ from actor import Actor
 from nac import NAC
 import evaluation
 
-# ----------------------------- GOALS ------------------------------------- #
-
-# Environments which have to be solved:
-# DoubleCartPole: "DoublePendulum-v0"
-# FurutaPend: "Qube-v0"
-# BallBalancer: "BallBalancerSim-v0"
-
 # ---------------------- VARIABLES & CONSTANTS ------------------------------ #
 # Do we want to render the environment after evaluation?
 RENDER = True
-
-# Select how we treat actions
-# IMPORTANT: Only False works yet
-CONTINUOUS = False
-HIDDEN_LAYER_SIZE = 10
-
-# Select complexity of policy network
-# IMPORTANT: Only False works yet
-COMPLEX_POLICY_NET = False
 
 # Load weights from file and use them
 LOAD_WEIGHTS = False
@@ -37,7 +21,7 @@ LOAD_WEIGHTS = False
 # -------------------------- ENVIRONMENT ------------------------------------ #
 
 # Select Environment
-ENVIRONMENT = 4
+ENVIRONMENT = 1
 
 """
     0: Name of the Gym/Quanser environment.
@@ -51,26 +35,36 @@ ENVIRONMENT = 4
     5: Discount factor for expected monte carlo return.
     6: Learning rate for actor model. sqrt(learning_rate/ Grad_j^T * F^-1).
     7: Learning rate for Adam optimizer in the critic model.
+    8: The hidden layer size of the critic network.
 """
 
-env_dict = {1: ['CartPole-v0',          'discrete',     [0],    200, 300, 0.97, 0.001, 0.1],
+env_dict = {
+    1:  ['CartPole-v0', 'discrete', [0],
+         500, 300, 0.97, 0.001, 0.1, 10],
 
+    2:  ['DoublePendulum-v0', 'continuous', [3],
+         200, 300, 0.97, 0.001, 0.1, 10],
 
-            2: ['DoublePendulum-v0',    'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
-                # Does not diverge with batch size of 2000
+    3:  ['Qube-v0', 'continuous', [3],
+         200, 300, 0.97, 0.001, 0.1, 10],
 
-            3: ['Qube-v0',              'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
-            4: ['BallBalancerSim-v0',   'continuous',   [3, 3], 2000, 500, 1, 0.001, 0.1],
-            5: ['Levitation-v1',        'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
-            6: ['Pendulum-v0',          'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
-            11: ['CartpoleStabRR-v0',   'discrete',     [0],    500, 300, 0.97, 0.001, 0.1]}
+    4:  ['BallBalancerSim-v0', 'continuous', [7, 7],
+         4000, 500, 1,   0.001, 0.1, 10],
+
+    5:  ['Levitation-v1', 'continuous', [3],
+         200, 300, 0.97, 0.001, 0.1, 10],
+
+    6:  ['Pendulum-v0', 'continuous', [3],
+         200, 300, 0.97, 0.001, 0.1, 10],
+
+    11: ['CartpoleStabRR-v0', 'discrete', [0],
+         500, 300, 0.97, 0.001, 0.1, 10]
+}
 
 assert ENVIRONMENT in env_dict.keys()
 env_details = env_dict[ENVIRONMENT]
 
 # --------------------------------------------------------------------------- #
-
-
 
 if LOAD_WEIGHTS:
 
@@ -81,7 +75,6 @@ if LOAD_WEIGHTS:
 
     pl_probabilities = graph.get_tensor_by_name("actor/probabilities:0")
     pl_state_input = graph.get_tensor_by_name("actor/state_input:0")
-
 
     # ---------------------- GENERATE ENVIRONMENT ------------------------------- #
     print("Generating {} environment:".format(env_details[0]))
@@ -143,14 +136,13 @@ else:
 
     # ---------------------- GENERATE ENVIRONMENT ------------------------------- #
     print("Generating {} environment:".format(env_details[0]))
-    env = MyEnvironment(env_details, CONTINUOUS,
-                        COMPLEX_POLICY_NET, HIDDEN_LAYER_SIZE)
+    env = MyEnvironment(env_details)
 
     # ----------------------- GENERATE NETWORKS --------------------------------- #
 
     print("Generating Neural Networks ... ", end="")
-    start_time = time.time()
     sys.stdout.flush()
+    start_time = time.time()
     actor = Actor(env)
     critic = Critic(env)
     nac = NAC(env, actor, critic)

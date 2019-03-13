@@ -70,20 +70,17 @@ def evaluate(env, sess, actor, episodes=100):
         "Environment name: {}\n"\
         "Is Env discrete/continuous: {}\n"\
         "Do we use continuous actions (or discretize): {}\n"\
-        "If continuous=False, how do we discretize: {}\n"\
         "Learning Epochs/num of Updates: {}\n" \
         "Batch size: {}\n" \
-        "Do we use complex actor network: {}\n" \
-        "If yes, how many nodes in hidden layer: {}\n"\
         "Discount factor for monte carlo return: {}\n"\
         "Network generation time: {} seconds\n"\
-        "Learning rate actor: {}"\
-        "Learning rate for Adam optimizer in critic: {}"\
-        .format(env.name, env.action_form, env.continuous, env.discretization,
-                env.num_of_updates, env.time_steps, env.complex_policy,
-                env.hidden_layer_size, env.mc_discount_factor,
+        "Learning rate actor: {}\n"\
+        "Learning rate for Adam optimizer in critic: {}\n"\
+        "Critic hidden layer size: {}"\
+        .format(env.name, env.action_form, env.discretization,
+                env.num_of_updates, env.time_steps, env.mc_discount_factor,
                 env.network_generation_time, env.learning_rate_actor,
-                env.learning_rate_critic)
+                env.learning_rate_critic, env.hidden_layer_critic)
     param_file.write(param_string)
     param_file.close()
 

@@ -11,8 +11,7 @@ import itertools
 
 
 class MyEnvironment(gym.Space):
-    def __init__(self, env_details, continuous, complex_policy_net,
-                 hidden_layer_size, ):
+    def __init__(self, env_details):
         gym.Space.__init__(self, (), np.float)
 
         self.name = env_details[0]
@@ -23,11 +22,7 @@ class MyEnvironment(gym.Space):
         self.mc_discount_factor = env_details[5]
         self.learning_rate_actor = env_details[6]
         self.learning_rate_critic = env_details[7]
-
-
-        self.continuous = continuous
-        self.complex_policy = complex_policy_net
-        self.hidden_layer_size = hidden_layer_size
+        self.hidden_layer_critic = env_details[8]
 
         self.network_generation_time = 0
 

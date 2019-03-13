@@ -1,15 +1,13 @@
 # bei der action berechnung in nac
-if self.env.continuous:
-    # Not implemented yet
-    obs_vector = np.expand_dims(observation, axis=0)
-    (act_state_input, _, _, act_probabilities, _) \
-        = self.actor.get_net_variables()
-    action = sess.run(
-        act_probabilities,
-        feed_dict={act_state_input: obs_vector})
-    batch_actions.append(action)
-
-else:
+    if self.env.continuous:
+        # Not implemented yet
+        obs_vector = np.expand_dims(observation, axis=0)
+        (act_state_input, _, _, act_probabilities, _) \
+            = self.actor.get_net_variables()
+        action = sess.run(
+            act_probabilities,
+            feed_dict={act_state_input: obs_vector})
+        batch_actions.append(action)
 
 # in actor
     @staticmethod
@@ -456,3 +454,15 @@ else:
 
             return state_input, actions_input, advantages_input, \
                 probabilities, trainable_vars
+
+# main
+    # Select how we treat actions
+    # IMPORTANT: Only False works yet
+    CONTINUOUS = False
+    HIDDEN_LAYER_SIZE = 10
+
+    # Select complexity of policy network
+    # IMPORTANT: Only False works yet
+    COMPLEX_POLICY_NET = False
+
+    --> my_environment übergeben

@@ -30,7 +30,7 @@ class Critic:
         Function approximation of the value function for states in our environment.
         We use a neural network with the following structure:
             Input Layer: number of nodes = dim of state, fully connected.
-            Hidden Layer: 10 nodes, fully connected, ReLu activation.
+            Hidden Layer: fully connected, ReLu activation.
             Output Layer: 1 node.
         Finally, we use an AdamOptimizer to train our NN by Gradient Descent.
 
@@ -47,15 +47,15 @@ class Critic:
             # Get the state size to get the number of input nodes
             state_size = env.observation_space.shape[0]
 
-            # Input layer, hidden dense layer (size 10),
+            # Input layer, hidden dense layer,
             # bias b1 & ReLu activation
             state_input = tf.placeholder("float", [None, state_size])
-            w1 = tf.get_variable("w1", [state_size, 10])
-            b1 = tf.get_variable("b1", [10])
+            w1 = tf.get_variable("w1", [state_size, env.hidden_layer_critic])
+            b1 = tf.get_variable("b1", [env.hidden_layer_critic])
             h1 = tf.nn.relu(tf.matmul(state_input, w1) + b1)
 
             # Output times 2nd weights plus 2nd bias
-            w2 = tf.get_variable("w2", [10, 1])
+            w2 = tf.get_variable("w2", [env.hidden_layer_critic, 1])
             b2 = tf.get_variable("b2", [1])
             output = tf.matmul(h1, w2) + b2
 
