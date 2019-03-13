@@ -14,8 +14,18 @@ DDPG is an reinforcement learning algorithm which combines the approaches of DPG
 2. Starting the main method with <br/>
 <i> python3.6 DDPG.py</i>
 
-<h4>Hyperparameter Performance </h4>
+<h4>Hyperparameter Changes </h4>
 1. To change the deep neural network structures, please edit NeuralNetworks.py. Setting num_layers=1 automaticall uses one hidden layer with fc1_units hidden units. <br/>
 2. Replay Buffer specifications can be directly changed in line #326 in main() method of DDPG.py. E.g. one could change the batch_size here to 1024 or back to 64, aswell as the total buffer size. <br/>
 3. The action noise object has to be initialized in main() method of DDPG.py. Hyperparameters can also be set there. E.g. might set the standard deviation sigma of the gaussion noise to 0.1 in line #323. To implement different noises, pleasy directly modifiy AcitonNoise.py <br/>
 4. The remaining hyperparameters are defined in the call of the training() method in line #330 in the main() method. One could run the algorithm with less discounting by changing to gamma=x in line #332 <br/>
+
+<h4>Saving and Loading </h4>
+1. The algorithm automatically saves the actor and critic pytorch models and the training process plots if save_flag is
+set to 'True' in line #349 in the main() method in DDPG.py. They are saved in a folder formated by (day-month-hour).
+2. Performance plots for evaluation are shown automatically and can be saved by hand. To render the evaluation episodes,
+set evaluate to 'True ' in line #354 in main() method in DDPG.py
+3. To use a pretrained actor for evaluation, please set load_flag to 'True' and define the load_path (day-month-hour)
+, containing the actor model, in line #350 in DDPG.py
+4. To use a pretrained actor and critic model to continue training, please set use_pretrained to 'True' and define the 
+load_path
