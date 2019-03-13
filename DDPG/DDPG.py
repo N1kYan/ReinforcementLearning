@@ -67,8 +67,8 @@ def evaluation(actor, epochs, render):
     plt.show()
 
 
-def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrease, add_noise, lr_actor, lr_critic, weight_decay, memory,
-             gamma, tau, seed, save_flag, load_flag, load_path, render):
+def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrease, add_noise, lr_actor, lr_critic,
+             weight_decay, memory, gamma, tau, seed, save_flag, load_flag, load_path, render, use_pretrained):
     """
     Creates neural networks and runs the training process on the gym environment.
     Then plots the cumulative reward per episode.
@@ -90,22 +90,17 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
     :param seed: Random seed for repeatability
     :param save_flag: Set true to save the models, plots and parameters in text file; otherwise display plots directly
     :param load_flag: Set true to load pretrained model instead of training a new one
-    :param load_path: Path to load pretrained model from
+    :param load_path: Path to load pretrained model from; returns this model directly
     :param render: Set true for rendering every 'epoch_checkpoint' episode
+    :param use_pretrained: Set true to TRAIN using a pretrained model from load_path
     :return: None
     """
 
-    if load_flag:
-        loaded_actor = Actor(state_size=env_specs[0], action_size=env_specs[1], seed=seed).to(device)
-        savepoint = torch.load('./{}/{}'.format(env.spec.id, load_path))
-        loaded_actor.load_state_dict(savepoint)
-        return loaded_actor
-
     def learn(experiences):
         """
-        DDPG learning rule (from paper).
-        Updates the actor(policy) and critic(value function) networks' parameters
-        given a radnom mini-batch of experience samples from the replay buffer.
+        Implementing the DDPG learning rule from . Is called by the main training method.
+        Updates the actor (policy) and critic (value function) networks' parameters
+        given a random mini-batch of experience samples from the replay buffer.
 
             Q_targets = r + γ * critic_target(next_state, actor_target(next_state))
 
@@ -150,15 +145,31 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
         for target_param, local_param in zip(critic_target.parameters(), critic_local.parameters()):
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
 
-    # Create Actor and Critic network and their target networks
-    actor_local = Actor(state_size=env_specs[0], action_size=env_specs[1], seed=seed).to(device)
-    actor_target = Actor(state_size=env_specs[0], action_size=env_specs[1], seed=seed).to(device)
-    actor_optimizer = optim.Adam(actor_local.parameters(), lr=lr_actor)
+    # Load and return actor model from load_path if load_flag is set true
+    if load_flag:
+        loaded_actor = Actor(state_size=env_specs[0], action_size=env_specs[1], seed=seed).to(device)
+        savepoint = torch.load('./{}/{}{}'.format(env.spec.id, 'actor', load_path))
+        loaded_actor.load_state_dict(savepoint)
+        return loaded_actor
+    else:
+        # Create Actor and Critic network and their target networks
+        actor_local = Actor(state_size=env_specs[0], action_size=env_specs[1], seed=seed).to(device)
+        actor_target = Actor(state_size=env_specs[0], action_size=env_specs[1], seed=seed).to(device)
+        actor_optimizer = optim.Adam(actor_local.parameters(), lr=lr_actor)
 
-    # Critic Network and Critic Target Network
-    critic_local = Critic(state_size=env_specs[0], action_size=env_specs[1], seed=seed).to(device)
-    critic_target = Critic(state_size=env_specs[0], action_size=env_specs[1], seed=seed).to(device)
-    critic_optimizer = optim.Adam(critic_local.parameters(), lr=lr_critic, weight_decay=weight_decay)
+        # Critic Network and Critic Target Network
+        critic_local = Critic(state_size=env_specs[0], action_size=env_specs[1], seed=seed).to(device)
+        critic_target = Critic(state_size=env_specs[0], action_size=env_specs[1], seed=seed).to(device)
+        critic_optimizer = optim.Adam(critic_local.parameters(), lr=lr_critic, weight_decay=weight_decay)
+
+        # Load actor and critic from load_path and use them for training if use_pretrained is true
+        if use_pretrained:
+            actor_savepoint = torch.load('./{}/{}{}'.format(env.spec.id, 'actor', load_path))
+            actor_local.load_state_dict(actor_savepoint)
+            actor_target.load_state_dict(actor_savepoint)
+            critic_savepoint = torch.load('./{}/{}{}'.format(env.spec.id, 'critic', load_path))
+            critic_local.load_state_dict(critic_savepoint)
+            critic_target.load_state_dict(critic_savepoint)
 
     # Reset agent's noise generator
     noise.reset()
@@ -231,7 +242,8 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
             # Decrease epsilon (percentage of random actions) every epoch checkpoint
             if epsilon is not None and epsilon_decrease is not None:
                 epsilon = epsilon * epsilon_decrease
-            noise.sigma = noise.sigma - 0.1
+            # if noise.sigma > 0:
+                # noise.sigma = noise.sigma - 0.1
             # Print cumulative reward per episode averaged over #epoch_checkpoint episodes
             print('\rEpisode {}\tAverage Reward: {:.3f}\tSigma: {}\t({:.2f} min elapsed)'.
                   format(e, np.mean(scores_deque), noise.sigma, (time.time() - time_start) / 60))
@@ -303,8 +315,8 @@ def main():
     """
 
     global env
-    env = gym.make('Qube-v0')
-    # env = gym.make('CartpoleSwingShort-v0')
+    # env = gym.make('Qube-v0')
+    env = gym.make('CartpoleSwingLong-v0')
     # env = gym.make('Pendulum-v0')
     # env = gym.make('BallBalancerSim-v0')
     print(env.spec.id)
@@ -323,23 +335,23 @@ def main():
     env.seed(3)
 
     # Noise generating process
-    OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.15, sigma=0.4)
+    OU_NOISE = OUNoise(size=env_specs[1], seed=random_seed, mu=0., theta=0.15, sigma=8.2)
 
-    GAUSS_NOISE = Gaussian(size=env_action_size, seed=random_seed, mu=0.0, sigma=1.0, decay=0.0)
+    GAUSS_NOISE = Gaussian(size=env_action_size, seed=random_seed, mu=0.0, sigma=2.8, decay=0.0)
 
     # Replay memory
-    MEMORY = ReplayBuffer(action_size=env_specs[1], buffer_size=int(1e6), batch_size=256,
+    MEMORY = ReplayBuffer(env=env, buffer_size=int(1e6), batch_size=256,
                           seed=random_seed)
 
     # Run training procedure with defined hyperparameters
     ACTOR = training(epochs=10000, max_steps=10000, epoch_checkpoint=1000, noise=GAUSS_NOISE, epsilon=None,
                      epsilon_decrease=None, add_noise=True, lr_actor=1e-4, lr_critic=1e-3, weight_decay=0,
-                     gamma=0.99, memory=MEMORY, tau=1e-3, seed=random_seed, save_flag=True, load_flag=False,
-                     load_path='actor22-1-18', render=True)
+                     gamma=0.99, memory=MEMORY, tau=1e-2, seed=random_seed, save_flag=True, load_flag=False,
+                     load_path='22-1-18', render=True, use_pretrained=False)
 
     # Run evaluation
     # evaluation(load_flag=False, actor='./actor-21-2-16', epochs=25, render=False)
-    evaluation(actor=ACTOR, epochs=25, render=False)
+    evaluation(actor=ACTOR, epochs=100, render=False)
 
 
 if __name__ == "__main__":
