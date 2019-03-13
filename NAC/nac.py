@@ -5,7 +5,7 @@ import quanser_robots
 import warnings
 
 
-def run_batch(env, actor, value_grad, sess, num_traj, printing=False):
+def run_batch(env, actor, critic, sess, num_traj, printing=False):
     """
     TODO
     :param env:
@@ -22,10 +22,6 @@ def run_batch(env, actor, value_grad, sess, num_traj, printing=False):
     # Unpack the policy network (generates control policy)
     (pl_state, pl_actions, pl_advantages,
         pl_probabilities, pl_train_vars) = actor.get_net_variables()
-
-    # Unpack the value network (estimates expected reward)
-    (vfa_state_input, vfa_true_vf_input,
-        vfa_nn_output, vfa_optimizer, vfa_loss) = value_grad
 
     # set up the environment
     observation = env.reset()
@@ -145,10 +141,8 @@ def run_batch(env, actor, value_grad, sess, num_traj, printing=False):
           .format(num_traj, len(batch_traj_rewards), batch_traj_rewards))
 
     # ----------------- UPDATE VALUE NETWORK -------------------------------- #
-    batch_disc_returns_vec = np.expand_dims(batch_discounted_returns, axis=1)
-    sess.run(vfa_optimizer,
-             feed_dict={vfa_state_input: batch_states,
-                        vfa_true_vf_input: batch_disc_returns_vec})
+
+    critic.update(sess, batch_states, batch_discounted_returns)
 
     # ---------------- UPDATE POLICY NETWORK -------------------------------- #
     print("Policy update:", np.asarray(batch_states).shape,

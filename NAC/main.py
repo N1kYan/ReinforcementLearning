@@ -3,11 +3,10 @@ import numpy as np
 import sys
 import time
 import gym
-import quanser_robots
 import random
 
 from my_environment import MyEnvironment
-from critic import value_gradient
+from critic import Critic
 from actor import Actor
 from nac import run_batch
 import evaluation
@@ -43,7 +42,7 @@ COMPLEX_POLICY_NET = False
 LOAD_WEIGHTS = False
 
 # Select Environment
-ENVIRONMENT = 12
+ENVIRONMENT = 11
 
 """
     0: Name of the Gym/Quanser environment.
@@ -69,8 +68,7 @@ env_dict = {1: ['CartPole-v0',          'discrete',     [0],    500, 300, 0.97, 
             4: ['BallBalancerSim-v0',   'continuous',   [5, 5], 2000, 300, 0.97, 0.001, 0.1],
             5: ['Levitation-v1',        'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
             6: ['Pendulum-v0',          'continuous',   [3],    200, 300, 0.97, 0.001, 0.1],
-            11: ['CartpoleStabRR-v0',   'discrete',     [0],    500, 300, 0.97, 0.001, 0.1],
-            12: ['CartpoleStabShort-v0',   'continuous',     [3],    200, 300, 0.97, 0.001, 0.1]}
+            11: ['CartpoleStabRR-v0',   'discrete',     [0],    500, 300, 0.97, 0.001, 0.1]}
 
 assert ENVIRONMENT in env_dict.keys()
 env_details = env_dict[ENVIRONMENT]
@@ -97,20 +95,9 @@ if LOAD_WEIGHTS:
 
     # ---------------------- GENERATE ENVIRONMENT ------------------------------- #
     print("Generating {} environment:".format(env_details[0]))
-    # env = MyEnvironment(env_details, CONTINUOUS,
-    #                    COMPLEX_POLICY_NET, HIDDEN_LAYER_SIZE)
     env = gym.make(env_details[0])
+
     # # ----------------------- GENERATE NETWORKS --------------------------------- #
-
-    # print("Generating Neural Networks ... ", end="")
-    # start_time = time.time()
-    # sys.stdout.flush()
-    # actor = Actor(env)
-    # value_grad = value_gradient(env)
-    # env.network_generation_time = int(time.time() - start_time)
-    # print("Done! (Time: " + str(env.network_generation_time) + " seconds)")
-
-    # sess.run(tf.global_variables_initializer())
 
     time_steps = 10000
     for e in range(10):
@@ -175,7 +162,7 @@ else:
     start_time = time.time()
     sys.stdout.flush()
     actor = Actor(env)
-    value_grad = value_gradient(env)
+    critic = Critic(env)
     env.network_generation_time = int(time.time() - start_time)
     print("Done! (Time: " + str(env.network_generation_time) + " seconds)")
 
@@ -192,7 +179,7 @@ else:
 
         # Act in the env and update weights after collecting data
         reward, n_episodes = \
-            run_batch(env, actor, value_grad, sess, u)
+            run_batch(env, actor, critic, sess, u)
 
         max_rewards.append(np.max(reward))
         total_episodes.append(n_episodes)

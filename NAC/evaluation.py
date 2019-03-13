@@ -1,13 +1,8 @@
-import gym
 import time
 import numpy as np
-import random
-import tensorflow as tf
 import sys
 import matplotlib.pyplot as plt
 import os
-import datetime
-from NAC_by_studywolf.actor import Actor
 
 
 def evaluate(env, sess, actor, episodes=25):
