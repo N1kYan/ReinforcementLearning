@@ -3,49 +3,143 @@ import random
 import gym
 import quanser_robots
 import warnings
+import sys
 
 
-def run_batch(env, actor, critic, sess, num_traj, printing=False):
-    """
-    TODO
-    :param env:
-    :param actor:
-    :param value_grad:
-    :param sess:
-    :param num_traj:
-    :param printing:
-    :return:
+class NAC:
     """
 
-    continuous = env.continuous
+    """
 
-    # Unpack the policy network (generates control policy)
-    (pl_state, pl_actions, pl_advantages,
-        pl_probabilities, pl_train_vars) = actor.get_net_variables()
+    def __init__(self, env, actor, critic):
+        self.env = env
+        self.actor = actor
+        self.critic = critic
 
-    # set up the environment
-    observation = env.reset()
+    def run_batch(self, sess):
+        """
 
-    traj_reward = 0.0
-    traj_transitions = []
 
-    batch_traj_rewards = []
-    batch_states = []
-    batch_actions = []
-    batch_advantages = []
-    batch_discounted_returns = []
+        :param sess:
+        :return:
+        """
 
-    n_trajectories = 0
-    n_timesteps = env.time_steps
+        # Reset the environment and get start state
+        observation = self.env.reset()
 
-    for t in range(n_timesteps):
+        # Variables saving data for the current trajectory
+        traj_reward = 0.0
+        traj_transitions = []
 
-        # I think sometimes we have a zero in the observations
-        # and we somehow divide while calculating the probs
-        observation = \
-            [0.00001 if np.abs(x) < 0.00001 else x for x in observation]
+        # Variables saving data for the complete batch
+        batch_traj_rewards = []
+        batch_states = []
+        batch_actions = []
+        batch_advantages = []
+        batch_discounted_returns = []
 
-        if env.name == 'Qube-v0':
+        for t in range(self.env.time_steps):
+            # Some environments need preprocessing
+            observation = self.preprocess_obs(observation)
+
+            # ------------------- PREDICT ACTION ---------------------------- #
+            if self.env.continuous:
+                # Not implemented yet
+                obs_vector = np.expand_dims(observation, axis=0)
+                (act_state_input, _, _, act_probabilities, _) \
+                    = self.actor.get_net_variables()
+                action = sess.run(
+                    act_probabilities,
+                    feed_dict={act_state_input: obs_vector})
+                batch_actions.append(action)
+
+            else:
+                # Get the action with the highest probability w.r.t our actor
+                action, action_i = self.actor.get_action(sess, observation)
+
+                # Make one-hot action array
+                action_array = np.zeros(len(self.env.action_space))
+                action_array[action_i] = 1
+                batch_actions.append(action_array)
+
+            # --------------- TAKE A STEP IN THE ENV ------------------------ #
+
+            old_observation = observation
+            observation, reward, done, _ = self.env.step(action)
+
+            # Record state/transition
+            batch_states.append(old_observation)
+            traj_transitions.append((old_observation, action, reward))
+            traj_reward += reward
+
+            # -------------------- END OF TRAJECTORY ------------------------ #
+
+            # If env = done or we collected our desired number of steps
+            if done or t == self.env.time_steps - 1:
+
+                discounted_return = 0.0
+                traj_advantages = []
+                traj_discounted_returns = []
+
+                # Calculate in reverse order, because it's faster
+                for trans_i in reversed(range(len(traj_transitions))):
+                    obs, action, reward = traj_transitions[trans_i]
+
+                    # ------- Discounted monte-carlo return (G_t) ----------- #
+
+                    discounted_return = discounted_return * \
+                                        self.env.mc_discount_factor + reward
+
+                    # Save disc reward to update critic params in its direction
+                    traj_discounted_returns.insert(0, discounted_return)
+
+                    # ------------------- ADVANTAGE ------------------------- #
+
+                    # Get the value V from our Critic
+                    critic_value = self.critic.estimate(sess, obs)
+
+                    # Save advantages to update actor params in its direction
+                    traj_advantages.insert(0, discounted_return - critic_value)
+
+                # ----------------- SAVE VARIABLES -------------------------- #
+
+                batch_discounted_returns.extend(traj_discounted_returns)
+                batch_advantages.extend(traj_advantages)
+                batch_traj_rewards.append(traj_reward)
+
+                # ----------------- RESET VARIABLES ------------------------- #
+                traj_reward = 0.0
+                traj_transitions = []
+
+                if done:
+                    # Reset environment, if we still have steps left in batch
+                    observation = self.env.reset()
+                else:
+                    # If we have no steps left, close environment
+                    self.env.close()
+
+        # ----------------- UPDATE NETWORKS -------------------------------- #
+
+        self.critic.update(sess, batch_states, batch_discounted_returns)
+        self.actor.update(sess, batch_states, batch_actions, batch_advantages)
+
+        return batch_traj_rewards
+
+    def preprocess_obs(self, observation):
+        """
+        We need to preprocess our observations for two reasons
+        1. We do not want to have zeros, because it is not feasible with our
+        way of calculating the fisher inverse (dividing by zero).
+        2. Some environments have some constraints or function better if the
+        state (specific w.r.t. the environment) is clipped.
+
+        :param observation: the observation we want to preprocess
+        :return: the preprocessed observation
+        """
+
+        observation = [0.00001 if np.abs(x) < 0.00001 else x for x in observation]
+
+        if self.env.name == 'Qube-v0':
             for rr in range(4):
                 ob = observation[rr]
                 if ob > 0.999:
@@ -53,102 +147,5 @@ def run_batch(env, actor, critic, sess, num_traj, printing=False):
                 elif ob < -0.999:
                     observation[rr] = -0.999
 
-        # Expand state by one dimension
-        # Before = [ ... , ... , ... ], After = [[ ... , ... , ... ]]
-        obs_vector = np.expand_dims(observation, axis=0)
+        return observation
 
-        print("({}) OBS:{}".format(t, obs_vector), end='') if printing else ...
-
-        # ------------------- PREDICT ACTION -------------------------------- #
-        if continuous:
-            action = sess.run(
-                pl_probabilities,
-                feed_dict={pl_state: obs_vector})
-
-            batch_actions.append(action)
-
-        else:
-            action, action_i = actor.get_action(sess, observation)
-
-            # Make one-hot action array
-            action_array = np.zeros(len(env.action_space))
-            action_array[action_i] = 1
-            batch_actions.append(action_array)
-            print(", ACTION ARRAY: ", action_array, end='') if printing else ...
-
-        print(", ACTION:", action, end='') if printing else ...
-
-        # Record transition
-        batch_states.append(observation)
-        old_observation = observation
-        observation, reward, done, info = env.step(action)
-
-        traj_transitions.append((old_observation, action, reward))
-        traj_reward += reward
-
-        # -------------------- END OF TRAJECTORY ---------------------------- #
-
-        # If env = done or we collected our desired number of steps
-        if done or t == n_timesteps - 1:
-            # TODO: Save computation time by calculating G_t backwards
-            for i_trans, trans in enumerate(traj_transitions):
-                obs, action, reward = trans
-                obs_vector = np.expand_dims(obs, axis=0)
-
-                # --------- Discounted monte-carlo return (G_t) ------------- #
-
-                discounted_return = 0
-                future_transitions_n = len(traj_transitions) - i_trans
-                decrease = 1
-                for p in range(future_transitions_n):
-                    discounted_return += traj_transitions[p + i_trans][2] * decrease
-                    decrease = decrease * env.mc_discount_factor
-
-                # save disc reward to update critic params in its direction
-                batch_discounted_returns.append(discounted_return)
-
-                # --------- Get the value V from our Critic ----------------- #
-
-                # The estimated return the critic expects the state to have
-                critic_value = sess.run(
-                    vfa_nn_output,
-                    feed_dict={vfa_state_input: obs_vector}
-                )[0][0]
-
-                # --------------------- ADVANTAGE --------------------------- #
-
-                # How much better did we do compared to the critic expectation
-                batch_advantages.append(discounted_return - critic_value)
-
-            # How many trajectories have been executed in this batch
-            n_trajectories += 1
-            # Save current reward of trajectory
-            batch_traj_rewards.append(traj_reward)
-
-            # ------------------- RESET VARIABLES --------------------------- #
-            traj_reward = 0.0
-            traj_transitions = []
-
-            if done:
-                # reset the environment, if we still have steps left
-                observation = env.reset()
-            else:
-                # if we have no steps left, close environment
-                env.close()
-
-    print("\n\n\n") if printing else ...
-    print('Update {} with {} trajectories with rewards of: {}'
-          .format(num_traj, len(batch_traj_rewards), batch_traj_rewards))
-
-    # ----------------- UPDATE VALUE NETWORK -------------------------------- #
-
-    critic.update(sess, batch_states, batch_discounted_returns)
-
-    # ---------------- UPDATE POLICY NETWORK -------------------------------- #
-    print("Policy update:", np.asarray(batch_states).shape,
-          np.asarray(batch_advantages).shape,
-          np.asarray(batch_actions).shape) if printing else ...
-
-    actor.update(sess, batch_states, batch_actions, batch_advantages)
-
-    return batch_traj_rewards, n_trajectories

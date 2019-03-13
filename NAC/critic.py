@@ -14,6 +14,16 @@ class Critic:
                  feed_dict={self.state_input: batch_states,
                             self.true_vf_input: returns_vector})
 
+    def estimate(self, sess, observation):
+        # The estimated return the critic expects the state to have
+        observation_vector = np.expand_dims(observation, axis=0)
+        state_value = sess.run(
+            self.output,
+            feed_dict={self.state_input: observation_vector}
+        )[0][0]
+
+        return state_value
+
     @staticmethod
     def create_value_net(env):
         """
@@ -33,7 +43,7 @@ class Critic:
             the adam optimizer object,
             the loss between the true value and the estimated value for the state
         """
-        with tf.variable_scope("value"):
+        with tf.variable_scope("critic"):
             # Get the state size to get the number of input nodes
             state_size = env.observation_space.shape[0]
 

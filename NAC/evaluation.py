@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import os
 
 
-def evaluate(env, sess, actor, episodes=25):
+def evaluate(env, sess, actor, episodes=100):
     """
     Evaluates the learned agent on a given instance of MyEnvironment class.
     Evaluation is done by calculating cumulative reward of each episode and
