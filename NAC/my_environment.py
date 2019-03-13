@@ -1,12 +1,9 @@
 import random
 import numpy as np
-import sys
 import gym
 import quanser_robots
-from quanser_robots import GentlyTerminating
 import warnings
 import datetime
-import os
 import itertools
 
 

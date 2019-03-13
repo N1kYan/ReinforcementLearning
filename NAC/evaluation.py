@@ -7,9 +7,12 @@ import os
 
 def evaluate(env, sess, actor, episodes=100):
     """
-    Evaluates the learned agent on a given instance of MyEnvironment class.
-    Evaluation is done by calculating cumulative reward of each episode and
-    the average reward in each episode. We plot both and save it.
+    Evaluates the learned agent on a given instance of MyEnvironment.
+    Evaluation is done by calculating cumulative rewards of each trajectory and
+    the average reward in each trajectory. These are saved as text
+    (results.txt) and as plots under "/data/" in a folder named with a current
+    time stamp. Additionally all hyperparameters are saved to
+    "hyperparameters.txt".
 
     :param env: MyEnvironment instance; The environment the agent is evaluated on
     :param sess: Tensorflow session
@@ -24,10 +27,10 @@ def evaluate(env, sess, actor, episodes=100):
     except FileExistsError:
         pass
 
-    time_steps = 10000
+    # -------------------- EVALUATION OF ENVIRONMENT ------------------------ #
 
-    print("\nEVALUATION: {} episodes with {} time steps each (or until 'done')"
-          .format(episodes, time_steps))
+    print("\nEVALUATION: {} episodes on {} until 'done'!"
+          .format(episodes, env.name))
 
     cumulative_episode_reward = []
     average_episode_reward = []
@@ -40,13 +43,14 @@ def evaluate(env, sess, actor, episodes=100):
 
         undiscounted_return = 0
         rewards = []
-
-        for t in range(time_steps):
+        t = 0
+        while(True):
 
             if done:
                 trajectory_lengths.append(t)
                 cumulative_episode_reward.append(undiscounted_return)
                 average_episode_reward.append(np.mean(rewards))
+                t = 0
                 break
 
             action, _ = actor.get_action(sess, observation)
@@ -54,15 +58,31 @@ def evaluate(env, sess, actor, episodes=100):
 
             undiscounted_return += reward
             rewards.append(reward)
+            t += 1
 
     print("Average trajectory length:", np.mean(trajectory_lengths))
     print("Average episode reward:", np.mean(average_episode_reward))
     print("Average cumulative episode reward:",
           np.mean(cumulative_episode_reward))
 
+    # ------------------------- SAVE RESULTS -------------------------------- #
+
+    results_file = open("{}/results.txt".format(env.save_folder), 'w')
+
+    results_string = \
+        "Average transition reward: {}\n" \
+        "Average trajectory reward: {}\n" \
+            .format(np.mean(average_episode_reward),
+                    np.mean(cumulative_episode_reward))
+
+    results_file.write(results_string)
+    results_file.close()
+
+    # Plot results
     plot_save_rewards(env, cumulative_episode_reward, average_episode_reward)
 
     # -------------------- SAVE HYPERPARAMETERS ----------------------------- #
+
     param_file = open("{}/parameters.txt".format(env.save_folder), 'w')
 
     param_string = \
@@ -83,26 +103,17 @@ def evaluate(env, sess, actor, episodes=100):
     param_file.write(param_string)
     param_file.close()
 
-    # ------------------------- SAVE RESULTS -------------------------------- #
-    results_file = open("{}/results.txt".format(env.save_folder), 'w')
-
-    results_string = \
-        "Average transition reward: {}\n"\
-        "Average trajectory reward: {}\n"\
-        .format(np.mean(average_episode_reward),
-                np.mean(cumulative_episode_reward))
-
-    results_file.write(results_string)
-    results_file.close()
-
 
 def plot_save_rewards(env, cumulative_episode_reward, average_episode_reward):
     """
     Plot and save results of evaluation.
 
-    :param env: Instance of MyEnvironment class; used to name the folder for saving plots
-    :param cumulative_episode_reward: 2D-array, containing all episodes and the cumulative reward per step per episode
-    :param average_episode_reward: 2D-array, episode x average reward per step per episode
+    :param env: Instance of MyEnvironment class; used to name the folder for
+        saving plots
+    :param cumulative_episode_reward: 2D-array, containing all episodes and
+        the cumulative reward per step per episode
+    :param average_episode_reward: 2D-array, episode x average reward per step
+        per episode
     :return: None
     """
 
