@@ -1,27 +1,36 @@
 import numpy as np
-import random
-import gym
-import quanser_robots
-import warnings
-import sys
 
 
 class NAC:
-    """
-
-    """
-
     def __init__(self, env, actor, critic):
+        """
+        This class records transitions by executing steps in the environment,
+        which uses the predicted actions of our actor neural network.
+
+        Afterwards, it calculates the discounted return and the critic's value
+        function prediction for every state and subtracts the latter from
+        the first to get the advantages.
+
+        Finally, it updates the critic by using the discounted returns and the
+        actor by using the advantages.
+
+        :param env: a my_environment object, which embodies the gym or
+            quanser_robots environment that we want to solve
+        :param actor: an actor object, which embodies a policy neural network
+        :param critic: a critic object, which embodies a value function neural
+            network
+        """
         self.env = env
         self.actor = actor
         self.critic = critic
 
     def run_batch(self, sess):
         """
+        Execute one batch worth of transitions and update the actor and critic
+        parameters.
 
-
-        :param sess:
-        :return:
+        :param sess: the active tensorflow session
+        :return: a list of the summed rewards for each trajectory
         """
 
         # Reset the environment and get start state
@@ -43,24 +52,14 @@ class NAC:
             observation = self.preprocess_obs(observation)
 
             # ------------------- PREDICT ACTION ---------------------------- #
-            if self.env.continuous:
-                # Not implemented yet
-                obs_vector = np.expand_dims(observation, axis=0)
-                (act_state_input, _, _, act_probabilities, _) \
-                    = self.actor.get_net_variables()
-                action = sess.run(
-                    act_probabilities,
-                    feed_dict={act_state_input: obs_vector})
-                batch_actions.append(action)
 
-            else:
-                # Get the action with the highest probability w.r.t our actor
-                action, action_i = self.actor.get_action(sess, observation)
+            # Get the action with the highest probability w.r.t our actor
+            action, action_i = self.actor.get_action(sess, observation)
 
-                # Make one-hot action array
-                action_array = np.zeros(len(self.env.action_space))
-                action_array[action_i] = 1
-                batch_actions.append(action_array)
+            # Make one-hot action array
+            action_array = np.zeros(len(self.env.action_space))
+            action_array[action_i] = 1
+            batch_actions.append(action_array)
 
             # --------------- TAKE A STEP IN THE ENV ------------------------ #
 
@@ -118,14 +117,14 @@ class NAC:
                     # If we have no steps left, close environment
                     self.env.close()
 
-        # ----------------- UPDATE NETWORKS -------------------------------- #
+        # ------------------ UPDATE NETWORKS -------------------------------- #
 
         self.critic.update(sess, batch_states, batch_discounted_returns)
         self.actor.update(sess, batch_states, batch_actions, batch_advantages)
 
         return batch_traj_rewards
 
-    def preprocess_obs(self, observation):
+    def preprocess_obs(self, obs):
         """
         We need to preprocess our observations for two reasons
         1. We do not want to have zeros, because it is not feasible with our
@@ -133,19 +132,19 @@ class NAC:
         2. Some environments have some constraints or function better if the
         state (specific w.r.t. the environment) is clipped.
 
-        :param observation: the observation we want to preprocess
+        :param obs: the observation we want to preprocess
         :return: the preprocessed observation
         """
 
-        observation = [0.00001 if np.abs(x) < 0.00001 else x for x in observation]
+        obs = [0.00001 if np.abs(x) < 0.00001 else x for x in obs]
 
         if self.env.name == 'Qube-v0':
             for rr in range(4):
-                ob = observation[rr]
-                if ob > 0.999:
-                    observation[rr] = 0.999
-                elif ob < -0.999:
-                    observation[rr] = -0.999
+                obs_value = obs[rr]
+                if obs_value > 0.999:
+                    obs[rr] = 0.999
+                elif obs_value < -0.999:
+                    obs[rr] = -0.999
 
-        return observation
+        return obs
 

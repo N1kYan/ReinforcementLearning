@@ -12,7 +12,7 @@ import itertools
 
 class MyEnvironment(gym.Space):
     def __init__(self, env_details, continuous, complex_policy_net,
-                 hidden_layer_size):
+                 hidden_layer_size, ):
         gym.Space.__init__(self, (), np.float)
 
         self.name = env_details[0]
@@ -103,6 +103,9 @@ class MyEnvironment(gym.Space):
         print("\tAction space high: {}".format(self.action_space_high))
         print("\taction space low : {}".format(self.action_space_low))
         print("\tAction space: {}".format(self.action_space.tolist()))
+
+        # Reward
+        print("\tReward range: {}".format(self.env.reward_range))
 
     def step(self, action):
         # Take the action in the environment
