@@ -1,0 +1,13 @@
+name: group19
+channels: 
+    - vpython
+    - default
+dependencies:
+    - matplotlib=3.0.1
+    - numpy=1.15.4  
+    - python=3.6.6
+    - pip:
+        - gym==0.10.9
+        - tensorflow==1.12.0
+        - torch==0.4.1
+        
