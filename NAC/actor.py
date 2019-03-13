@@ -8,17 +8,19 @@ import random
 
 
 class Actor:
-    def __init__(self, env):
+    def __init__(self, env, state_input, actions_input, advantages_input,
+                 probabilities, trainable_vars):
 
         self.env = env
 
-
-        self.state_input, self.actions_input, self.advantages_input, \
-        self.probabilities, self.train_vars \
-            = self.create_policy_net(env)
+        self.state_input = state_input
+        self.actions_input = actions_input
+        self.advantages_input = advantages_input
+        self.probabilities = probabilities
+        self.trainable_vars = trainable_vars
 
     def update(self, sess, batch_states, batch_actions, batch_advantages):
-        sess.run(self.train_vars,
+        sess.run(self.trainable_vars,
                  feed_dict={self.state_input: batch_states,
                             self.actions_input: batch_actions,
                             self.advantages_input: batch_advantages})
@@ -61,7 +63,7 @@ class Actor:
 
         return self.state_input, self.actions_input, \
                self.advantages_input, self.probabilities, \
-               self.train_vars
+               self.trainable_vars
 
     @staticmethod
     def create_policy_net(env):

@@ -4,9 +4,15 @@ import numpy as np
 
 class Critic:
 
-    def __init__(self, env):
-        self.state_input, self.true_vf_input, self.output, \
-            self.optimizer, self.loss = self.create_value_net(env)
+    def __init__(self, env, state_input, true_vf_input,
+                 output, optimizer, loss):
+
+        self.env = env
+        self.state_input = state_input
+        self.true_vf_input = true_vf_input
+        self.output = output
+        self.optimizer = optimizer
+        self.loss = loss
 
     def update(self, sess, batch_states, batch_discounted_returns):
         returns_vector = np.expand_dims(batch_discounted_returns, axis=1)
@@ -49,7 +55,8 @@ class Critic:
 
             # Input layer, hidden dense layer,
             # bias b1 & ReLu activation
-            state_input = tf.placeholder("float", [None, state_size])
+            state_input = tf.placeholder("float", [None, state_size],
+                                         name="state_input")
             w1 = tf.get_variable("w1", [state_size, env.hidden_layer_critic])
             b1 = tf.get_variable("b1", [env.hidden_layer_critic])
             h1 = tf.nn.relu(tf.matmul(state_input, w1) + b1)
@@ -57,21 +64,24 @@ class Critic:
             # Output times 2nd weights plus 2nd bias
             w2 = tf.get_variable("w2", [env.hidden_layer_critic, 1])
             b2 = tf.get_variable("b2", [1])
-            output = tf.matmul(h1, w2) + b2
+            output = tf.add(tf.matmul(h1, w2), b2, name="output")
 
             # During runtime this value will hold the true value
             # (discounted return) of the value function which we will use to
             # adjust our NN accordingly.
-            true_vf_input = tf.placeholder("float", [None, 1])
+            true_vf_input = tf.placeholder("float", [None, 1],
+                                           name="true_vf_input")
 
             # Minimize the difference between predicted and actual output
             diffs = output - true_vf_input
-            loss = tf.nn.l2_loss(diffs)  # sum (diffs ** 2) / 2
+            loss = tf.nn.l2_loss(diffs, name="loss")  # sum (diffs ** 2) / 2
 
             # Computes the gradients of the network and applies them again so
             # the 'loss' value will be minimized. This is done via the Adam
             # algorithm.
-            optimizer = tf.train.\
-                AdamOptimizer(env.learning_rate_critic).minimize(loss)
+            optimizer = tf.train.AdamOptimizer(env.learning_rate_critic)
+            optimizer = optimizer.minimize(loss)
+
+            tf.add_to_collection("optimizer", optimizer)
 
             return state_input, true_vf_input, output, optimizer, loss
