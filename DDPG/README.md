@@ -6,7 +6,7 @@ containing files:
 <li>ActionNoise.py: Noise which is added to the chosen action</li></ul>
 
 <h4> Brief introduction to DDPG</h4>
-DDPG is an reinforcement learning algorithm which combines the approaches of DPG and DQN. It is a model-free and off-policy algorithm and uses actor-critic methods with a deterministic target policy and deep Q-Learning. The critic is updated with the Bellman Equation with TD-error and the actor is updated using the DPG theorem. The replay buffer is used to sample random mini-batches to ensure independently and identically distributed date which are decorrelated. The target network is constrained to slow changes which greatly imporve stability.
+DDPG is an reinforcement learning algorithm which combines the approaches of DPG and DQN. It is a model-free and off-policy algorithm and uses actor-critic methods with a deterministic target policy and deep Q-Learning. The critic is updated with the Bellman Equation with TD-error and the actor is updated using the DPG theorem. The replay buffer is used to sample random mini-batches to ensure independently and identically distributed data which are decorrelated. The target network is constrained to slow changes what greatly improves stability.
 
 <h4>Starting DDPG</h4>
 1. Activating the virtual environment via <br/>
