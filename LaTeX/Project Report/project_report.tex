@@ -83,50 +83,64 @@ grestore
 \author{Yannik Frisch \and Tabea Wilke \and Maximilian Gehrke %etc.
 }
 
-%\authorrunning{Short form of author list} % if too long for running head
-
-\institute{F. Author \at
-              first address \\
-              Tel.: +123-45-678910\\
-              Fax: +123-45-678910\\
-              \email{fauthor@example.com}           %  \\
-%             \emph{Present address:} of F. Author  %  if needed
-           \and
-           S. Author \at
-              second address
-}
-
-\date{Received: date / Accepted: date}
-% The correct dates will be entered by the editor
-
-
 \maketitle
-
-\begin{abstract}
-TODO
-\keywords{DDPG \and NAC \and BallBalancer \and Pendulum \and DoublePendulum \and FurutaPendulum}
-% \PACS{PACS code1 \and PACS code2 \and more}
-% \subclass{MSC code1 \and MSC code2 \and more}
-\end{abstract}
 
 \section{Introduction}
 \label{sec:intro}
-We present our final results of evaluating the reinforcement learning algorithms \textit{Deep Deterministic Policy Gradient} and \textit{Natural Actor Critic} on the simulated quanser systems platforms \textit{Pendulum-v1}, \textit{BallBalancerSim-v1}, \textit{Qube-v0}, \textit{DoublePendulum-v0}. We also present the results of the NAC algorithm on the real double pendulum hardware system.
-
+We shortly present two state-of the art reinforcement learning algorithms, the \textit{Deep Deterministic Policy Gradient} and the \textit{Natural Actor Critic}. Both algorithms are evaluated on the Quanser Robots platforms  on the simulated quanser systems platforms \textit{CartPoleSwingShort-v0}, \textit{BallBalancerSim-v0} and \textit{Qube-v0}. We furthermore present the results of training both algorithms on the \textit{BallBalancerSim-v0} and evaluating it on the pyhiscal \textit{BallBalancerRR-v0} platform. Finally, we let a pretrained \textit{Natural Actor Critic} agent continue learning on the physical version of \textit{CartPoleSwingShort-v0}. We close with a discussion of the results.
+\newpage
 \section{Deep Deterministic Policy Gradient}
 \label{sec:ddpg}
-\subsection{Evaluation on Pendulum-v1}
-\subsection{Evaluation on BallBalancerSim-v1}
+The \textit{Deep Deterministic Policy Gradient} approach \citep{lillicrap2015continuous} is an application of the \textit{Deep Q-Learning} algorithm \citep{mnih2013playing} to actor-critic methods [x] in combination with the \textit{Deterministic Policy Gradient} \citep{silver2014deterministic}. It is a model-free and off-policy algorithm, learning a deterministic policy. A replay buffer is used to sample independently and identically distributed mini-batches, randomly selected to temporarily decorrelate them. Target networks are used, which are constrained to slow changes to improve the stability of learning.
+\subsection{Evaluation on CartPoleSwingShort-v0}
+The Quanser Robots \textit{CartPoleSwingShort-v0} environment consists movable car with a singular pendulum attached. The car can be controlled by input actions. The reward is depending on the angle, with a max reward of 2 per time-step for balancing the pendulum straight upright.\\
+
+\subsection{Evaluation on BallBalancerSim-v0}
+The Quanser Robots \textit{BallBalancerSim-v0} environment consist of a plate whose angles can be controlled by the input actions. The goal is to balance a ball on the plate, receiving a maximum reward of [?] per time-step for balancing it in the middle of the plate. The environment ends after a maximum of 1000 time-steps.\\
+We started our evaluations with using the same network structures for the actor and critic as [x] did. We used 2 hidden layers with 100 and 300 hidden neurons for the actor and the critic networks and their targets. The learning rates are also set to $\alpha_{actor}=1e-4$ and $\alpha_{critic}=1e-3$. 
+In figure [x] one can find our first acceptable results. The discounting is set to $\gamma=0.99$, we did small target updates ($\tau=1e-4$), used a mini-batch size of 64 and a total replay buffer size of 1e6. We slightly increased the noise to $\sigma_{OU}=0.2$ and $\theta_{OU}=0.25$ as the environments action space has an higher amplitude compared to the \textit{Pendulum-v0}. 
+\begin{figure}[H]
+	\includegraphics[width=0.5\textwidth]{plots/ddpg_ball_first_train.png}
+	\includegraphics[width=0.5\textwidth]{plots/ddpg_ball_first_eval.png}
+	\caption{The left figure shows the cumulative reward per episode during the training process. The right one displays current reward per time-step for 25 episodes of evaluation [EDIT: DO 100 EPISODES!]}
+	\label{ddpg:ball:first}
+\end{figure}
+The algorithm did learn to balance the ball, but was not very stable, which can also be read from the learning process plot. To further increase the stability, we increased th mini-batch size used to sample from the replay buffer, and reduced the noise again. Using weight regularization did not seem to be helpful, so we set it to zero.\\
+Figure [x] shows the training process where discounting is set to $\gamma=0.2$ compared to $\gamma=0.99$. One can see discounting is crucial to solve this environment.\\
+\begin{figure}[H]
+	\includegraphics[width=0.5\textwidth]{plots/ddpg_ball_low_gamma.png}
+	\includegraphics[width=0.5\textwidth]{plots/ddpg_ball_high_gamma.png}
+	\caption{The left figure shows the cumulative reward per episode during the training process with $\gamma$ set to 0.2. The right one displays the process for $\gamma=0.99$. Using discounting close to 1 was very important.}
+	\label{ddpg:ball:gamma}
+\end{figure}
+We tried to reduce the computational effort by only using a single hidden layer with 100 hidden neurons instead of two layers. The impact on the performance is shown in figure \ref{ddpg:ball:1layer}. The learning suffered from instabilities, so we decided to weight the stability of using two hidden layers higher than the performance loss.
+\begin{figure}[H]
+	\includegraphics[width=0.5\textwidth]{plots/ddpg_ball_1layer_train.png}
+	\includegraphics[width=0.5\textwidth]{plots/ddpg_ball_1layer_eval.png}
+	\caption{The left figure shows the cumulative reward per episode during the training process using only a hidden layer and the right one again displays the performance during evaluation.}
+	\label{ddpg:ball:1layer}
+\end{figure}
+Our best results can be found in figure \ref{ddpg:ball:best} where we set the OU action noise equal to the one used in the original paper with $\sigma_{OU}=0.15$ and $\theta_{OU}=0.2$. We used slightly harder updates with $\tau=1e-3$, and achieved an average cumulative reward of about 650 for 25 episodes of evaluation. The learning process took about 3 hours for 1000 episodes.
+\begin{figure}[H]
+	\includegraphics[width=0.5\textwidth]{plots/ddpg_ball_best_train.png}
+	\includegraphics[width=0.5\textwidth]{plots/ddpg_ball_best_eval.png}
+	\caption{The left figure shows the cumulative reward per episode during the training process. The right one displays the current reward per time-step for every evaluation episode.}
+	\label{ddpg:ball:best}
+\end{figure}
+\subsection{Evaluation of the Pretrained Model on the Real Ball Balancer System}
+
 \subsection{Evaluation on Qube-v0}
+The Quanser Robots \textit{Qube-v0} environment implements the Furuta Pendulum, which consists of a motor controlling one horizontal arm. One end of the joint is attached to the motor, the other end is attached to another vertical arm, which can only be controlled indirectly by controlling the first arm. See [x] for more details.\\
+The goal is to balance the second arm in upright position, receiving a maximum reward of 0.02 per time-step. The environment stops after 300 time-steps.
+We did not get any useful results re-using the parameters we found for \textit{BallBalancer-v0}. A gaussian noise seemed to perform better then an Ornstein Uhlenbeck noise.
 \section{Natural Actor Critic}
 \label{sec:nac}
-\subsection{Evaluation on Pendulum-v1}
-\subsection{Evaluation on DoublePendulum-v0}
-\subsection{Evaluation on the Real Double Pendulum System}
-\subsubsection{Using a Pretrained Model}
-\subsubsection{Learning from the Physical System}
+\subsection{Evaluation on CartPoleSwingShort-v0}
+\subsection{Evaluation on the BallBalancerSim-v0}
+\subsection{Evaluation of the Pretrained Model on the Real Ball Balancer System}
+\subsubsection{Learning from the Physical Cart Pole System with pretrained parameters}
 
-\section{Conclusion}
+\section{Discussion}
 \label{sec:conclusion}
 
 
@@ -196,7 +210,7 @@ number & number & number \\
 \bibliographystyle{spbasic}      % basic style, author-year citations
 %\bibliographystyle{spmpsci}      % mathematics and physical sciences
 %\bibliographystyle{spphys}       % APS-like style for physics
-\bibliography{ddpg.bib}   % name your BibTeX data base
+\bibliography{project_report.bib}   % name your BibTeX data base
 
 % Non-BibTeX users please use
 \begin{comment}
