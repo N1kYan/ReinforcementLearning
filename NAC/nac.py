@@ -1,9 +1,4 @@
 import numpy as np
-import random
-import gym
-import quanser_robots
-import warnings
-import sys
 
 
 class NAC:
@@ -57,24 +52,14 @@ class NAC:
             observation = self.preprocess_obs(observation)
 
             # ------------------- PREDICT ACTION ---------------------------- #
-            if self.env.continuous:
-                # Not implemented yet
-                obs_vector = np.expand_dims(observation, axis=0)
-                (act_state_input, _, _, act_probabilities, _) \
-                    = self.actor.get_net_variables()
-                action = sess.run(
-                    act_probabilities,
-                    feed_dict={act_state_input: obs_vector})
-                batch_actions.append(action)
 
-            else:
-                # Get the action with the highest probability w.r.t our actor
-                action, action_i = self.actor.get_action(sess, observation)
+            # Get the action with the highest probability w.r.t our actor
+            action, action_i = self.actor.get_action(sess, observation)
 
-                # Make one-hot action array
-                action_array = np.zeros(len(self.env.action_space))
-                action_array[action_i] = 1
-                batch_actions.append(action_array)
+            # Make one-hot action array
+            action_array = np.zeros(len(self.env.action_space))
+            action_array[action_i] = 1
+            batch_actions.append(action_array)
 
             # --------------- TAKE A STEP IN THE ENV ------------------------ #
 

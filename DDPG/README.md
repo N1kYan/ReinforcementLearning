@@ -1,5 +1,5 @@
 <h2> Deep Deterministic Policy Gradient </h2>
-containing files:
+
 <ul><li>DDPG.py: The main file for DDPG with the complete algorithm </li>
 <li>NeuralNetworks.py: The file which creates the actor and the critic network</li>
 <li>ReplayBuffer.py: Defines the memory of the algorithm with its own datastructure</li>
