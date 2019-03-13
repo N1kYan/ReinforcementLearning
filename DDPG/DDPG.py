@@ -204,7 +204,6 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
             # TODO: Clipping action after applying noise problematic?
             # https: // www.reddit.com / r / reinforcementlearning / comments / 8hgdad / ideas_for_exploration_noise_other_than_ornstein /
             action = np.clip(action, env_specs[2], env_specs[3])
-            # print(action)
             # Perform the action
             next_state, reward, done, _ = env.step(action)
             episode_rewards.append(reward)
@@ -231,7 +230,7 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
             # Decrease epsilon (percentage of random actions) every epoch checkpoint
             if epsilon is not None and epsilon_decrease is not None:
                 epsilon = epsilon * epsilon_decrease
-            noise.sigma = noise.sigma - 0.1
+            noise.sigma = noise.sigma - 0.2
             # Print cumulative reward per episode averaged over #epoch_checkpoint episodes
             print('\rEpisode {}\tAverage Reward: {:.3f}\tSigma: {}\t({:.2f} min elapsed)'.
                   format(e, np.mean(scores_deque), noise.sigma, (time.time() - time_start) / 60))
@@ -313,32 +312,27 @@ def main():
     print("Action Space:\tShape:{}\tLow:{}\tHigh:{}".format(np.shape(env.action_space.sample()), env.action_space.low,
                                                             env.action_space.high))
     print("Reward Range:{}".format(env.reward_range))
-    env_observation_size = len(env.reset())
-    env_action_size = len(env.action_space.sample())
-    env_action_low = env.action_space.low
-    env_action_high = env.action_space.high
     global env_specs
-    env_specs = (env_observation_size, env_action_size, env_action_low, env_action_high)
+    env_specs = (len(env.reset()), len(env.action_space.sample()), env.action_space.low, env.action_space.high)
     random_seed = 3
     env.seed(3)
 
     # Noise generating process
-    OU_NOISE = OUNoise(size=env_action_size, seed=random_seed, mu=0., theta=0.15, sigma=0.4)
+    OU_NOISE = OUNoise(size=env_specs[1], seed=random_seed, mu=0., theta=0.15, sigma=0.4)
 
-    GAUSS_NOISE = Gaussian(size=env_action_size, seed=random_seed, mu=0.0, sigma=1.0, decay=0.0)
+    GAUSS_NOISE = Gaussian(size=env_specs[1], seed=random_seed, mu=0.0, sigma=3.0, decay=0.0)
 
     # Replay memory
     MEMORY = ReplayBuffer(action_size=env_specs[1], buffer_size=int(1e6), batch_size=256,
                           seed=random_seed)
 
     # Run training procedure with defined hyperparameters
-    ACTOR = training(epochs=10000, max_steps=10000, epoch_checkpoint=1000, noise=GAUSS_NOISE, epsilon=None,
+    ACTOR = training(epochs=10000, max_steps=10000, epoch_checkpoint=500, noise=GAUSS_NOISE, epsilon=None,
                      epsilon_decrease=None, add_noise=True, lr_actor=1e-4, lr_critic=1e-3, weight_decay=0,
-                     gamma=0.99, memory=MEMORY, tau=1e-3, seed=random_seed, save_flag=True, load_flag=False,
+                     gamma=0.99, memory=MEMORY, tau=2e-3, seed=random_seed, save_flag=True, load_flag=False,
                      load_path='actor22-1-18', render=True)
 
     # Run evaluation
-    # evaluation(load_flag=False, actor='./actor-21-2-16', epochs=25, render=False)
     evaluation(actor=ACTOR, epochs=25, render=False)
 
 
