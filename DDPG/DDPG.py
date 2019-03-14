@@ -385,5 +385,6 @@ def main():
     # Run evaluation
     evaluation(actor=ACTOR, epochs=100, render=False)
 
+
 if __name__ == "__main__":
     main()
