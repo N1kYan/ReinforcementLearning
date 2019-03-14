@@ -87,13 +87,12 @@ grestore
 
 \section{Introduction}
 \label{sec:intro}
-We shortly present two state-of the art reinforcement learning algorithms, the \textit{Deep Deterministic Policy Gradient} and the \textit{Natural Actor Critic}. Both algorithms are evaluated on the Quanser Robots platforms  on the simulated quanser systems platforms \textit{CartPoleSwingShort-v0}, \textit{BallBalancerSim-v0} and \textit{Qube-v0}. We furthermore present the results of training both algorithms on the \textit{BallBalancerSim-v0} and evaluating it on the pyhiscal \textit{BallBalancerRR-v0} platform. Finally, we let a pretrained \textit{Natural Actor Critic} agent continue learning on the physical version of \textit{CartPoleSwingShort-v0}. We close with a discussion of the results.
+We shortly present two state-of the art reinforcement learning algorithms, the \textit{Deep Deterministic Policy Gradient} and the \textit{Natural Actor Critic}. Both algorithms are evaluated on the Quanser Robots platforms  on the simulated quanser systems platforms \textit{BallBalancerSim-v0}, \textit{CartPoleSwingShort-v0} and \textit{Qube-v0}. We furthermore present the results of training both algorithms on the \textit{BallBalancerSim-v0} and evaluating it on the pyhiscal \textit{BallBalancerRR-v0} platform. Finally, we let a pretrained \textit{Natural Actor Critic} agent continue learning on the physical version of \textit{CartPoleSwingShort-v0}. We close with a discussion of the results.
 \newpage
 \section{Deep Deterministic Policy Gradient}
 \label{sec:ddpg}
-The \textit{Deep Deterministic Policy Gradient} approach \citep{lillicrap2015continuous} is an application of the \textit{Deep Q-Learning} algorithm \citep{mnih2013playing} to actor-critic methods [x] in combination with the \textit{Deterministic Policy Gradient} \citep{silver2014deterministic}. It is a model-free and off-policy algorithm, learning a deterministic policy. A replay buffer is used to sample independently and identically distributed mini-batches, randomly selected to temporarily decorrelate them. Target networks are used, which are constrained to slow changes to improve the stability of learning.
-\subsection{Evaluation on CartPoleSwingShort-v0}
-The Quanser Robots \textit{CartPoleSwingShort-v0} environment consists movable car with a singular pendulum attached. The car can be controlled by input actions. The reward is depending on the angle, with a max reward of 2 per time-step for balancing the pendulum straight upright.\\
+The \textit{Deep Deterministic Policy Gradient} approach \citep{lillicrap2015continuous} is an application of the \textit{Deep Q-Learning} algorithm \citep{mnih2013playing} to actor-critic methods [x] in combination with the \textit{Deterministic Policy Gradient} \citep{silver2014deterministic}. It is a model-free and off-policy algorithm, learning a deterministic policy. A replay buffer with a total size of 1e6 samples is used to sample independently and identically distributed mini-batches, randomly selected to temporarily decorrelate them. Target networks are used, which are constrained to slow changes to improve the stability of learning.
+
 
 \subsection{Evaluation on BallBalancerSim-v0}
 The Quanser Robots \textit{BallBalancerSim-v0} environment consist of a plate whose angles can be controlled by the input actions. The goal is to balance a ball on the plate, receiving a maximum reward of [?] per time-step for balancing it in the middle of the plate. The environment ends after a maximum of 1000 time-steps.\\
@@ -128,11 +127,27 @@ Our best results can be found in figure \ref{ddpg:ball:best} where we set the OU
 	\label{ddpg:ball:best}
 \end{figure}
 \subsection{Evaluation of the Pretrained Model on the Real Ball Balancer System}
-
+Evaluating our best model trained in simulation on the real ball balancer was not successful. The chosen actions were too big and the plate tilted. Also, it was not possible for us to reset the environment between the evaluation episodes. The result of a single episode of evaluation can be found in figure [x].
+\subsection{Evaluation on CartPoleSwingShort-v0}
+The Quanser Robots \textit{CartPoleSwingShort-v0} environment consists of a movable car with a singular pendulum attached. The car can be controlled by input actions. The reward is depending on the angle, with a max reward of 2 per time-step for balancing the pendulum straight upright.\\
+We achieved some progress using [x]. The results are displayed in [x].
 \subsection{Evaluation on Qube-v0}
 The Quanser Robots \textit{Qube-v0} environment implements the Furuta Pendulum, which consists of a motor controlling one horizontal arm. One end of the joint is attached to the motor, the other end is attached to another vertical arm, which can only be controlled indirectly by controlling the first arm. See [x] for more details.\\
 The goal is to balance the second arm in upright position, receiving a maximum reward of 0.02 per time-step. The environment stops after 300 time-steps.
-We did not get any useful results re-using the parameters we found for \textit{BallBalancer-v0}. A gaussian noise seemed to perform better then an Ornstein Uhlenbeck noise.
+We did not get any useful results re-using the parameters we found for \textit{BallBalancer-v0}. Using an Ornstein Uhlenbeck seemed not to help to deal with with the local optimas of the environment. Setting the randomness $\sigma_{OU}$ to small resulted in to less exploration. Choosing a higher $\sigma_{OU}$ resulted in better exploration but much less stability. Examples are displayed in figure \ref{ddpg:qube:ou}
+\begin{figure}[H]
+	\includegraphics[width=0.5\textwidth]{plots/ddpg_qube_ou_bad_train.png}
+	\includegraphics[width=0.5\textwidth]{plots/ddpg_qube_ou_better_train.png}
+	\caption{The left plot shows the cumulative reward per episode during training with $\sigma_{OU}=0.2$, the right one with $\sigma_{OU}=2.2$. The other parameters were equal to the ones achieving our best results on \textit{BalllBalancerSim-v0}.}
+	\label{ddpg:qube:ou}
+\end{figure}
+No stable training process could be achieved. Instead we started using a consistent gaussian noise. Unfortunately this did also not help the training process, and seemed to be even more unstable. Figure \ref{ddpg:qube:gauss} shows a result of using gaussian noise. The algorithm seemed to learn well for a period of time, but tended to overwrite these progress. Lowering the target update rate $\tau$ did not help, nether did lowering the actor and critic learning rates.
+\begin{figure}[H]
+	\includegraphics[width=0.5\textwidth]{plots/ddpg_qube_gauss.png}
+	\caption{X}
+	\label{ddpg:qube:gauss}
+\end{figure}
+Further evaluations are needed to find the right set of hyper-parameters for this environment.
 \section{Natural Actor Critic}
 \label{sec:nac}
 \subsection{Evaluation on CartPoleSwingShort-v0}

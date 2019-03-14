@@ -148,7 +148,7 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
     # Load and return actor model from load_path if load_flag is set true
     if load_flag:
         loaded_actor = Actor(state_size=env_specs[0], action_size=env_specs[1], seed=seed).to(device)
-        savepoint = torch.load('./{}/{}{}'.format(env.spec.id, 'actor', load_path))
+        savepoint = torch.load('./{}/{}/{}'.format(env.spec.id, load_path, 'actor'))
         loaded_actor.load_state_dict(savepoint)
         return loaded_actor
     else:
@@ -162,12 +162,12 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
         critic_target = Critic(state_size=env_specs[0], action_size=env_specs[1], seed=seed).to(device)
         critic_optimizer = optim.Adam(critic_local.parameters(), lr=lr_critic, weight_decay=weight_decay)
 
-        # Load actor and critic from load_path and use them for training if use_pretrained is true
+        # Load actor and critic from load_path and use them for training if use_pretrained is set True
         if use_pretrained:
-            actor_savepoint = torch.load('./{}/{}{}'.format(env.spec.id, 'actor', load_path))
+            actor_savepoint = torch.load('./{}/{}/{}'.format(env.spec.id, load_path, 'actor'))
             actor_local.load_state_dict(actor_savepoint)
             actor_target.load_state_dict(actor_savepoint)
-            critic_savepoint = torch.load('./{}/{}{}'.format(env.spec.id, 'critic', load_path))
+            critic_savepoint = torch.load('./{}/{}/{}'.format(env.spec.id, load_path, 'critic'))
             critic_local.load_state_dict(critic_savepoint)
             critic_target.load_state_dict(critic_savepoint)
 
@@ -183,7 +183,7 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
     cumulative_episode_reward = []
     for e in range(1, epochs + 1):
         state = env.reset()
-        # noise.reset()
+        noise.reset()
         cumulative_reward = 0
         episode_rewards = []
         t = 0
@@ -212,10 +212,7 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
             if add_noise:
                 action += noise.sample()
             # Clip actions to action bounds (low, high)
-            # TODO: Clipping action after applying noise problematic?
-            # https: // www.reddit.com / r / reinforcementlearning / comments / 8hgdad / ideas_for_exploration_noise_other_than_ornstein /
             action = np.clip(action, env_specs[2], env_specs[3])
-            # print(action)
             # Perform the action
             next_state, reward, done, _ = env.step(action)
             episode_rewards.append(reward)
@@ -242,8 +239,8 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
             # Decrease epsilon (percentage of random actions) every epoch checkpoint
             if epsilon is not None and epsilon_decrease is not None:
                 epsilon = epsilon * epsilon_decrease
-            # if noise.sigma > 0:
-                # noise.sigma = noise.sigma - 0.1
+            if noise is Gaussian and noise.sigma > 0:
+                noise.sigma = noise.sigma - noise.decay
             # Print cumulative reward per episode averaged over #epoch_checkpoint episodes
             print('\rEpisode {}\tAverage Reward: {:.3f}\tSigma: {}\t({:.2f} min elapsed)'.
                   format(e, np.mean(scores_deque), noise.sigma, (time.time() - time_start) / 60))
@@ -309,14 +306,14 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
 def main():
     """
     Defining the gym environment and initializing the DDPG objects (NNs, noise and replay buffer).
-    Hyperparameters are set in this method.  # TODO: Define size of nn layers in this method
+    Hyperparameters are set in this method.
     Training and evaluation methods are executed.
     :return: None
     """
 
     global env
     # env = gym.make('Qube-v0')
-    env = gym.make('CartpoleSwingLong-v0')
+    env = gym.make('CartpoleSwingShort-v0')
     # env = gym.make('Pendulum-v0')
     # env = gym.make('BallBalancerSim-v0')
     print(env.spec.id)
@@ -335,18 +332,18 @@ def main():
     env.seed(3)
 
     # Noise generating process
-    OU_NOISE = OUNoise(size=env_specs[1], seed=random_seed, mu=0., theta=0.15, sigma=8.2)
+    OU_NOISE = OUNoise(size=env_specs[1], seed=random_seed, mu=0., theta=0.15, sigma=0.4)
 
-    GAUSS_NOISE = Gaussian(size=env_action_size, seed=random_seed, mu=0.0, sigma=2.8, decay=0.0)
+    GAUSS_NOISE = Gaussian(size=env_action_size, seed=random_seed, mu=0.0, sigma=12.0, decay=0.0)
 
     # Replay memory
-    MEMORY = ReplayBuffer(env=env, buffer_size=int(1e6), batch_size=256,
+    MEMORY = ReplayBuffer(env=env, buffer_size=int(1e6), batch_size=128,
                           seed=random_seed)
 
     # Run training procedure with defined hyperparameters
-    ACTOR = training(epochs=10000, max_steps=10000, epoch_checkpoint=1000, noise=GAUSS_NOISE, epsilon=None,
+    ACTOR = training(epochs=10000, max_steps=10000, epoch_checkpoint=500, noise=OU_NOISE, epsilon=None,
                      epsilon_decrease=None, add_noise=True, lr_actor=1e-4, lr_critic=1e-3, weight_decay=0,
-                     gamma=0.99, memory=MEMORY, tau=1e-2, seed=random_seed, save_flag=True, load_flag=False,
+                     gamma=0.99, memory=MEMORY, tau=1e-3, seed=random_seed, save_flag=True, load_flag=False,
                      load_path='22-1-18', render=True, use_pretrained=False)
 
     # Run evaluation
