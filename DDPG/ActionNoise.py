@@ -45,12 +45,11 @@ class Gaussian:
         return action_noise[0]
 
 
-# TODO: Source
 class OUNoise:
     """
         Ornstein Uhlenbeck noise for actions.
-        Stochastic gaussian-process.
-        Process X converges to 'mean reversion level' mu by time.
+        For reference see http://math.stackexchange.com/questions/1287634/implementing-ornstein-uhlenbeck-in-matlab
+        Stochastic gaussian-process. Process X converges to 'mean reversion level' mu by time.
         The 'mean-reversion-speed' theta induces the 'attraction' of mu on X.
         The diffusion sigma controls the randomness of the process.
     """

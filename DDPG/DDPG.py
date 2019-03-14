@@ -98,7 +98,8 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
 
     def learn(experiences):
         """
-        Implementing the DDPG learning rule from . Is called by the main training method.
+        Implementing the DDPG learning rule from https://arxiv.org/abs/1509.02971.
+        Is called by the main training method.
         Updates the actor (policy) and critic (value function) networks' parameters
         given a random mini-batch of experience samples from the replay buffer.
 
