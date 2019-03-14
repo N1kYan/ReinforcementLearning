@@ -39,12 +39,14 @@ def plot_eval(rewards):
         dat2['Episode'] = np.repeat(x, np.shape(rew[x]))
         dat = dat.append(dat2, ignore_index=True)
 
-    #plotting the mean with standard deviation
+    # plotting the mean with standard deviation
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    sns.lineplot(x = 'timesteps', y = 'reward', data = dat, ax=ax, estimator='mean', ci='sd')
+    sns.lineplot(x='timesteps', y='reward', data=dat, ax=ax, estimator='mean', ci='sd')
     plt.show()
-    fig.savefig("ballbalancer26-2-20.pgf")
+    ax.set_title('Rewards during evaluation')
+    fig.savefig("DDPGballbalancer26-2-20.png", bbox_inches='tight')
+
 
 def evaluation(actor, epochs, render):
     """

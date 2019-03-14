@@ -50,6 +50,7 @@ grestore
 \usepackage{amsmath}
 \usepackage{algorithm}
 \usepackage{algorithmic}
+\usepackage{tikz}
 \renewcommand{\algorithmicrequire}{\textbf{Initialize:}}
 
 \usepackage{verbatim} %TODO delete before submission
@@ -115,14 +116,14 @@ Figure [x] shows the training process where discounting is set to $\gamma=0.2$ c
 We tried to reduce the computational effort by only using a single hidden layer with 100 hidden neurons instead of two layers. The impact on the performance is shown in figure \ref{ddpg:ball:1layer}. The learning suffered from instabilities, so we decided to weight the stability of using two hidden layers higher than the performance loss.
 \begin{figure}[H]
 	\includegraphics[width=0.5\textwidth]{plots/ddpg_ball_1layer_train.png}
-	\includegraphics[width=0.5\textwidth]{plots/ddpg_ball_1layer_eval.png}
+	\includegraphics[width=0.455\textwidth]{plots/DDPGballbalancer24-2-16.png}
 	\caption{The left figure shows the cumulative reward per episode during the training process using only a hidden layer and the right one again displays the performance during evaluation.}
 	\label{ddpg:ball:1layer}
 \end{figure}
 Our best results can be found in figure \ref{ddpg:ball:best} where we set the OU action noise equal to the one used in the original paper with $\sigma_{OU}=0.15$ and $\theta_{OU}=0.2$. We used slightly harder updates with $\tau=1e-3$, and achieved an average cumulative reward of about 650 for 25 episodes of evaluation. The learning process took about 3 hours for 1000 episodes.
 \begin{figure}[H]
 	\includegraphics[width=0.5\textwidth]{plots/ddpg_ball_best_train.png}
-	\includegraphics[width=0.5\textwidth]{plots/ddpg_ball_best_eval.png}
+	\includegraphics[width=0.455\textwidth]{plots/DDPGballbalancer26-2-20.png}
 	\caption{The left figure shows the cumulative reward per episode during the training process. The right one displays the current reward per time-step for every evaluation episode.}
 	\label{ddpg:ball:best}
 \end{figure}
@@ -141,12 +142,25 @@ We did not get any useful results re-using the parameters we found for \textit{B
 	\caption{The left plot shows the cumulative reward per episode during training with $\sigma_{OU}=0.2$, the right one with $\sigma_{OU}=2.2$. The other parameters were equal to the ones achieving our best results on \textit{BallBalancerSim-v0}.}
 	\label{ddpg:qube:ou}
 \end{figure}
-No stable training process could be achieved. Instead we started using a consistent gaussian noise. Unfortunately this did also not help the training process, and seemed to be even more unstable. Figure \ref{ddpg:qube:gauss} shows a result of using gaussian noise. The algorithm seemed to learn well for a period of time, but tended to overwrite these progress. Lowering the target update rate $\tau$ did not help, nether did lowering the actor and critic learning rates.
+No stable training process could be achieved. Instead we started using a 
+consistent gaussian noise. Unfortunately this did also not help the training 
+process, and seemed to be even more unstable. Figure \ref{ddpg:qube:gauss} 
+shows a result of using gaussian noise. The algorithm seemed to learn well for 
+a period of time, but tended to overwrite these progress. Lowering the target 
+update rate $\tau$ did not help, nether did lowering the actor and critic 
+learning rates.
+
+
 \begin{figure}[H]
+	\begin{center}
 	\includegraphics[width=0.5\textwidth]{plots/ddpg_qube_gauss.png}
-	\caption{Result of training with a gaussion noise with mean zero and standard deviation $\sigma=0.7$. The mini-batch size was also increased to 256, the other parameters were kept as before.}
+	\caption{Result of training with a gaussian noise with mean zero and 
+	standard deviation $\sigma=0.7$. The mini-batch size was also increased to 
+	256, the other parameters were kept as before.}
 	\label{ddpg:qube:gauss}
+\end{center}
 \end{figure}
+
 Our experiments induced several things: Using a higher batch size seemed to increase the stability to a certain level, but also highly increased the computational effort. 256 seemed to be a good batch-size. The decisions harder or softer updates, controlled by $\tau$, and the amount of action noise for exploration seemed to be very important but also very hard to tune. E.g. choosing $\tau=1e-2$ resulted in an agent tending to overwrite what he already learned, while setting $\tau=1e-4$ prevented him from learning anything. So we chose $\tau=1e-3$, but this alone was not sufficient for effective learning. Further evaluations are needed to find the right set of hyper-parameters for this environment. 
 \section{Natural Actor Critic}
 \label{sec:nac}
