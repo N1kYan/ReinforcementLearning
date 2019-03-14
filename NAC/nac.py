@@ -1,4 +1,14 @@
+#!/usr/bin/env python
+
 import numpy as np
+
+__author__ = "Maximilian A. Gehrke, Yannik P. Frisch, Tabea A. Wilke"
+__data__ = "14.03.2019"
+__copyright__ = "Copyright (C) 2019 Max Gehrke, Yannik Frisch, Tabea Wilke"
+__credits__ = ["Maximilian A. Gehrke", "Yannik P. Frisch", "Tabea A. Wilke"]
+__license__ = "GPL"
+__version__ = "1.0"
+__status__ = "Development"
 
 
 class NAC:
@@ -65,6 +75,8 @@ class NAC:
 
             old_observation = observation
             observation, reward, done, _ = self.env.step(action)
+
+            reward = reward * 100  # TODO: Test for Ballbalancer
 
             # Record state/transition
             batch_states.append(old_observation)
