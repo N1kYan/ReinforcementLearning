@@ -129,7 +129,7 @@ We achieved some progress using [x]. The results are displayed in [x].
 \subsection{Evaluation on Qube-v0}
 The Quanser Robots \textit{Qube-v0} environment implements the Furuta Pendulum, which consists of a motor controlling one horizontal arm. One end of the joint is attached to the motor, the other end is attached to another vertical arm, which can only be controlled indirectly by controlling the first arm. More details about the Furuta Pendulum can be found in our paper about it.\\
 The goal is to balance the second arm in upright position, receiving a maximum reward of 0.02 per time-step. The environment stops after 300 time-steps.
-We did not get any useful results re-using the parameters we found for \textit{BallBalancer-v0}. Using an Ornstein Uhlenbeck seemed not to help to deal with with the local optimas of the environment. Setting the randomness $\sigma_{OU}$ too small resulted in to less exploration. Choosing a higher $\sigma_{OU}$ resulted in better exploration but much less stability. Examples are displayed in figure \ref{ddpg:qube}.\\
+We did not get any useful results re-using the parameters we found for \textit{BallBalancer-v0}. Using an Ornstein Uhlenbeck seemed not to help to deal with with the local optima of the environment. Setting the randomness $\sigma_{OU}$ too small resulted in to less exploration. Choosing a higher $\sigma_{OU}$ resulted in better exploration but much less stability. Examples are displayed in figure \ref{ddpg:qube}.\\
 No stable training process could be achieved. To address this issue we started using a consistent gaussian noise. Unfortunately this did also not help the training process, and seemed to be even more unstable. Figure \ref{ddpg:qube} shows a result of using gaussian noise in the right plot. The algorithm seemed to learn well for a period of time, but tended to overwrite these progress. Lowering the target update rate $\tau$ did not help, nether did lowering the actor and critic learning rates.
 \begin{figure}[H]
 	\begin{center}
@@ -151,7 +151,7 @@ Our experiments induced several things: Using a higher batch size seemed to incr
 \subsubsection{Learning from the Physical Cart Pole System with pretrained parameters}
 
 \section{Discussion}
-We implemented the DDPG and NAC algorithms and evaluated them on the Quanse Robots environments \textit{BallBalancerSim-v0}, \textit{CartPoleStabShort-v0} and the \textit{Qube-v0}. Both algorithms did manage to learn a well performing policy for the first two environments, where the NAC needed less computational effort. Nonetheless did both algorithms have troubles to learn a close to optimal policy for the \textit{Qube-v0} environment. They suffer from a very difficult exploration / exploitation trade-off, often with stable learning in the beginning, which is overwritten later, or not having enough exploration drive to escape local optimas.
+We implemented the DDPG and NAC algorithms and evaluated them on the Quanse Robots environments \textit{BallBalancerSim-v0}, \textit{CartPoleStabShort-v0} and the \textit{Qube-v0}. Both algorithms did manage to learn a well performing policy for the first two environments, where the NAC needed less computational effort. Nonetheless did both algorithms have troubles to learn a close to optimal policy for the \textit{Qube-v0} environment. They suffer from a very difficult exploration / exploitation trade-off, often with stable learning in the beginning, which is overwritten later, or not having enough exploration drive to escape local optima.
 \label{sec:conclusion}
 
 
