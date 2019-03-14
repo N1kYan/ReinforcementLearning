@@ -97,17 +97,18 @@ The \textit{Deep Deterministic Policy Gradient} approach \citep{lillicrap2015con
 \subsection{Evaluation on BallBalancerSim-v0}
 The Quanser Robots \textit{BallBalancerSim-v0} environment consist of a plate whose angles can be controlled by the input actions. The goal is to balance a ball on the plate, receiving a maximum reward of 1.0 per time-step for balancing it in the middle of the plate. The environment ends after a maximum of 1000 time-steps.\\
 We started our evaluations with using the same network structures for the actor and critic as \cite{lillicrap2015continuous} did. We used 2 hidden layers with 100 and 300 hidden neurons for the actor and the critic networks and their targets. The learning rates are also set to $\alpha_{actor}=1e-4$ and $\alpha_{critic}=1e-3$. 
-In figure \ref{ddpg:ball} one can find our first acceptable results. The discounting is set to $\gamma=0.99$, we did small target updates ($\tau=1e-4$), used a mini-batch size of 64 and a total replay buffer size of 1e6. We slightly increased the noise to $\sigma_{OU}=0.2$ and $\theta_{OU}=0.25$ as the environments action space has an higher amplitude compared to the \textit{Pendulum-v0}.\\
+In the left row of figure \ref{ddpg:ball} one can find our first acceptable results. The discounting is set to $\gamma=0.99$, we did small target updates ($\tau=1e-4$), used a mini-batch size of 64 and a total replay buffer size of 1e6. We slightly increased the noise to $\sigma_{OU}=0.2$ and $\theta_{OU}=0.25$ as the environments action space has an higher amplitude compared to the \textit{Pendulum-v0}.\\
 The algorithm did learn to balance the ball, but was not very stable, which can also be read from the learning process plot. To further increase the stability, we increased th mini-batch size used to sample from the replay buffer, and reduced the noise again. Using weight regularization did not seem to be helpful, so we set it to zero.\\
 Figure \ref{ddpg:ball:gamma} shows the training process where discounting is set to $\gamma=0.2$ compared to $\gamma=0.99$. One can see discounting is crucial to solve this environment.\\
 \begin{figure}[H]
-	\includegraphics[width=0.5\textwidth]{plots/ddpg_ball_low_gamma.png}
-	\includegraphics[width=0.5\textwidth]{plots/ddpg_ball_high_gamma.png}
+	\centering
+	\includegraphics[width=0.4\textwidth]{plots/ddpg_ball_low_gamma.png}
+	\includegraphics[width=0.4\textwidth]{plots/ddpg_ball_high_gamma.png}
 	\caption{The left figure shows the cumulative reward per episode during the training process with $\gamma$ set to 0.2. The right one displays the process for $\gamma=0.99$. Using discounting close to 1 was very important.}
 	\label{ddpg:ball:gamma}
 \end{figure}
-We tried to reduce the computational effort by only using a single hidden layer with 100 hidden neurons instead of two layers. The impact on the performance is shown in figure \ref{ddpg:ball}. The learning suffered from instabilities, so we decided to weight the stability of using two hidden layers higher than the performance loss.\\
-Our best results can be found in figure \ref{ddpg:ball} where we set the OU action noise equal to the one used in the original paper with $\sigma_{OU}=0.15$ and $\theta_{OU}=0.2$. We used slightly harder updates with $\tau=1e-3$, and achieved an average cumulative reward of about 650 for 25 episodes of evaluation. The learning process took about 3 hours for 1000 episodes.
+We tried to reduce the computational effort by only using a single hidden layer with 100 hidden neurons instead of two layers. The impact on the performance is shown in the middle row of figure \ref{ddpg:ball}. The learning suffered from instabilities, so we decided to weight the stability of using two hidden layers higher than the performance loss.\\
+Our best results can be found in the right row of figure \ref{ddpg:ball} where we set the OU action noise equal to the one used in the original paper with $\sigma_{OU}=0.15$ and $\theta_{OU}=0.2$. We used slightly harder updates with $\tau=1e-3$, and achieved an average cumulative reward of about 650 for 25 episodes of evaluation. The learning process took about 3 hours for 1000 episodes. Further evaluations are needed to improve the training even more.
 \begin{figure}[H]
 	\includegraphics[width=0.325\textwidth]{plots/ddpg_ball_first_train.png}
 	\includegraphics[width=0.325\textwidth]{plots/ddpg_ball_1layer_train.png}
@@ -117,10 +118,9 @@ Our best results can be found in figure \ref{ddpg:ball} where we set the OU acti
 	\includegraphics[width=0.285\textwidth]{plots/DDPGballbalancer24-2-16.png}
 	\includegraphics[width=0.285\textwidth]{plots/DDPGballbalancer26-2-20.png}
 
-	\caption{The left figure shows the cumulative reward per episode during the training process. The right one displays the current reward per time-step for every evaluation episode.}
+	\caption{The figure displays the training process in the first row and the evaluation results in the second row. Early learning successes can be found in the left column, while the middle column shows the influence of using only a single hidden layer. The right column gives the plots of our best training result.}
 	\label{ddpg:ball}
 \end{figure}
-Further evaluations are needed to improve the training even more.
 \subsection{Evaluation of the Pretrained Model on the Real Ball Balancer System}
 Evaluating our best model trained in simulation on the real ball balancer was not successful. The chosen actions were too big and the plate tilted. Also, it was not possible for us to reset the environment between the evaluation episodes. The result of a single episode of evaluation can be found in figure [x].
 \subsection{Evaluation on CartPoleStabShort-v0}
@@ -130,7 +130,7 @@ We achieved some progress using [x]. The results are displayed in [x].
 The Quanser Robots \textit{Qube-v0} environment implements the Furuta Pendulum, which consists of a motor controlling one horizontal arm. One end of the joint is attached to the motor, the other end is attached to another vertical arm, which can only be controlled indirectly by controlling the first arm. More details about the Furuta Pendulum can be found in our paper about it.\\
 The goal is to balance the second arm in upright position, receiving a maximum reward of 0.02 per time-step. The environment stops after 300 time-steps.
 We did not get any useful results re-using the parameters we found for \textit{BallBalancer-v0}. Using an Ornstein Uhlenbeck seemed not to help to deal with with the local optimas of the environment. Setting the randomness $\sigma_{OU}$ too small resulted in to less exploration. Choosing a higher $\sigma_{OU}$ resulted in better exploration but much less stability. Examples are displayed in figure \ref{ddpg:qube}.\\
-No stable training process could be achieved. To adress this issue we started using a consistent gaussian noise. Unfortunately this did also not help the training process, and seemed to be even more unstable. Figure \ref{ddpg:qube} shows a result of using gaussian noise in the right plot. The algorithm seemed to learn well for a period of time, but tended to overwrite these progress. Lowering the target update rate $\tau$ did not help, nether did lowering the actor and critic learning rates.
+No stable training process could be achieved. To address this issue we started using a consistent gaussian noise. Unfortunately this did also not help the training process, and seemed to be even more unstable. Figure \ref{ddpg:qube} shows a result of using gaussian noise in the right plot. The algorithm seemed to learn well for a period of time, but tended to overwrite these progress. Lowering the target update rate $\tau$ did not help, nether did lowering the actor and critic learning rates.
 \begin{figure}[H]
 	\begin{center}
 	\includegraphics[width=0.325\textwidth]{plots/ddpg_qube_ou_bad_train.png}

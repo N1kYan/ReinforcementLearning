@@ -129,7 +129,8 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
 
     def learn(experiences):
         """
-        Implementing the DDPG learning rule from . Is called by the main training method.
+        Implementing the DDPG learning rule from https://arxiv.org/abs/1509.02971.
+        Is called by the main training method.
         Updates the actor (policy) and critic (value function) networks' parameters
         given a random mini-batch of experience samples from the replay buffer.
 
@@ -243,10 +244,7 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
             if add_noise:
                 action += noise.sample()
             # Clip actions to action bounds (low, high)
-            # TODO: Clipping action after applying noise problematic?
-            # https: // www.reddit.com / r / reinforcementlearning / comments / 8hgdad / ideas_for_exploration_noise_other_than_ornstein /
             action = np.clip(action, env_specs[2], env_specs[3])
-            # print(action)
             # Perform the action
             next_state, reward, done, _ = env.step(action)
             episode_rewards.append(reward)
@@ -340,18 +338,18 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
 def main():
     """
     Defining the gym environment and initializing the DDPG objects (NNs, noise and replay buffer).
-    Hyperparameters are set in this method.  # TODO: Define size of nn layers in this method
+    Hyperparameters are set in this method.
     Training and evaluation methods are executed.
     :return: None
     """
 
     global env
-    # env = gym.make('Qube-v0')
+    env = gym.make('Qube-v0')
     # env = gym.make('CartpoleSwingLong-v0')
     # env = gym.make('Pendulum-v0')
     # env = GentlyTerminating(gym.make('BallBalancerRR-v0'))
     # env = gym.make('QubeRR-v0')
-    env = gym.make('BallBalancerSim-v0')
+    # env = gym.make('BallBalancerSim-v0')
     print(env.spec.id)
     print("State Space:\tShape:{}\tLow:{}\tHigh:{}".format(np.shape(env.reset()), env.observation_space.low,
                                                            env.observation_space.high))
@@ -368,18 +366,18 @@ def main():
     env.seed(3)
 
     # Noise generating process
-    OU_NOISE = OUNoise(size=env_specs[1], seed=random_seed, mu=0., theta=0.15, sigma=8.2)
+    OU_NOISE = OUNoise(size=env_specs[1], seed=random_seed, mu=0., theta=0.25, sigma=0.2)
 
     GAUSS_NOISE = Gaussian(size=env_action_size, seed=random_seed, mu=0.0, sigma=2.8, decay=0.0)
 
     # Replay memory
-    MEMORY = ReplayBuffer(env=env, buffer_size=int(1e6), batch_size=256,
+    MEMORY = ReplayBuffer(env=env, buffer_size=int(1e6), batch_size=64,
                           seed=random_seed)
 
     # Run training procedure with defined hyperparameters
-    ACTOR = training(epochs=10, max_steps=10000, epoch_checkpoint=100, noise=GAUSS_NOISE, epsilon=None,
+    ACTOR = training(epochs=5000, max_steps=10000, epoch_checkpoint=500, noise=OU_NOISE, epsilon=None,
                      epsilon_decrease=None, add_noise=True, lr_actor=1e-4, lr_critic=1e-3, weight_decay=0,
-                     gamma=0.99, memory=MEMORY, tau=1e-2, seed=random_seed, save_flag=True, load_flag=True,
+                     gamma=0.99, memory=MEMORY, tau=1e-4, seed=random_seed, save_flag=True, load_flag=False,
                      load_path='26-2-20/', render=True, use_pretrained=False)
 
     # Run evaluation
