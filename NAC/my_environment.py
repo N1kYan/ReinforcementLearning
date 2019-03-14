@@ -75,7 +75,6 @@ class MyEnvironment():
               .format(self.observation_space.high))
         print("\tObservation space low : {}"
               .format(self.observation_space.low))
-
         print("\tOriginal action space object type:",
               type(self.env.action_space))
 
@@ -148,8 +147,8 @@ class MyEnvironment():
         return observation, reward, done, info
 
     def reset(self):
-        """Reset the environment."""
-        self.env.reset()
+        """Reset the environment and return the start state."""
+        return self.env.reset()
 
     def close(self):
         """Close the environment"""

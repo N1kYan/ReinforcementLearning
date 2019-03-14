@@ -58,7 +58,7 @@ RENDER = True
 # -------------------------- ENVIRONMENT ------------------------------------ #
 
 # Select Environment
-ENVIRONMENT = 1
+ENVIRONMENT = 7
 
 """
     0: Name of the Gym/Quanser environment.
@@ -78,10 +78,10 @@ ENVIRONMENT = 1
 
 env_dict = {
     1:  ['CartPole-v0', 'discrete', [0],
-         500, 300, 0.97, 0.001, 0.1, 10],
+         200, 300, 0.99, 0.001, 0.1, 10],
 
     2:  ['DoublePendulum-v0', 'continuous', [3],
-         2000, 500, 0.99, 0.001, 0.1, 10],
+         500, 500, 0.99, 0.001, 0.1, 10],
 
     3:  ['Qube-v0', 'continuous', [3],
          2000, 500, 0.99, 0.001, 0.1, 10],
@@ -99,8 +99,12 @@ env_dict = {
          [[[-6.0], [-3.0], [0.0], [3.0], [6.0]]],
          2000, 300, 0.99, 0.001, 0.1, 10],
 
+    # 7:  ['CartpoleStabShort-v0', 'continuous',
+    #      [[[-6.0], [-3.0], [0.0], [3.0], [6.0]]],
+    #      2000, 300, 0.99, 0.001, 0.1, 10],
+
     8: ['CartpoleStabShort-v0', 'continuous', [3],
-        500, 300, 0.99, 0.001, 0.1, 10],
+        200, 300, 0.99, 0.001, 0.1, 10],
 
     11: ['CartpoleStabRR-v0', 'continuous',
          [[[-6.0], [0.0], [6.0]]],
@@ -187,6 +191,8 @@ print("Done! (Time: " + str(env.network_generation_time) + " seconds)")
 
 if TRAIN:
     max_rewards = []
+    cum_batch_traj_rewards = []
+    mean_batch_traj_rewards = []
     total_episodes = []
     times = []
 
@@ -200,14 +206,32 @@ if TRAIN:
               .format(u, len(batch_traj_rewards), batch_traj_rewards))
 
         max_rewards.append(np.max(batch_traj_rewards))
+        cum_batch_traj_rewards.append(np.sum(batch_traj_rewards))
+        mean_batch_traj_rewards.append(np.mean(batch_traj_rewards))
         total_episodes.append(len(batch_traj_rewards))
         times.append(time.time() - start_time)
 
-    # Save model to file
     try:
         os.makedirs(env.save_folder)
+        os.makedirs(env.save_folder + "/training/")
     except FileExistsError:
         pass
+
+    # Save training data
+    np.save('{}/training/max_update_reward'.format(env.save_folder),
+            max_rewards)
+    np.save('{}/training/cum_update_reward'.format(env.save_folder),
+            cum_batch_traj_rewards)
+    np.save('{}/training/mean_traj_update_reward'.format(env.save_folder),
+            cum_batch_traj_rewards)
+    np.save('{}/training/total_episodes'.format(env.save_folder),
+            total_episodes)
+
+    # Plot training rewards
+    evaluation.plot_training_rewards(
+        env, cum_batch_traj_rewards, mean_batch_traj_rewards)
+
+    # Save model to file
     saver = tf.train.Saver()
     saver.save(sess, '{}/model/nac_model'.format(env.save_folder))
 

@@ -76,7 +76,7 @@ class NAC:
             old_observation = observation
             observation, reward, done, _ = self.env.step(action)
 
-            reward = reward * 100  # TODO: Test for Ballbalancer
+            reward = reward
 
             # Record state/transition
             batch_states.append(old_observation)
