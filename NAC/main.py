@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+
+"""
+
+"""
+
 import tensorflow as tf
 import numpy as np
 import time
@@ -5,12 +11,23 @@ import gym
 import os
 import quanser_robots
 
+import evaluation
+import utilities
+
 from my_environment import MyEnvironment
 from critic import Critic
 from actor import Actor
 from nac import NAC
-import evaluation
-import utilities
+
+__author__ = "Maximilian A. Gehrke, Tabea A. Wilke, Yannik P. Frisch"
+__copyright__ = "Copyright 2019, The Cogent Project"
+__credits__ = ["Maximilian A. Gehrke", "Tabea A. Wilke", "Yannik P. Frisch"]
+__license__ = "GPL"
+__version__ = "1.0.0"
+__maintainer__ = "Rob Knight"
+__email__ = "rob@spot.colorado.edu"
+__status__ = "Production"
+
 
 # ---------------------- VARIABLES & CONSTANTS ------------------------------ #
 
@@ -54,7 +71,7 @@ env_dict = {
          200, 300, 0.97, 0.001, 0.1, 10],
 
     4:  ['BallBalancerSim-v0', 'continuous', [3, 3],
-         2000, 500, 1,   0.001, 0.01, 10],
+         5000, 1000, 1,   0.001, 0.1, 10],
 
     5:  ['Levitation-v1', 'continuous', [3],
          200, 300, 0.97, 0.001, 0.1, 10],
