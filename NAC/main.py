@@ -190,6 +190,8 @@ print("Done! (Time: " + str(env.network_generation_time) + " seconds)")
 # ----------------------- TRAINING NETWORKS --------------------------------- #
 
 if TRAIN:
+    start_time = time.time()
+
     max_rewards = []
     cum_batch_traj_rewards = []
     mean_batch_traj_rewards = []
@@ -210,6 +212,8 @@ if TRAIN:
         mean_batch_traj_rewards.append(np.mean(batch_traj_rewards))
         total_episodes.append(len(batch_traj_rewards))
         times.append(time.time() - start_time)
+
+    env.network_training_time = int(time.time() - start_time)
 
     try:
         os.makedirs(env.save_folder)

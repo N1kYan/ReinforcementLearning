@@ -47,6 +47,7 @@ class MyEnvironment():
         self.hidden_layer_critic = env_details[8]
 
         self.network_generation_time = 0
+        self.network_training_time = 0
 
         # -------------- CREATE FOLDER NAME FOR SAVING ---------------------- #
 

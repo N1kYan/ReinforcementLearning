@@ -109,13 +109,15 @@ def evaluate(env, sess, actor, episodes=100):
         "Batch size: {}\n" \
         "Discount factor for monte carlo return: {}\n"\
         "Network generation time: {} seconds\n"\
+        "Network training time: {} seconds\n"\
         "Learning rate actor: {}\n"\
         "Learning rate for Adam optimizer in critic: {}\n"\
         "Critic hidden layer size: {}"\
         .format(env.name, env.action_form, env.discretization,
                 env.num_of_updates, env.time_steps, env.mc_discount_factor,
-                env.network_generation_time, env.learning_rate_actor,
-                env.learning_rate_critic, env.hidden_layer_critic)
+                env.network_generation_time, env.network_training_time,
+                env.learning_rate_actor, env.learning_rate_critic,
+                env.hidden_layer_critic)
     param_file.write(param_string)
     param_file.close()
 
