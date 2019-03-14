@@ -1,5 +1,6 @@
 import gym
 import quanser_robots
+from quanser_robots import GentlyTerminating
 import numpy as np
 from collections import deque
 import matplotlib.pyplot as plt
@@ -9,6 +10,8 @@ import os
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
+import seaborn as sns
+import pandas as pd
 from NeuralNetworks import Actor, Critic
 from ReplayBuffer import ReplayBuffer
 from ActionNoise import OUNoise, Gaussian
@@ -17,6 +20,31 @@ from ActionNoise import OUNoise, Gaussian
 print("Torch Cuda available: {}".format(torch.cuda.is_available()))
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+
+def plot_eval(rewards):
+    """
+    plots the reward over timesteps for all episodes
+    :param rewards: an array of one array for each episode with the reward per timestep
+    """
+
+    plt.close()
+    dat = pd.DataFrame()
+    rew = pd.DataFrame(rewards).transpose()
+
+    for x in range(0, np.shape(rew)[1]):
+        # creating a dataframe with the relevant columns
+        dat2 = pd.DataFrame()
+        dat2['reward'] = rew[x]
+        dat2['timesteps'] = np.linspace(0, np.shape(rew[x])[0]-1, np.shape(rew[x])[0], dtype=int)
+        dat2['Episode'] = np.repeat(x, np.shape(rew[x]))
+        dat = dat.append(dat2, ignore_index=True)
+
+    #plotting the mean with standard deviation
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    sns.lineplot(x = 'timesteps', y = 'reward', data = dat, ax=ax, estimator='mean', ci='sd')
+    plt.show()
+    fig.savefig("ballbalancer26-2-20.pgf")
 
 def evaluation(actor, epochs, render):
     """
@@ -64,6 +92,7 @@ def evaluation(actor, epochs, render):
         plt.plot(r)
     print("... done!")
     print("Average cumulative reward:", np.average([np.sum(r) for r in all_rewards]))
+    plot_eval(all_rewards)
     plt.show()
 
 
@@ -148,7 +177,7 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
     # Load and return actor model from load_path if load_flag is set true
     if load_flag:
         loaded_actor = Actor(state_size=env_specs[0], action_size=env_specs[1], seed=seed).to(device)
-        savepoint = torch.load('./{}/{}{}'.format(env.spec.id, 'actor', load_path))
+        savepoint = torch.load('./{}/{}{}'.format(env.spec.id, load_path, 'actor'),map_location='cpu')
         loaded_actor.load_state_dict(savepoint)
         return loaded_actor
     else:
@@ -164,10 +193,10 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
 
         # Load actor and critic from load_path and use them for training if use_pretrained is true
         if use_pretrained:
-            actor_savepoint = torch.load('./{}/{}{}'.format(env.spec.id, 'actor', load_path))
+            actor_savepoint = torch.load('./{}/{}{}'.format(env.spec.id, load_path, 'actor'), map_location='cpu' )
             actor_local.load_state_dict(actor_savepoint)
             actor_target.load_state_dict(actor_savepoint)
-            critic_savepoint = torch.load('./{}/{}{}'.format(env.spec.id, 'critic', load_path))
+            critic_savepoint = torch.load('./{}/{}{}'.format(env.spec.id, load_path, 'critic'), map_location='cpu' )
             critic_local.load_state_dict(critic_savepoint)
             critic_target.load_state_dict(critic_savepoint)
 
@@ -316,9 +345,11 @@ def main():
 
     global env
     # env = gym.make('Qube-v0')
-    env = gym.make('CartpoleSwingLong-v0')
+    # env = gym.make('CartpoleSwingLong-v0')
     # env = gym.make('Pendulum-v0')
-    # env = gym.make('BallBalancerSim-v0')
+    # env = GentlyTerminating(gym.make('BallBalancerRR-v0'))
+    # env = gym.make('QubeRR-v0')
+    env = gym.make('BallBalancerSim-v0')
     print(env.spec.id)
     print("State Space:\tShape:{}\tLow:{}\tHigh:{}".format(np.shape(env.reset()), env.observation_space.low,
                                                            env.observation_space.high))
@@ -344,15 +375,13 @@ def main():
                           seed=random_seed)
 
     # Run training procedure with defined hyperparameters
-    ACTOR = training(epochs=10000, max_steps=10000, epoch_checkpoint=1000, noise=GAUSS_NOISE, epsilon=None,
+    ACTOR = training(epochs=10, max_steps=10000, epoch_checkpoint=100, noise=GAUSS_NOISE, epsilon=None,
                      epsilon_decrease=None, add_noise=True, lr_actor=1e-4, lr_critic=1e-3, weight_decay=0,
-                     gamma=0.99, memory=MEMORY, tau=1e-2, seed=random_seed, save_flag=True, load_flag=False,
-                     load_path='22-1-18', render=True, use_pretrained=False)
+                     gamma=0.99, memory=MEMORY, tau=1e-2, seed=random_seed, save_flag=True, load_flag=True,
+                     load_path='26-2-20/', render=True, use_pretrained=False)
 
     # Run evaluation
-    # evaluation(load_flag=False, actor='./actor-21-2-16', epochs=25, render=False)
     evaluation(actor=ACTOR, epochs=100, render=False)
-
 
 if __name__ == "__main__":
     main()
