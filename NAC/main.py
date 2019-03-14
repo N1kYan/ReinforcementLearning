@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
 """
+    This project, incorporates the episodic natural actor critic algorithm by
+    Jan Peters and Stefan Schaal (https://doi.org/10.1016/j.neucom.2007.11.026)
+    using Neural Networks and Tensorflow 1.9.
+
     This file is the key entry point. You can chose between different
     environments and specify their hyperparameters. These environments include
     all gym environments (https://gym.openai.com/) and all quanser environments

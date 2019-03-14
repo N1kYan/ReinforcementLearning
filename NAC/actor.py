@@ -292,6 +292,9 @@ class Actor:
             # the inverse of a small rounding error, the eigenvalue would be
             # (incorrectly) huge!
 
+            # For this we use Singular Value Decomposition. For the paper and
+            # an example, look here: https://doi.org/10.1137/0702016
+
             s_mat, u_mat, v_mat = tf.svd(fisher)
 
             lower_bound = tf.reduce_max(s_mat) * 1e-6
