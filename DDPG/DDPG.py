@@ -314,7 +314,7 @@ def main():
 
     global env
     # env = gym.make('Qube-v0')
-    env = gym.make('CartpoleSwingShort-v0')
+    env = gym.make('CartpoleStabShort-v0')
     # env = gym.make('Pendulum-v0')
     # env = gym.make('BallBalancerSim-v0')
     print(env.spec.id)
@@ -333,18 +333,18 @@ def main():
     env.seed(3)
 
     # Noise generating process
-    OU_NOISE = OUNoise(size=env_specs[1], seed=random_seed, mu=0., theta=0.15, sigma=0.4)
+    OU_NOISE = OUNoise(size=env_specs[1], seed=random_seed, mu=0., theta=0.1, sigma=4.4)
 
     GAUSS_NOISE = Gaussian(size=env_action_size, seed=random_seed, mu=0.0, sigma=12.0, decay=0.0)
 
     # Replay memory
-    MEMORY = ReplayBuffer(env=env, buffer_size=int(1e6), batch_size=128,
+    MEMORY = ReplayBuffer(env=env, buffer_size=int(1e6), batch_size=256,
                           seed=random_seed)
 
     # Run training procedure with defined hyperparameters
     ACTOR = training(epochs=10000, max_steps=10000, epoch_checkpoint=500, noise=OU_NOISE, epsilon=None,
                      epsilon_decrease=None, add_noise=True, lr_actor=1e-4, lr_critic=1e-3, weight_decay=0,
-                     gamma=0.99, memory=MEMORY, tau=1e-3, seed=random_seed, save_flag=True, load_flag=False,
+                     gamma=0.97, memory=MEMORY, tau=2e-3, seed=random_seed, save_flag=True, load_flag=False,
                      load_path='22-1-18', render=True, use_pretrained=False)
 
     # Run evaluation

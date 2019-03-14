@@ -128,11 +128,11 @@ Our best results can be found in figure \ref{ddpg:ball:best} where we set the OU
 \end{figure}
 \subsection{Evaluation of the Pretrained Model on the Real Ball Balancer System}
 Evaluating our best model trained in simulation on the real ball balancer was not successful. The chosen actions were too big and the plate tilted. Also, it was not possible for us to reset the environment between the evaluation episodes. The result of a single episode of evaluation can be found in figure [x].
-\subsection{Evaluation on CartPoleSwingShort-v0}
-The Quanser Robots \textit{CartPoleSwingShort-v0} environment consists of a movable car with a singular pendulum attached. The car can be controlled by input actions. The reward is depending on the angle, with a max reward of 2 per time-step for balancing the pendulum straight upright.\\
+\subsection{Evaluation on CartPoleStabShort-v0}
+The Quanser Robots \textit{CartPoleStabShort-v0} environment consists of a movable car with a singular pendulum attached. The car can be controlled by input actions. The goal is to balance the pendulum, starting from a vertical position and the reward is depending on the angle, with a maximum of 2 per time-step for balancing the pendulum straight upright.\\
 We achieved some progress using [x]. The results are displayed in [x].
 \subsection{Evaluation on Qube-v0}
-The Quanser Robots \textit{Qube-v0} environment implements the Furuta Pendulum, which consists of a motor controlling one horizontal arm. One end of the joint is attached to the motor, the other end is attached to another vertical arm, which can only be controlled indirectly by controlling the first arm. See [x] for more details.\\
+The Quanser Robots \textit{Qube-v0} environment implements the Furuta Pendulum, which consists of a motor controlling one horizontal arm. One end of the joint is attached to the motor, the other end is attached to another vertical arm, which can only be controlled indirectly by controlling the first arm. More details about the Furuta Pendulum can be found in our paper about it.\\
 The goal is to balance the second arm in upright position, receiving a maximum reward of 0.02 per time-step. The environment stops after 300 time-steps.
 We did not get any useful results re-using the parameters we found for \textit{BallBalancer-v0}. Using an Ornstein Uhlenbeck seemed not to help to deal with with the local optimas of the environment. Setting the randomness $\sigma_{OU}$ to small resulted in to less exploration. Choosing a higher $\sigma_{OU}$ resulted in better exploration but much less stability. Examples are displayed in figure \ref{ddpg:qube:ou}
 \begin{figure}[H]
