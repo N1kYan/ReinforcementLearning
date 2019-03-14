@@ -9,16 +9,17 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 class ReplayBuffer:
     """Fixed-size buffer to store experience tuples and sample random mini-batches from it."""
 
-    def __init__(self, action_size, buffer_size, batch_size, seed):
+    def __init__(self, env, buffer_size, batch_size, seed):
         """
         Initializes ReplayBuffer object.
-        :param action_size: TODO
+        :param env: The gym environment
         :param buffer_size: Size of the replay buffer; Maximal amount of stored samples
         :param batch_size: Size of the sampled mini-batches
         :param seed:
         """
-        self.action_size = action_size
-        self.memory = deque(maxlen=buffer_size)
+        self.action_size = len(env.action_space.sample())
+        self.env = env
+        self.memory = deque(maxlen=buffer_size)  # internal memory (deque)  # TODO: Does it pop older samples?
         self.batch_size = batch_size
         self.experience = namedtuple("Experience", field_names=["state", "action", "reward", "next_state", "done"])
         self.seed = random.seed(seed)
@@ -39,6 +40,7 @@ class ReplayBuffer:
     def sample(self):
         """
         Samples random mini-batch of size 'batch_size' from the replay buffer.
+        TODO: Use batch normalization
         :return: Mini-batch of randomly sampled experiences
         """
         experiences = random.sample(self.memory, k=self.batch_size)
