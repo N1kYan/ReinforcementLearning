@@ -1,8 +1,18 @@
+#!/usr/bin/env python
+
 import time
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
 import os
+
+__author__ = "Maximilian A. Gehrke, Yannik P. Frisch, Tabea A. Wilke"
+__data__ = "14.03.2019"
+__copyright__ = "Copyright (C) 2019 Max Gehrke, Yannik Frisch, Tabea Wilke"
+__credits__ = ["Maximilian A. Gehrke", "Yannik P. Frisch", "Tabea A. Wilke"]
+__license__ = "GPL"
+__version__ = "1.0"
+__status__ = "Development"
 
 
 def evaluate(env, sess, actor, episodes=100):
@@ -14,7 +24,7 @@ def evaluate(env, sess, actor, episodes=100):
     time stamp. Additionally all hyperparameters are saved to
     "hyperparameters.txt".
 
-    :param env: MyEnvironment instance; The environment the agent is evaluated on
+    :param env: MyEnvironment instance; The environment for agent evaluation
     :param sess: Tensorflow session
     :param actor: The actor (policy network) used for generating actions
     :param episodes: Number of episodes used for evaluation
@@ -165,8 +175,8 @@ def render(env, sess, actor, episodes=10):
 
     time_steps = 10000
 
-    print("\nRENDER: {} episodes with {} time steps each (or until 'done')"
-          .format(episodes, time_steps))
+    print("\nRENDER: {} episodes on {} until 'done'!"
+          .format(episodes, env.name))
 
     for e in range(episodes):
 
@@ -188,4 +198,5 @@ def render(env, sess, actor, episodes=10):
                 break
 
             action, _ = actor.get_action(sess, observation)
+            action = action
             observation, _, done, _ = env.step(action)

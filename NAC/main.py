@@ -1,9 +1,20 @@
 #!/usr/bin/env python
 
 """
+    This project, incorporates the episodic natural actor critic algorithm by
+    Jan Peters and Stefan Schaal (https://doi.org/10.1016/j.neucom.2007.11.026)
+    using Neural Networks and Tensorflow 1.9.
 
+    This file is the key entry point. You can chose between different
+    environments and specify their hyperparameters. These environments include
+    all gym environments (https://gym.openai.com/) and all quanser environments
+    (https://git.ias.informatik.tu-darmstadt.de/quanser/clients).
+
+    Additionally you can chose if you want to use pretrained weights and if
+    you want to train, evaluate and/or render and the environemnt.
 """
 
+import sys
 import tensorflow as tf
 import numpy as np
 import time
@@ -19,14 +30,13 @@ from critic import Critic
 from actor import Actor
 from nac import NAC
 
-__author__ = "Maximilian A. Gehrke, Tabea A. Wilke, Yannik P. Frisch"
-__copyright__ = "Copyright 2019, The Cogent Project"
-__credits__ = ["Maximilian A. Gehrke", "Tabea A. Wilke", "Yannik P. Frisch"]
+__author__ = "Maximilian A. Gehrke, Yannik P. Frisch, Tabea A. Wilke"
+__data__ = "14.03.2019"
+__copyright__ = "Copyright (C) 2019 Max Gehrke, Yannik Frisch, Tabea Wilke"
+__credits__ = ["Maximilian A. Gehrke", "Yannik P. Frisch", "Tabea A. Wilke"]
 __license__ = "GPL"
-__version__ = "1.0.0"
-__maintainer__ = "Rob Knight"
-__email__ = "rob@spot.colorado.edu"
-__status__ = "Production"
+__version__ = "1.0"
+__status__ = "Development"
 
 
 # ---------------------- VARIABLES & CONSTANTS ------------------------------ #
@@ -36,6 +46,10 @@ __status__ = "Production"
 #   top level), 4. 'name_of_folder' (state the name, which is the saving time)
 LOAD_WEIGHTS = None
 
+# If you want to load weights which were trained on a different environment
+# write the name in this variable (needed for real-robot testing).
+LOAD_WEIGHTS_ENV = None
+
 # What do we want to do?
 TRAIN = True
 EVALUATION = True
@@ -44,12 +58,14 @@ RENDER = True
 # -------------------------- ENVIRONMENT ------------------------------------ #
 
 # Select Environment
-ENVIRONMENT = 4
+ENVIRONMENT = 1
 
 """
     0: Name of the Gym/Quanser environment.
     1: If the environment is descrete or continuous.
-    2: Chose the discretization of continuous environments (discrete = 0).
+    2: Chose the discretization of continuous environments.
+       If the environment is already discrete, put [0].
+       you can also exactly specifiy the discretization.
     3: Batch size. How much steps should the agent perform before updating 
        parameters. If the trajectory ends before that (done == True), a new 
        trajectory is started.
@@ -65,13 +81,13 @@ env_dict = {
          500, 300, 0.97, 0.001, 0.1, 10],
 
     2:  ['DoublePendulum-v0', 'continuous', [3],
-         200, 300, 0.97, 0.001, 0.1, 10],
+         2000, 500, 0.99, 0.001, 0.1, 10],
 
     3:  ['Qube-v0', 'continuous', [3],
-         200, 300, 0.97, 0.001, 0.1, 10],
+         2000, 500, 0.99, 0.001, 0.1, 10],
 
     4:  ['BallBalancerSim-v0', 'continuous', [3, 3],
-         5000, 1000, 1,   0.001, 0.1, 10],
+         2000, 500, 1,   0.001, 0.1, 10],
 
     5:  ['Levitation-v1', 'continuous', [3],
          200, 300, 0.97, 0.001, 0.1, 10],
@@ -79,11 +95,19 @@ env_dict = {
     6:  ['Pendulum-v0', 'continuous', [3],
          200, 300, 0.97, 0.001, 0.1, 10],
 
-    7:  ['CartPoleSwingLong-v0', 'discrete', [3],
-         200, 300, 0.97, 0.001, 0.1, 10],
+    7:  ['CartpoleStabShort-v0', 'continuous',
+         [[[-6.0], [-3.0], [0.0], [3.0], [6.0]]],
+         2000, 300, 0.99, 0.001, 0.1, 10],
 
-    11: ['CartpoleStabRR-v0', 'discrete', [0],
-         500, 300, 0.97, 0.001, 0.1, 10]
+    8: ['CartpoleStabShort-v0', 'continuous', [3],
+        500, 300, 0.99, 0.001, 0.1, 10],
+
+    11: ['CartpoleStabRR-v0', 'continuous',
+         [[[-6.0], [0.0], [6.0]]],
+         500, 300, 0.99, 0.001, 0.1, 10],
+
+    12: ['BallBalancerRR-v0', 'continuous', [3, 3],
+        5000, 1000, 1, 0.001, 0.1, 10],
 }
 
 assert ENVIRONMENT in env_dict.keys()
@@ -108,7 +132,10 @@ print("Generating Neural Networks (Time: {}:{}:{}) ... "
 if LOAD_WEIGHTS is not None:
 
     if LOAD_WEIGHTS == 'best':
-        model_dir, best_reward, best_date = utilities.find_best_model(env.name)
+        load_env = env.name
+        if LOAD_WEIGHTS_ENV is not None:
+            load_env = LOAD_WEIGHTS_ENV
+        model_dir, best_reward, best_date = utilities.find_best_model(load_env)
         print("\tLoading best model from {} with a reward of {}!"
               .format(best_date, best_reward))
     elif LOAD_WEIGHTS == "toplevel":
@@ -117,6 +144,8 @@ if LOAD_WEIGHTS is not None:
     else:
         model_dir = "data/" + env.name + "/" + str(LOAD_WEIGHTS) + "/model/"
         print("\tLoading model from {}!".format(LOAD_WEIGHTS))
+    print("\t", end='')
+    sys.stdout.flush()
 
     saver = tf.train.import_meta_graph(model_dir + 'nac_model.meta')
     saver.restore(sess, tf.train.latest_checkpoint(model_dir))
