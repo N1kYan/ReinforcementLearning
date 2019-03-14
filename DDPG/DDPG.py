@@ -34,18 +34,19 @@ def plot_eval(rewards):
     for x in range(0, np.shape(rew)[1]):
         # creating a dataframe with the relevant columns
         dat2 = pd.DataFrame()
-        dat2['reward'] = rew[x]
-        dat2['timesteps'] = np.linspace(0, np.shape(rew[x])[0]-1, np.shape(rew[x])[0], dtype=int)
+        dat2['Reward'] = rew[x]
+        dat2['Timesteps'] = np.linspace(0, np.shape(rew[x])[0]-1, np.shape(rew[x])[0], dtype=int)
         dat2['Episode'] = np.repeat(x, np.shape(rew[x]))
         dat = dat.append(dat2, ignore_index=True)
 
     # plotting the mean with standard deviation
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    sns.lineplot(x='timesteps', y='reward', data=dat, ax=ax, estimator='mean', ci='sd')
-    plt.show()
+    sns.lineplot(x='Timesteps', y='Reward', data=dat, ax=ax, estimator='mean', ci='sd')
     ax.set_title('Rewards during evaluation')
-    fig.savefig("DDPGballbalancer26-2-20.png", bbox_inches='tight')
+    plt.show()
+    #fig.savefig("DDPGballbalancer24-2-16.png", bbox_inches='tight')
+
 
 
 def evaluation(actor, epochs, render):
@@ -160,7 +161,6 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
         actions_pred = actor_local(states)
         # Gradient ascent to get actor parameters maximizing critic estimation of value function
         actor_loss = -critic_local(states, actions_pred).mean()
-        # actor_loss = critic_local(states, actions_pred).mean()
         # Minimize the loss
         actor_optimizer.zero_grad()
         actor_loss.backward()
@@ -243,10 +243,9 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
             if add_noise:
                 action += noise.sample()
             # Clip actions to action bounds (low, high)
-            # TODO: Clipping action after applying noise problematic?
             # https: // www.reddit.com / r / reinforcementlearning / comments / 8hgdad / ideas_for_exploration_noise_other_than_ornstein /
             action = np.clip(action, env_specs[2], env_specs[3])
-            # print(action)
+
             # Perform the action
             next_state, reward, done, _ = env.step(action)
             episode_rewards.append(reward)
@@ -273,8 +272,7 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
             # Decrease epsilon (percentage of random actions) every epoch checkpoint
             if epsilon is not None and epsilon_decrease is not None:
                 epsilon = epsilon * epsilon_decrease
-            # if noise.sigma > 0:
-                # noise.sigma = noise.sigma - 0.1
+
             # Print cumulative reward per episode averaged over #epoch_checkpoint episodes
             print('\rEpisode {}\tAverage Reward: {:.3f}\tSigma: {}\t({:.2f} min elapsed)'.
                   format(e, np.mean(scores_deque), noise.sigma, (time.time() - time_start) / 60))
@@ -380,7 +378,7 @@ def main():
     ACTOR = training(epochs=10, max_steps=10000, epoch_checkpoint=100, noise=GAUSS_NOISE, epsilon=None,
                      epsilon_decrease=None, add_noise=True, lr_actor=1e-4, lr_critic=1e-3, weight_decay=0,
                      gamma=0.99, memory=MEMORY, tau=1e-2, seed=random_seed, save_flag=True, load_flag=True,
-                     load_path='26-2-20/', render=True, use_pretrained=False)
+                     load_path='24-2-16/', render=True, use_pretrained=False)
 
     # Run evaluation
     evaluation(actor=ACTOR, epochs=100, render=False)
