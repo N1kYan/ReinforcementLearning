@@ -19,7 +19,7 @@ class ReplayBuffer:
         """
         self.action_size = len(env.action_space.sample())
         self.env = env
-        self.memory = deque(maxlen=buffer_size)  # internal memory (deque)  # TODO: Does it pop older samples?
+        self.memory = deque(maxlen=buffer_size)  # internal memory (deque)
         self.batch_size = batch_size
         self.experience = namedtuple("Experience", field_names=["state", "action", "reward", "next_state", "done"])
         self.seed = random.seed(seed)
@@ -40,7 +40,6 @@ class ReplayBuffer:
     def sample(self):
         """
         Samples random mini-batch of size 'batch_size' from the replay buffer.
-        TODO: Use batch normalization
         :return: Mini-batch of randomly sampled experiences
         """
         experiences = random.sample(self.memory, k=self.batch_size)
