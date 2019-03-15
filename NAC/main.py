@@ -58,7 +58,7 @@ RENDER = True
 # -------------------------- ENVIRONMENT ------------------------------------ #
 
 # Select Environment
-ENVIRONMENT = 9
+ENVIRONMENT = 1
 
 """
     0: Name of the Gym/Quanser environment.
@@ -78,10 +78,10 @@ ENVIRONMENT = 9
 
 env_dict = {
     1: ['BallBalancerSim-v0', 'continuous', [3, 3],
-        2000, 500, 0.99, 0.001, 0.01, 10],
+        5000, 500, 0.99, 0.001, 0.01, 10],
 
     2:  ['Qube-v0', 'continuous', [5],
-         4000, 500, 0.99, 0.001, 0.1, 10],
+         5000, 500, 0.99, 0.001, 0.1, 10],
 
     3: ['CartpoleStabShort-v0', 'continuous',
         [[[-6.0], [-3.0], [0.0], [3.0], [6.0]]],
@@ -103,9 +103,6 @@ env_dict = {
     8: ['CartPole-v0', 'discrete', [0],
         500, 300, 0.97, 0.001, 0.1, 10]
 }
-
-
-
 
 assert ENVIRONMENT in env_dict.keys()
 env_details = env_dict[ENVIRONMENT]
