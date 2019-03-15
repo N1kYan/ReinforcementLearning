@@ -85,10 +85,12 @@ def evaluate(env, sess, actor, episodes=100):
     results_file = open("{}/results.txt".format(env.save_folder), 'w')
 
     results_string = \
+        "Average trajectory length: {}\n" \
         "Average transition reward: {}\n" \
         "Average trajectory reward: {}\n" \
-            .format(np.mean(average_episode_reward),
-                    np.mean(cumulative_episode_reward))
+            .format(np.mean(trajectory_lengths),
+                    np.mean(cumulative_episode_reward),
+                    np.mean(average_episode_reward))
 
     results_file.write(results_string)
     results_file.close()

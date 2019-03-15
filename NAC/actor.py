@@ -284,7 +284,6 @@ class Actor:
             fisher = tf.reduce_sum(fisher, reduction_indices=[0])
             fisher = 1.0 / env.time_steps * fisher
 
-
             # Result: fisher = E[∇_θ log(π(a|s)) ∇_θ log(π(a|s))^T]
 
             # ------------------ Invers Fisher Matrix ----------------------- #
@@ -322,8 +321,7 @@ class Actor:
             # We use the fischer inverse to prevent huge weight changes
             learn_rate = tf.sqrt(tf.divide(
                 env.learning_rate_actor,
-                tf.matmul(tf.transpose(grad_j), fisher_inv_grad_j)
-            ))
+                tf.matmul(tf.transpose(grad_j), fisher_inv_grad_j)))
 
             # Multiply natural gradient by a learning rate
             update = tf.multiply(learn_rate, fisher_inv_grad_j)

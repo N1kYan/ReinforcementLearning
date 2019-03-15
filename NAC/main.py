@@ -58,7 +58,7 @@ RENDER = True
 # -------------------------- ENVIRONMENT ------------------------------------ #
 
 # Select Environment
-ENVIRONMENT = 7
+ENVIRONMENT = 1
 
 """
     0: Name of the Gym/Quanser environment.
@@ -77,41 +77,31 @@ ENVIRONMENT = 7
 """
 
 env_dict = {
-    1:  ['CartPole-v0', 'discrete', [0],
-         200, 300, 0.99, 0.001, 0.1, 10],
+    1: ['BallBalancerSim-v0', 'continuous', [3, 3],
+        5000, 500, 0.99, 0.001, 0.01, 10],
 
-    2:  ['DoublePendulum-v0', 'continuous', [3],
-         500, 500, 0.99, 0.001, 0.1, 10],
+    2:  ['Qube-v0', 'continuous', [5],
+         5000, 500, 0.99, 0.001, 0.1, 10],
 
-    3:  ['Qube-v0', 'continuous', [3],
-         2000, 500, 0.99, 0.001, 0.1, 10],
+    3: ['CartpoleStabShort-v0', 'continuous',
+        [[[-6.0], [-3.0], [0.0], [3.0], [6.0]]],
+        2000, 300, 0.99, 0.001, 0.1, 10],
 
-    4:  ['BallBalancerSim-v0', 'continuous', [3, 3],
-         2000, 500, 1,   0.001, 0.1, 10],
+    4: ['CartpoleStabShort-v0', 'continuous', [3],
+        2000, 300, 0.99, 0.001, 0.1, 10],
 
-    5:  ['Levitation-v1', 'continuous', [3],
-         200, 300, 0.97, 0.001, 0.1, 10],
+    5: ['CartpoleStabLong-v0', 'continuous', [3],
+        500, 300, 0.97, 0.001, 0.1, 10],
 
-    6:  ['Pendulum-v0', 'continuous', [3],
-         200, 300, 0.97, 0.001, 0.1, 10],
-
-    7:  ['CartpoleStabShort-v0', 'continuous',
-         [[[-6.0], [-3.0], [0.0], [3.0], [6.0]]],
-         2000, 300, 0.99, 0.001, 0.1, 10],
-
-    # 7:  ['CartpoleStabShort-v0', 'continuous',
-    #      [[[-6.0], [-3.0], [0.0], [3.0], [6.0]]],
-    #      2000, 300, 0.99, 0.001, 0.1, 10],
-
-    8: ['CartpoleStabShort-v0', 'continuous', [3],
-        200, 300, 0.99, 0.001, 0.1, 10],
-
-    11: ['CartpoleStabRR-v0', 'continuous',
+    6: ['CartpoleStabRR-v0', 'continuous',
          [[[-6.0], [0.0], [6.0]]],
          500, 300, 0.99, 0.001, 0.1, 10],
 
-    12: ['BallBalancerRR-v0', 'continuous', [3, 3],
+    7: ['BallBalancerRR-v0', 'continuous', [3, 3],
         5000, 1000, 1, 0.001, 0.1, 10],
+
+    8: ['CartPole-v0', 'discrete', [0],
+        500, 300, 0.97, 0.001, 0.1, 10]
 }
 
 assert ENVIRONMENT in env_dict.keys()
@@ -190,7 +180,7 @@ print("Done! (Time: " + str(env.network_generation_time) + " seconds)")
 # ----------------------- TRAINING NETWORKS --------------------------------- #
 
 if TRAIN:
-    start_time = time.time()
+    start_time_training = time.time()
 
     max_rewards = []
     cum_batch_traj_rewards = []
@@ -213,7 +203,7 @@ if TRAIN:
         total_episodes.append(len(batch_traj_rewards))
         times.append(time.time() - start_time)
 
-    env.network_training_time = int(time.time() - start_time)
+    env.network_training_time = int(time.time() - start_time_training)
 
     try:
         os.makedirs(env.save_folder)
