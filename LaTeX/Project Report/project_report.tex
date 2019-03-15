@@ -81,7 +81,21 @@ grestore
 
 %\titlerunning{Short form of title}        % if too long for running head
 
-\author{Yannik Frisch \and Tabea Wilke \and Maximilian Gehrke %etc.
+\author{Yannik P. Frisch \and Tabea A. Wilke \and Maximilian A. Gehrke %etc.
+}
+
+\institute{Maximilian A. Gehrke \at
+	TU Darmstadt, Germany\\
+	\email{maximilian\_alexander.gehrke@stud.tu-darmstadt.de}           %  \\
+	%             \emph{Present address:} of F. Author  %  if needed
+	\and
+	Yannik P. Frisch \at
+	TU Darmstadt, Germany\\
+	\email{yannik\_phil.frisch@stud.tu-darmstadt.de}
+	\and
+	Tabea A. Wilke \at
+	TU Darmstadt, Germany\\
+	\email{tabeaalina.wilke@stud.tu-darmstadt.de}
 }
 
 \maketitle
@@ -118,11 +132,14 @@ intended by \citep{lillicrap2015continuous} and is just added to the output of
 the actor. We clip this output to ensure it suits the environment.
 
 \subsection{Evaluation on BallBalancerSim-v0}
-The Quanser Robots \textit{BallBalancerSim-v0} environment consist of a plate whose angles can be controlled by the input actions. The goal is to balance a ball on the plate, receiving a maximum reward of 1.0 per time-step for balancing it in the middle of the plate. The environment ends after a maximum of 1000 time-steps.\\
-We started our evaluations with using two hidden layers with 100 and 300 hidden neurons for the actor and the critic networks and their targets. The learning rates are set to $\alpha_{actor}=1e-4$ and $\alpha_{critic}=1e-3$. 
-In the left row of figure \ref{ddpg:ball} one can find our first acceptable results. Discounting is set to $\gamma=0.99$, we did soft target updates with $\tau=1e-4$, used a mini-batch size of 64 and a total replay buffer size of 1e6. We slightly increased the noise to $\sigma_{OU}=0.2$ and $\theta_{OU}=0.25$ as the environments action space has an higher amplitude compared to the \textit{Pendulum-v0} trained on in \citep{lillicrap2015continuous}.\\
-The algorithm did learn to balance the ball, but was not very stable, which can also be read from the learning progress plot. To further increase the stability, we increased th mini-batch size used to sample from the replay buffer, and reduced the noise again. Using weight regularization did not seem to be helpful, so we set it to zero.\\
-Figure \ref{ddpg:ball:gamma} shows the training process where discounting is set to $\gamma=0.2$ compared to $\gamma=0.99$. One can see discounting is crucial to solve this environment.\\
+The Quanser Robots \textit{BallBalancerSim-v0} environment consist of a plate whose angles can be controlled by the input actions. The goal is to balance a ball on the plate, receiving a maximum reward of 1.0 per time-step for balancing it in the middle of the plate. The environment ends after a maximum of 1000 time-steps.
+
+We started our evaluations with using two hidden layers with 100 and 300 hidden neurons for the actor and the critic networks and their targets. The learning rates are set to $\alpha_{actor}=1e-4$ and $\alpha_{critic}=1e-3$.  In the left row of figure \ref{ddpg:ball} one can find our first acceptable results. Discounting is set to $\gamma=0.99$, we did soft target updates with $\tau=1e-4$, used a mini-batch size of 64 and a total replay buffer size of 1e6. We slightly increased the noise to $\sigma_{OU}=0.2$ and $\theta_{OU}=0.25$ as the environments action space has an higher amplitude compared to the \textit{Pendulum-v0} trained on in \citep{lillicrap2015continuous}.
+
+The algorithm did learn to balance the ball, but was not very stable, which can also be read from the learning progress plot. To further increase the stability, we increased th mini-batch size used to sample from the replay buffer, and reduced the noise again. Using weight regularization did not seem to be helpful, so we set it to zero.
+
+Figure \ref{ddpg:ball:gamma} shows the training process where discounting is set to $\gamma=0.2$ compared to $\gamma=0.99$. One can see discounting is crucial to solve this environment.
+
 \begin{figure}
 	\centering
 	\includegraphics[width=0.4\textwidth]{plots/ddpg_ball_low_gamma.png}
@@ -130,8 +147,10 @@ Figure \ref{ddpg:ball:gamma} shows the training process where discounting is set
 	\caption{The left figure shows the cumulative reward per episode during the training process with $\gamma$ set to 0.2. The right one displays the process for $\gamma=0.99$. Using discounting close to 1 was very important.}
 	\label{ddpg:ball:gamma}
 \end{figure}
-We tried to reduce the computational effort by only using a single hidden layer with 100 hidden neurons instead of two layers. The impact on the performance is shown in the middle row of figure \ref{ddpg:ball}. The learning suffered from instabilities, so we decided to weight the stability of using two hidden layers higher than the performance loss.\\
+We tried to reduce the computational effort by only using a single hidden layer with 100 hidden neurons instead of two layers. The impact on the performance is shown in the middle row of figure \ref{ddpg:ball}. The learning suffered from instabilities, so we decided to weight the stability of using two hidden layers higher than the performance loss.
+
 Our best results can be found in the right row of figure \ref{ddpg:ball} where we set the OU action noise equal to the one used in the original paper with $\sigma_{OU}=0.15$ and $\theta_{OU}=0.2$. We used slightly harder updates with $\tau=1e-3$, and achieved an average cumulative reward of about 650 for 25 episodes of evaluation. The learning process took about 3 hours for 1000 episodes. Further evaluations are needed to improve the training even more.
+
 \begin{figure}
 	\includegraphics[width=0.325\textwidth]{plots/ddpg_ball_first_train.png}
 	\includegraphics[width=0.325\textwidth]{plots/ddpg_ball_1layer_train.png}
@@ -143,14 +162,19 @@ Our best results can be found in the right row of figure \ref{ddpg:ball} where w
 	\caption{The figure displays the training process in the first row and the evaluation results in the second row. Early learning successes can be found in the left column, while the middle column shows the influence of using only a single hidden layer. The right column gives the plots of our best training result.[EDIT: ALIGN PLOTS + LEFT PLOT IS WRONG (WRONG ENV...)]}
 	\label{ddpg:ball}
 \end{figure}
+
 \subsection{Evaluation on CartPoleStabShort-v0}
-The Quanser Robots \textit{CartPoleStabShort-v0} environment consists of a movable car with a singular pendulum attached. The car can be controlled by input actions. The goal is to balance the pendulum, starting from a vertical position and the reward is depending on the angle, with a maximum of 2.0 per time-step for balancing the pendulum straight upright.\\
+The Quanser Robots \textit{CartPoleStabShort-v0} environment consists of a movable car with a singular pendulum attached. The car can be controlled by input actions. The goal is to balance the pendulum, starting from a vertical position and the reward is depending on the angle, with a maximum of 2.0 per time-step for balancing the pendulum straight upright.
+
 We achieved some progress using [x]. The results are displayed in [x].
+
 \subsection{Evaluation on Qube-v0}
-The Quanser Robots \textit{Qube-v0} environment implements the Furuta Pendulum, which consists of a motor controlling one horizontal arm. One end of the joint is attached to the motor, the other end is attached to another vertical arm, which can only be controlled indirectly by controlling the first arm. More details about the Furuta Pendulum can be found in our paper about it.\\
-The goal is to balance the second arm in upright position, receiving a maximum reward of 0.02 per time-step. The environment stops after 300 time-steps.
-We did not get any useful results re-using the parameters we found for \textit{BallBalancer-v0}. Using an Ornstein Uhlenbeck similar to the one used in citep{lillicrap2015continuous}, did not seem to help to deal with the local optima of the environment. Setting the randomness $\sigma_{OU}$ too small resulted in too less exploration. Choosing a higher $\sigma_{OU}$ resulted in better exploration but much less stability. Examples are displayed in figure \ref{ddpg:qube}.\\
+The Quanser Robots \textit{Qube-v0} environment implements the Furuta Pendulum, which consists of a motor controlling one horizontal arm. One end of the joint is attached to the motor, the other end is attached to another vertical arm, which can only be controlled indirectly by controlling the first arm. More details about the Furuta Pendulum can be found in our paper about it.
+
+The goal is to balance the second arm in upright position, receiving a maximum reward of 0.02 per time-step. The environment stops after 300 time-steps. We did not get any useful results re-using the parameters we found for \textit{BallBalancer-v0}. Using an Ornstein Uhlenbeck similar to the one used in citep{lillicrap2015continuous}, did not seem to help to deal with the local optima of the environment. Setting the randomness $\sigma_{OU}$ too small resulted in too less exploration. Choosing a higher $\sigma_{OU}$ resulted in better exploration but much less stability. Examples are displayed in figure \ref{ddpg:qube}.
+
 No stable training process could be achieved. To address this issue we started using a consistent gaussian noise. Unfortunately this did also not help the training process, and seemed to be even more unstable. Figure \ref{ddpg:qube} shows a result of using gaussian noise in the right plot. The algorithm seemed to learn well for a period of time, but tended to overwrite these progress. Lowering the target update rate $\tau$ did not help, nether did lowering the actor and critic learning rates.
+
 \begin{figure}
 	\begin{center}
 	\includegraphics[width=0.325\textwidth]{plots/ddpg_qube_ou_bad_train.png}
@@ -162,6 +186,7 @@ No stable training process could be achieved. To address this issue we started u
 	\label{ddpg:qube}
 	\end{center}
 \end{figure}
+
 Our experiments induced several things: Using a higher batch size seemed to increase the stability to a certain level, but also highly increased the computational effort. 256 seemed to be a good batch-size. The decisions harder or softer updates, controlled by $\tau$, and the amount of action noise for exploration seemed to be very important but also very hard to tune. E.g. choosing $\tau=1e-2$ resulted in an agent tending to overwrite what he already learned, while setting $\tau=1e-4$ prevented him from learning anything. So we chose $\tau=1e-3$, but this alone was not sufficient for effective learning. Reducing the action noise added to the actor output did also not help. Further evaluations are needed to find the right set of hyper-parameters for this environment. 
 
 % ----- NAC ----- %
@@ -188,17 +213,15 @@ To train the network, we use the critic to calculate the advantages for all stat
 
 \subsection{Evaluation on the BallBalancerSim-v0}
 
-The NAC algorithm learned to solve the ball balancer extremely well. Already with 300 updates and 2000 steps per update, the ball balancer manages to hold the ball on the platform and navigate it slowly into the middle. The more steps the environment was allowed to do between updates, the greater became the cumulative reward. The ball balancer learned the faster it rolls the ball into the middle, the higher is the reward. We managed to run a simulation with 1000 updates á 7000 steps, which returned an cumulative average trajectory reward of 600. We believe that we would get an even higher average cumulative trajectory reward with even higher steps per update. 
+The NAC algorithm learned to solve the ball balancer extremely well. Already with 300 updates and 2000 steps per update, the ball balancer manages to hold the ball on the platform and navigate it slowly into the middle. The more steps the environment was allowed to do between updates, the greater became the cumulative reward. Our best run was a simulation with 1000 updates, 7000 steps per update and a discount factor of 1. This hyper parameter setting returned an cumulative average trajectory reward of 600.53. We believe that we would get an even higher average cumulative trajectory reward with more steps per update. 
 
-Nonetheless, we can see in figure \ref{} that even for our best run, the average reward per timestep increased very slowly. This reflects that the environment moves the ball only very slowly to the middle of the ball balancer, where the rewards get higher. Our idea was to apply a basis function to the rewards which pulls apart the high rewards from the low rewards even further, but did not have any success with this idea yet.
+The number of updates was not as important as the number of steps between updates. Figure \ref{fig:nac} shows in the top left corner that already after 300 steps we reached trajectories with cumulative rewards of 600. From this point onwards, the longer we update the more stable the algorithm gets (less trajectories with cumulative rewards under 600), but the average trajectory reward does not improve anymore.
 
-The number of updates was not as important as the step size between updates. Figure \ref{} shows that already after 300 steps we reached trajectories with cumulative rewards of 600. But the longer we update the more stable the algorithm got, meaning that nearly all trajectories reached a reward of approximatedly 600 after 800 updates, whereas after 300 updates the cumulative reward per trajectory still fluctuated a lot. 
-
-Regarding the discounting rate when calculating the discounted return for a state, we used 0.99 or 1 which work very well and is very reasonable for the specific problem.
+Further, we can see in the bottom left corner of figure \ref{fig:nac} that even for our best run, the average reward per time step increased very slowly. This reflects the behavior of the environment, which moves the ball very slowly to the middle, where the environment returns increased rewards. Our idea was to apply a basis function to the rewards which pulls the high rewards from the low rewards even further, but did not have any success with it's implementation.
 
 \subsection{Evaluation on CartPoleStabShort-v0}
 
-We managed to get a nearly perfect result for the cart pole balancing task. The average cumulative trajectory reward of our model is 19987.75, which is just slightly less than the possibly maximum of 20000. We used 300 updates with 2000 steps each and a discount factor of 0.99 to achieve these results.
+We managed to get a nearly perfect result for the cart pole balancing task. The average cumulative trajectory reward of our model is 19768.60, which is slightly less than the possibly maximum of 20000. We used 300 updates with 2000 steps and a discount factor of 0.99 to achieve these results.
 
 \begin{figure}
 	\begin{center}
@@ -207,11 +230,11 @@ We managed to get a nearly perfect result for the cart pole balancing task. The 
 		\includegraphics[width=0.325\textwidth]{plots/NAC_Qube_mean_traj_update_reward.png}
 		\includegraphics[width=0.28\textwidth]{plots/NAC_BBtime_step_reward.png}	
 		\hspace{4mm}
-		\includegraphics[width=0.285\textwidth]{plots/NAC_BBtime_step_reward.png}
+		\includegraphics[width=0.285\textwidth]{plots/NAC_CP_time_step_reward.png}
 		\hspace{1mm}
 		\includegraphics[width=0.3\textwidth]{plots/NAC_Qube_time_step_reward.png}
 		\hspace{1.5mm}
-		\caption{This figure shows the application of the natural actor critic algorithm on the simulated ball balancer (left column), cart pole (middle column) and qube (right column). The \textit{top row} shows the training of the respective environment. The average cumulative trajectory reward for each update can be seen. In NAC we have a fixed step size, which means that one update consists of one or more trajectories. The\textit{ bottom row} shows the evaluation of the respective environments, which has been done over 100 trajectories (which may vary in length). The figures show the average reward for each time step and it's standard deviation.}
+		\caption{This figure shows the application of the natural actor critic algorithm on the simulated ball balancer (left column), cart pole (middle column) and qube (right column). The \textit{top row} shows the training of the respective environment and displays the average cumulative trajectory reward for each update. The NAC algorithm uses a fixed step size, which means that one update consists of one or more trajectories. The\textit{ bottom row} shows the evaluation of the respective environments, which has been done over 100 trajectories (which may vary in length). The figures show the average reward for each time step and it's standard deviation.}
 		\label{fig:nac}
 	\end{center}
 \end{figure}
@@ -227,11 +250,22 @@ Figure \ref{fig:nac} shows the training of the qube in the top right corner. We 
 
 \section{Evaluation of Pretrained Models on real systems}
 
-\textbf{Ball Balancer System:} Evaluating our best DDPG model trained in simulation on the real ball balancer was not successful. The chosen actions were too big and the plate instantly tilted. Additionally, it was not possible for us to reset the environment between the evaluation episodes.
+\textbf{Ball Balancer System:} Evaluating our best DDPG model trained in simulation on the real ball balancer was not successful (Figure \ref{fig:rr}, left). The chosen actions were too big and the plate instantly tilted. Additionally, it was not possible for us to reset the environment between the evaluation episodes.
 
 With our best pretrained NAC model, the actions of our policy seemed to strong as well. We tried to execute a model with 10 times smaller actions, but got the same disappointing results.
 \\\\
-\textbf{Cart Pole System:} Evaluating our best NAC model with nearly perfect rewards on the real cart pole system was not successful. The actions of the cart had to much power, which is why we clipped the actions from originally [-24, 24] to [-6, 6], but the cart was still far to jumpy to hold the stick upright.
+\textbf{Cart Pole System:} Evaluating our best NAC model with nearly perfect rewards on the real cart pole system was not successful (Figure \ref{fig:rr}, right). The actions of the cart had to much power, which is why we clipped the actions from originally [-24, 24] to [-6, 6], but the cart was still far to jumpy to hold the stick upright.
+
+\begin{figure}
+	\centering
+	
+	\includegraphics[width=0.37\textwidth]{plots/RR_DDPG_BB_single.png}
+	\includegraphics[width=0.39\textwidth]{plots/RR_NAC_CP_10episodes.png}
+	
+	\caption{On the left side, we can see one episode of DDPG on the real ball balancer system and on the right side, ten episodes of NAC on the real cart pole system. Both algorithms did not perform very well although they run smoothly in simulation.}
+	\label{fig:rr}
+	
+\end{figure}
 
 
 
