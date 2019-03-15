@@ -51,14 +51,14 @@ LOAD_WEIGHTS = 'best'
 LOAD_WEIGHTS_ENV = None
 
 # What do we want to do?
-TRAIN = True
+TRAIN = False
 EVALUATION = True
-RENDER = True
+RENDER = False
 
 # -------------------------- ENVIRONMENT ------------------------------------ #
 
 # Select Environment
-ENVIRONMENT = 3
+ENVIRONMENT = 7
 
 """
     0: Name of the Gym/Quanser environment.
@@ -95,13 +95,13 @@ env_dict = {
     6:  ['Pendulum-v0', 'continuous', [3],
          200, 300, 0.97, 0.001, 0.1, 10],
 
-    7:  ['CartpoleStabShort-v0', 'continuous',
-         [[[-6.0], [-4.5], [-3.0], [-1.5], [0.0], [1.5], [3.0], [4.5], [6.0]]],
-         2000, 300, 0.99, 0.001, 0.1, 10],
-
     # 7:  ['CartpoleStabShort-v0', 'continuous',
-    #      [[[-6.0], [-3.0], [0.0], [3.0], [6.0]]],
+    #      [[[-6.0], [-4.5], [-3.0], [-1.5], [0.0], [1.5], [3.0], [4.5], [6.0]]],
     #      2000, 300, 0.99, 0.001, 0.1, 10],
+
+    7:  ['CartpoleStabShort-v0', 'continuous',
+         [[[-6.0], [-3.0], [0.0], [3.0], [6.0]]],
+         2000, 300, 0.99, 0.001, 0.1, 10],
 
     8: ['CartpoleStabShort-v0', 'continuous', [3],
         4000, 500, 0.99, 0.001, 0.1, 10],
