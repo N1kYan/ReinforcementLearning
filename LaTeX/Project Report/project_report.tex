@@ -221,12 +221,14 @@ Further, we can see in the bottom left corner of figure \ref{fig:nac} that even 
 
 \subsection{Evaluation on CartPoleStabShort-v0}
 
-We managed to get a nearly perfect result for the cart pole balancing task. The average cumulative trajectory reward of our model is 19768.60, which is slightly less than the possibly maximum of 20000. We used 300 updates with 2000 steps and a discount factor of 0.99 to achieve these results.
+We managed to get a nearly perfect result for the cart pole balancing task. Our best model depicts an average cumulative trajectory reward of 19768.60, which is slightly less than the possibly maximum of 20000. We used 300 updates with 2000 steps and a discount factor of 0.99 to achieve these results. However, the algorithm does not always learn this perfectly. Most of the times, the algorithm manages to balance the pole, but does not manage to hold the cart in the middle. 
+
+Figure \ref{fig:nac} shows for a configuration of 300 updates, 2000 steps per update and a discount factor of 0.99  at the top mid that the algorithms learns fast and at the bottom mid that each time step gets a good reward. The problem is that the trajectories end after approximately 1000 steps.
 
 \begin{figure}
 	\begin{center}
 		\includegraphics[width=0.325\textwidth]{plots/NAC_BB_training_mean_600.png}
-		\includegraphics[width=0.325\textwidth]{plots/NAC_BB_training_mean_600.png}
+		\includegraphics[width=0.325\textwidth]{plots/NAC_CP_mean_traj_update_reward.png}
 		\includegraphics[width=0.325\textwidth]{plots/NAC_Qube_mean_traj_update_reward.png}
 		\includegraphics[width=0.28\textwidth]{plots/NAC_BBtime_step_reward.png}	
 		\hspace{4mm}
@@ -241,7 +243,7 @@ We managed to get a nearly perfect result for the cart pole balancing task. The 
 
 \subsection{Evaluation on Qube-v0}
 
-The results we achieved for the Qube were moderate. Our best run had an average cumulative trajectory reward of 0.92278. The Qube manages to swing up the pendulum from time to time, but does not hold it in an upright position. We used 500 updates with 4000 steps and a discount factor of 0.99. 
+The results we achieved for the Qube were moderate. Our best run had an average cumulative trajectory reward of 0.922. The Qube manages to swing up the pendulum from time to time, but does not hold it in an upright position. We used 500 updates with 4000 steps and a discount factor of 0.99. 
 
 Figure \ref{fig:nac} shows the training of the qube in the top right corner. We can see that a large number of updates is very important for the system. The average cumulative trajectory reward per update still improved during the 500th update. In the bottom right corner of figure \ref{fig:nac}, the average reward per time step can be found. The high standard deviation and the jumpy average illustrate the incapability of the qube to hold the pendulum in an upright position.
 
@@ -259,8 +261,8 @@ With our best pretrained NAC model, the actions of our policy seemed to strong a
 \begin{figure}
 	\centering
 	
-	\includegraphics[width=0.37\textwidth]{plots/RR_DDPG_BB_single.png}
-	\includegraphics[width=0.39\textwidth]{plots/RR_NAC_CP_10episodes.png}
+	\includegraphics[width=0.35\textwidth]{plots/RR_DDPG_BB_single.png}
+	\includegraphics[width=0.37\textwidth]{plots/RR_NAC_CP_10episodes.png}
 	
 	\caption{On the left side, we can see one episode of DDPG on the real ball balancer system and on the right side, ten episodes of NAC on the real cart pole system. Both algorithms did not perform very well although they run smoothly in simulation.}
 	\label{fig:rr}

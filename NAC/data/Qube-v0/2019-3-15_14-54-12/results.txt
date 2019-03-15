@@ -1,3 +1,0 @@
-Average trajectory length: 299.21
-Average transition reward: 0.00039861578261479735
-Average trajectory reward: 0.11928669750152217

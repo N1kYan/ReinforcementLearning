@@ -58,7 +58,7 @@ RENDER = True
 # -------------------------- ENVIRONMENT ------------------------------------ #
 
 # Select Environment
-ENVIRONMENT = 8
+ENVIRONMENT = 9
 
 """
     0: Name of the Gym/Quanser environment.
@@ -77,45 +77,35 @@ ENVIRONMENT = 8
 """
 
 env_dict = {
-    1:  ['CartPole-v0', 'discrete', [0],
-         200, 300, 0.99, 0.001, 0.1, 10],
+    1: ['BallBalancerSim-v0', 'continuous', [3, 3],
+        2000, 500, 0.99, 0.001, 0.01, 10],
 
-    2:  ['Pendulum-v0', 'continuous', [3],
-         1000, 500, 0.99, 0.001, 0.1, 10],
-
-    3:  ['Qube-v0', 'continuous', [5],
+    2:  ['Qube-v0', 'continuous', [5],
          4000, 500, 0.99, 0.001, 0.1, 10],
 
-    4:  ['BallBalancerSim-v0', 'continuous', [3, 3],
-         2000, 500, 0.99,   0.001, 0.01, 10],
-
-    5:  ['Levitation-v1', 'continuous', [3],
-         200, 300, 0.97, 0.001, 0.1, 10],
-
-    6:  ['Pendulum-v0', 'continuous', [3],
-         200, 300, 0.97, 0.001, 0.1, 10],
-
-    # 7:  ['CartpoleStabShort-v0', 'continuous',
-    #      [[[-6.0], [-4.5], [-3.0], [-1.5], [0.0], [1.5], [3.0], [4.5], [6.0]]],
-    #      2000, 300, 0.99, 0.001, 0.1, 10],
-
-    7:  ['CartpoleStabShort-v0', 'continuous',
-         [[[-6.0], [-3.0], [0.0], [3.0], [6.0]]],
-         2000, 300, 0.99, 0.001, 0.1, 10],
-
-    8: ['CartpoleStabShort-v0', 'continuous', [3],
+    3: ['CartpoleStabShort-v0', 'continuous',
+        [[[-6.0], [-3.0], [0.0], [3.0], [6.0]]],
         2000, 300, 0.99, 0.001, 0.1, 10],
 
-    9: ['CartpoleSwingShort-v0', 'continuous', [3],
-        3000, 1000, 0.99, 0.001, 0.1, 10],
+    4: ['CartpoleStabShort-v0', 'continuous', [3],
+        2000, 300, 0.99, 0.001, 0.1, 10],
 
-    11: ['CartpoleStabRR-v0', 'continuous',
+    5: ['CartpoleStabLong-v0', 'continuous', [3],
+        500, 300, 0.97, 0.001, 0.1, 10],
+
+    6: ['CartpoleStabRR-v0', 'continuous',
          [[[-6.0], [0.0], [6.0]]],
          500, 300, 0.99, 0.001, 0.1, 10],
 
-    12: ['BallBalancerRR-v0', 'continuous', [3, 3],
+    7: ['BallBalancerRR-v0', 'continuous', [3, 3],
         5000, 1000, 1, 0.001, 0.1, 10],
+
+    8: ['CartPole-v0', 'discrete', [0],
+        500, 300, 0.97, 0.001, 0.1, 10]
 }
+
+
+
 
 assert ENVIRONMENT in env_dict.keys()
 env_details = env_dict[ENVIRONMENT]

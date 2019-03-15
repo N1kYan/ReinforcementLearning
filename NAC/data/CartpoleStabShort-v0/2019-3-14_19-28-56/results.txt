@@ -1,2 +1,0 @@
-Average transition reward: 1.9978098447668453
-Average trajectory reward: 2693.4304968976976
