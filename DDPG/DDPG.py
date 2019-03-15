@@ -23,8 +23,8 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def plot_eval(rewards):
     """
-    plots the reward over timesteps for all episodes
-    :param rewards: an array of one array for each episode with the reward per timestep
+    Plots the reward per time-step, averaged over all evaluation episodes
+    :param rewards: An array of one array for each episode with the reward per time-step
     """
 
     plt.close()
@@ -45,6 +45,7 @@ def plot_eval(rewards):
     sns.lineplot(x='timesteps', y='reward', data=dat, ax=ax, estimator='mean', ci='sd')
     ax.set_title('Rewards during evaluation')
     plt.show()
+
 
 def evaluation(actor, epochs, render):
     """
@@ -178,7 +179,7 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
     # Load and return actor model from load_path if load_flag is set true
     if load_flag:
         loaded_actor = Actor(state_size=env_specs[0], action_size=env_specs[1], seed=seed).to(device)
-        savepoint = torch.load('./{}/{}{}'.format(env.spec.id, load_path, 'actor'),map_location='cpu')
+        savepoint = torch.load('./{}/{}/{}'.format(env.spec.id, load_path, 'actor'),map_location='cpu')
         loaded_actor.load_state_dict(savepoint)
         return loaded_actor
     else:
@@ -194,10 +195,10 @@ def training(epochs, max_steps, epoch_checkpoint, noise, epsilon, epsilon_decrea
 
         # Load actor and critic from load_path and use them for training if use_pretrained is true
         if use_pretrained:
-            actor_savepoint = torch.load('./{}/{}{}'.format(env.spec.id, load_path, 'actor'), map_location='cpu' )
+            actor_savepoint = torch.load('./{}/{}/{}'.format(env.spec.id, load_path, 'actor'), map_location='cpu' )
             actor_local.load_state_dict(actor_savepoint)
             actor_target.load_state_dict(actor_savepoint)
-            critic_savepoint = torch.load('./{}/{}{}'.format(env.spec.id, load_path, 'critic'), map_location='cpu' )
+            critic_savepoint = torch.load('./{}/{}/{}'.format(env.spec.id, load_path, 'critic'), map_location='cpu' )
             critic_local.load_state_dict(critic_savepoint)
             critic_target.load_state_dict(critic_savepoint)
 
@@ -364,19 +365,19 @@ def main():
     env.seed(3)
 
     # Noise generating process
-    OU_NOISE = OUNoise(size=env_specs[1], seed=random_seed, mu=0., theta=0.15, sigma=0.2)
+    OU_NOISE = OUNoise(size=env_specs[1], seed=random_seed, mu=0., theta=0.2, sigma=0.25)
 
     GAUSS_NOISE = Gaussian(size=env_action_size, seed=random_seed, mu=0.0, sigma=2.8, decay=0.0)
 
     # Replay memory
-    MEMORY = ReplayBuffer(env=env, buffer_size=int(1e6), batch_size=128,
+    MEMORY = ReplayBuffer(env=env, buffer_size=int(1e6), batch_size=64,
                           seed=random_seed)
 
     # Run training procedure with defined hyperparameters
-    ACTOR = training(epochs=5000, max_steps=10000, epoch_checkpoint=500, noise=OU_NOISE, epsilon=None,
+    ACTOR = training(epochs=1000, max_steps=10000, epoch_checkpoint=100, noise=OU_NOISE, epsilon=None,
                      epsilon_decrease=None, add_noise=True, lr_actor=1e-4, lr_critic=1e-3, weight_decay=0,
-                     gamma=0.99, memory=MEMORY, tau=1e-3, seed=random_seed, save_flag=True, load_flag=False,
-                     load_path='26-2-20/', render=True, use_pretrained=False)
+                     gamma=0.99, memory=MEMORY, tau=1e-4, seed=random_seed, save_flag=True, load_flag=False,
+                     load_path='26-2-20', render=False, use_pretrained=False)
 
     # Run evaluation
     evaluation(actor=ACTOR, epochs=100, render=False)
