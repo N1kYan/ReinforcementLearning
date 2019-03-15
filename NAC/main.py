@@ -44,7 +44,7 @@ __status__ = "Development"
 # Load weights from file. Specify one of the following:
 #   1. None, 2. 'best', 3. 'toplevel' (drag and drop the 'model'-folder to the
 #   top level), 4. 'name_of_folder' (state the name, which is the saving time)
-LOAD_WEIGHTS = None
+LOAD_WEIGHTS = 'best'
 
 # If you want to load weights which were trained on a different environment
 # write the name in this variable (needed for real-robot testing).
@@ -58,7 +58,7 @@ RENDER = True
 # -------------------------- ENVIRONMENT ------------------------------------ #
 
 # Select Environment
-ENVIRONMENT = 8
+ENVIRONMENT = 3
 
 """
     0: Name of the Gym/Quanser environment.
@@ -84,7 +84,7 @@ env_dict = {
          500, 500, 0.99, 0.001, 0.1, 10],
 
     3:  ['Qube-v0', 'continuous', [5],
-         2000, 2000, 0.99, 0.001, 0.1, 10],
+         4000, 500, 0.99, 0.001, 0.1, 10],
 
     4:  ['BallBalancerSim-v0', 'continuous', [3, 3],
          2000, 500, 0.99,   0.001, 0.01, 10],
@@ -104,7 +104,7 @@ env_dict = {
     #      2000, 300, 0.99, 0.001, 0.1, 10],
 
     8: ['CartpoleStabShort-v0', 'continuous', [3],
-        2000, 300, 0.99, 0.001, 0.1, 10],
+        4000, 500, 0.99, 0.001, 0.1, 10],
 
     9: ['CartpoleSwingShort-v0', 'continuous', [3],
         3000, 1000, 0.99, 0.001, 0.1, 10],
