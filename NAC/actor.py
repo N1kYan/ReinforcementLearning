@@ -130,6 +130,9 @@ class Actor:
         Note: be sure to fetch the trainable weights, otherwise they won't be
         updated.
 
+        Note: The shapes which are written in the comments refer to gyms
+        CartPole-v0.
+
         :param env: the environment we are trying to master
         :return:
             placeholder variable to input the state into the network,
