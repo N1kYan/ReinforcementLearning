@@ -13,7 +13,7 @@
     conda env create -f dependencies.yml<br />
     conda activate group19<br />
 
-<h3>3. Check that everything works correctly</h3>    
+<h3>3. Check that everything works correctly</h3>
     python3.6 <br />
     import gym<br />
     import quanser_robots<br />
