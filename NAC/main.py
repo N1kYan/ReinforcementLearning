@@ -44,21 +44,21 @@ __status__ = "Development"
 # Load weights from file. Specify one of the following:
 #   1. None, 2. 'best', 3. 'toplevel' (drag and drop the 'model'-folder to the
 #   top level), 4. 'name_of_folder' (state the name, which is the saving time)
-LOAD_WEIGHTS = 'best'
+LOAD_WEIGHTS = None
 
 # If you want to load weights which were trained on a different environment
 # write the name in this variable (needed for real-robot testing).
 LOAD_WEIGHTS_ENV = None
 
 # What do we want to do?
-TRAIN = False
-EVALUATION = False
+TRAIN = True
+EVALUATION = True
 RENDER = True
 
 # -------------------------- ENVIRONMENT ------------------------------------ #
 
 # Select Environment
-ENVIRONMENT = 7
+ENVIRONMENT = 8
 
 """
     0: Name of the Gym/Quanser environment.
@@ -84,10 +84,10 @@ env_dict = {
          500, 500, 0.99, 0.001, 0.1, 10],
 
     3:  ['Qube-v0', 'continuous', [5],
-         4000, 500, 0.99, 0.001, 0.1, 10],
+         2000, 2000, 0.99, 0.001, 0.1, 10],
 
-    4:  ['BallBalancerSim-v0', 'continuous', [9, 9],
-         3000, 500, 0.99,   0.001, 0.1, 10],
+    4:  ['BallBalancerSim-v0', 'continuous', [3, 3],
+         2000, 500, 0.99,   0.001, 0.01, 10],
 
     5:  ['Levitation-v1', 'continuous', [3],
          200, 300, 0.97, 0.001, 0.1, 10],
@@ -96,7 +96,7 @@ env_dict = {
          200, 300, 0.97, 0.001, 0.1, 10],
 
     7:  ['CartpoleStabShort-v0', 'continuous',
-         [[[-6.0], [-3.0], [0.0], [3.0], [6.0]]],
+         [[[-6.0], [-4.5], [-3.0], [-1.5], [0.0], [1.5], [3.0], [4.5], [6.0]]],
          2000, 300, 0.99, 0.001, 0.1, 10],
 
     # 7:  ['CartpoleStabShort-v0', 'continuous',
@@ -104,7 +104,7 @@ env_dict = {
     #      2000, 300, 0.99, 0.001, 0.1, 10],
 
     8: ['CartpoleStabShort-v0', 'continuous', [3],
-        200, 300, 0.99, 0.001, 0.1, 10],
+        2000, 300, 0.99, 0.001, 0.1, 10],
 
     9: ['CartpoleSwingShort-v0', 'continuous', [3],
         3000, 1000, 0.99, 0.001, 0.1, 10],

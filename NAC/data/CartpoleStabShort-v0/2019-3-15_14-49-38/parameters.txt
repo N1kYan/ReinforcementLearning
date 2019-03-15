@@ -1,0 +1,11 @@
+Environment name: CartpoleStabShort-v0
+Is Env discrete/continuous: continuous
+Do we use continuous actions (or discretize): [[[-6.0], [-4.5], [-3.0], [-1.5], [0.0], [1.5], [3.0], [4.5], [6.0]]]
+Learning Epochs/num of Updates: 300
+Batch size: 2000
+Discount factor for monte carlo return: 0.99
+Network generation time: 642 seconds
+Network training time: 724 seconds
+Learning rate actor: 0.001
+Learning rate for Adam optimizer in critic: 0.1
+Critic hidden layer size: 10
