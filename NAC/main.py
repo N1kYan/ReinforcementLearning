@@ -44,15 +44,15 @@ __status__ = "Development"
 # Load weights from file. Specify one of the following:
 #   1. None, 2. 'best', 3. 'toplevel' (drag and drop the 'model'-folder to the
 #   top level), 4. 'name_of_folder' (state the name, which is the saving time)
-LOAD_WEIGHTS = None
+LOAD_WEIGHTS = 'best'
 
 # If you want to load weights which were trained on a different environment
 # write the name in this variable (needed for real-robot testing).
 LOAD_WEIGHTS_ENV = None
 
 # What do we want to do?
-TRAIN = True
-EVALUATION = True
+TRAIN = False
+EVALUATION = False
 RENDER = True
 
 # -------------------------- ENVIRONMENT ------------------------------------ #
@@ -83,11 +83,11 @@ env_dict = {
     2:  ['DoublePendulum-v0', 'continuous', [3],
          500, 500, 0.99, 0.001, 0.1, 10],
 
-    3:  ['Qube-v0', 'continuous', [3],
-         2000, 500, 0.99, 0.001, 0.1, 10],
+    3:  ['Qube-v0', 'continuous', [5],
+         4000, 500, 0.99, 0.001, 0.1, 10],
 
-    4:  ['BallBalancerSim-v0', 'continuous', [3, 3],
-         2000, 500, 1,   0.001, 0.1, 10],
+    4:  ['BallBalancerSim-v0', 'continuous', [9, 9],
+         3000, 500, 0.99,   0.001, 0.1, 10],
 
     5:  ['Levitation-v1', 'continuous', [3],
          200, 300, 0.97, 0.001, 0.1, 10],
@@ -105,6 +105,9 @@ env_dict = {
 
     8: ['CartpoleStabShort-v0', 'continuous', [3],
         200, 300, 0.99, 0.001, 0.1, 10],
+
+    9: ['CartpoleSwingShort-v0', 'continuous', [3],
+        3000, 1000, 0.99, 0.001, 0.1, 10],
 
     11: ['CartpoleStabRR-v0', 'continuous',
          [[[-6.0], [0.0], [6.0]]],
@@ -190,7 +193,7 @@ print("Done! (Time: " + str(env.network_generation_time) + " seconds)")
 # ----------------------- TRAINING NETWORKS --------------------------------- #
 
 if TRAIN:
-    start_time = time.time()
+    start_time_training = time.time()
 
     max_rewards = []
     cum_batch_traj_rewards = []
@@ -213,7 +216,7 @@ if TRAIN:
         total_episodes.append(len(batch_traj_rewards))
         times.append(time.time() - start_time)
 
-    env.network_training_time = int(time.time() - start_time)
+    env.network_training_time = int(time.time() - start_time_training)
 
     try:
         os.makedirs(env.save_folder)
