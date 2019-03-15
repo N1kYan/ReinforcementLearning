@@ -2,5 +2,5 @@ Tau: 1e-3
 Actor: (100, 300) 1e-4
 Critic: (100, 300) 1e-3
 Gamma: 0.97
-Gaussian: Sigma: 4.0
+Gaussian: Sigma: 3.5
 Batch Size: 256
