@@ -40,7 +40,7 @@ grestore
 %
 %\documentclass{svjour3}                     % onecolumn (standard format)
 %\documentclass[smallcondensed]{svjour3}     % onecolumn (ditto)
-\documentclass[smallextended]{svjour3}       % onecolumn (second format)
+\documentclass[smallextended, natbib]{svjour3}       % onecolumn (second format)
 %\documentclass[twocolumn]{svjour3}          % twocolumn
 %
 \smartqed  % flush right qed marks, e.g. at end of proof
@@ -54,7 +54,7 @@ grestore
 \renewcommand{\algorithmicrequire}{\textbf{Initialize:}}
 
 \usepackage{verbatim} %TODO delete before submission
-\usepackage[numbers]{natbib}%TODO delete before submission
+%\usepackage[numbers]{natbib}%TODO delete before submission
 
 %TODO Zitierweise ändern, sieht schrecklich aus
 %
@@ -88,11 +88,34 @@ grestore
 
 \section{Introduction}
 \label{sec:intro}
-We shortly present two state-of the art reinforcement learning algorithms, the \textit{Deep Deterministic Policy Gradient} and the \textit{Natural Actor Critic}. Both algorithms are evaluated on the simulated Quanser Robots platforms \textit{BallBalancerSim-v0}, \textit{CartPoleStabShort-v0} and \textit{Qube-v0}. We furthermore present the results of training both algorithms on the \textit{BallBalancerSim-v0} and evaluating it on the pyhiscal \textit{BallBalancerRR-v0} platform. Finally, we let a pretrained \textit{Natural Actor Critic} agent continue learning on the physical version of \textit{CartPoleStabShort-v0} and close with a discussion of the results.
+We shortly present two state-of the art reinforcement learning algorithms, the 
+\textit{Deep Deterministic Policy Gradient} and the \textit{Natural Actor 
+Critic}. Both algorithms are evaluated on the simulated Quanser Robots 
+platforms \textit{BallBalancerSim-v0}, \textit{CartPoleStabShort-v0} and 
+\textit{Qube-v0}. We furthermore present the results of training both 
+algorithms on the \textit{BallBalancerSim-v0} and evaluating it on the pyhiscal 
+\textit{BallBalancerRR-v0} platform. Finally, we close with a discussion of the 
+results.
 \newpage
 \section{Deep Deterministic Policy Gradient}
 \label{sec:ddpg}
-The \textit{Deep Deterministic Policy Gradient} approach \citep{lillicrap2015continuous} is an application of the \textit{Deep Q-Learning} algorithm \citep{mnih2013playing} to actor-critic methods \citep{konda2000actor} in combination with the \textit{Deterministic Policy Gradient} \citep{silver2014deterministic}. It is a model-free and off-policy algorithm, learning a deterministic policy. We separated the learning process completely from the algorithm's other components. The critic is updated using the temporal difference error, calculated from using the target networks, which are constrained to slow changes with rate $\tau$ to improve the stability of learning. The actor is trained by using the integrated update rule from \cite{lillicrap2015continuous} as it's loss function. Both networks are addressed and can be modified in a separate file, same as the replay buffer, which is used to sample independently and identically distributed mini-batches, randomly selected to temporarily decorrelate them. The action noise to ensure exploration was also kept completely independent from the training algorithm as intended by \citep{lillicrap2015continuous} and is just added to the output of the actor. We clip this output to ensure it suits the environment.
+The \textit{Deep Deterministic Policy Gradient} approach 
+\citep{lillicrap2015continuous} is an application of the \textit{Deep 
+Q-Learning} algorithm \citep{mnih2013playing} to actor-critic methods 
+\citep{konda2000actor} in combination with the \textit{Deterministic Policy 
+Gradient} \citep{silver2014deterministic}. It is a model-free and off-policy 
+algorithm, learning a deterministic policy. We separated the learning process 
+completely from the algorithm's other components. The critic is updated using 
+the temporal difference error. It is calculated from using the target networks 
+which are constrained to slow changes with rate $\tau$ to improve the stability 
+of learning. The actor is trained by using the integrated update rule from 
+\cite{lillicrap2015continuous} as it's loss function. Both networks are 
+addressed and can be modified in a separate file, same as the replay buffer, 
+which is used to sample independently and identically distributed mini-batches, 
+randomly selected to temporarily decorrelate them. The action noise to ensure 
+exploration was also kept completely independent from the training algorithm as 
+intended by \citep{lillicrap2015continuous} and is just added to the output of 
+the actor. We clip this output to ensure it suits the environment.
 
 \subsection{Evaluation on BallBalancerSim-v0}
 The Quanser Robots \textit{BallBalancerSim-v0} environment consist of a plate whose angles can be controlled by the input actions. The goal is to balance a ball on the plate, receiving a maximum reward of 1.0 per time-step for balancing it in the middle of the plate. The environment ends after a maximum of 1000 time-steps.\\
