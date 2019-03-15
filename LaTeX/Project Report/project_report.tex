@@ -146,20 +146,20 @@ Our experiments induced several things: Using a higher batch size seemed to incr
 \section{Natural Actor Critic}
 \label{sec:nac}
 
-The \textit{Natural Actor Critic (NAC)} \citep{peters2008natural} is a model-free, off-policy algorithm, which learns the optimal policy of a reinforcement learning problem by applying the natural gradient \citep{amari1998natural} on an actor-critic \citep{sutton1998introduction} approach. We implemented the episodic NAC \citep{peters2008natural} which takes a fixed number of steps (equals one or more trajectories) in the environment before applying updates to the actor and critic. The actor is an approximation of the policy and the critic is an approximation of the value function, which is used to determine the policy. In this case, we implemented both by using neural networks in tensorflow.
+The \textit{Natural Actor Critic (NAC)} \citep{peters2008natural} is a model-free, off-policy algorithm, which learns the optimal policy of a reinforcement learning problem by applying the natural gradient \citep{amari1998natural} on an actor-critic approach \citep{sutton1998introduction}. We implemented the episodic NAC \citep{peters2008natural} which takes a fixed number of steps (equals one or more trajectories) in the environment before applying updates to the actor and critic. The actor is an approximation of the policy and the critic is an approximation of the value function. We implemented both, the actor and the critic, by using neural networks in tensorflow.
 
 \subsection{The Critic Network}
-For the critic, we introduced a neural network with a single hidden layer. The input layer equals the state dimension of the environment in use. It is fully connected to the hidden layer which again is fully connected to a single output node and uses a ReLu activation function \citep{glorot2011deep}. 
+For the critic, we introduced a neural network with a single hidden layer. The input layer equals the state dimension of the environment. It is fully connected to the hidden layer, which again is fully connected to a single output node and uses a ReLu activation function \citep{glorot2011deep}. 
 
-To train the network, we calculated the discounted return for all states we visited since the last update and compared it to the approximation of the critic. As loss we took the least squares error between the two arrays and minimized it by applying an Adam optimizer \citep{kingma2014adam}.
+To train the network, we calculate the discounted return for all states we visited since the last update and compare it to the discounted return approximation of the critic. Then, we take the least squares error between the two arrays as loss and minimize it by applying an Adam optimizer \citep{kingma2014adam}.
 
-\textit{Parameters:} We used a hidden layer with 10 nodes and a learning rate of 0.1 for all environments. We tried to add more hidden nodes and experimented with the learning rates, but could not depict any significant improvements.
+\textit{Parameters:} We used a hidden layer with 10 nodes and a learning rate of 0.1 for all environments. We tried to add more hidden nodes and experimented with the learning rate, but could not depict any significant improvements.
 
 \subsection{The Actor Network}
 
-The actor network has an input and an output layer which are fully connected and run through a softmax activation function. The input layer matches the dimensions of the state, the output layer matches the dimensions of the action space. If we have multidimensional actions, each permutation is represented in the action space. If we put an observation into the network, the softmax layer takes care that we end up with a probability for each action. To select which action to take next, we stochastically sample one action w.r.t these probabilities.
+The actor network has an input and an output layer, which are fully connected, and uses a softmax activation function. The input layer matches the dimension of the state, the output layer matches the dimension of the action space. If we feed an observation into the network, the output is an array of probabilities for each action. To select which action to take, we stochastically sample an action w.r.t these probabilities.
 
-To train the network, we use the critic to calculate the advantages for all states we visited since the last update and feed it along with the states and actions into the actor network. Then we compute the cost function, it's gradient w.r.t the actor network parameters and the inverse of the Fisher information matrix. To get the inverse of the Fisher information matrix, we applied singular value decomposition \citep{golub1965calculating}. Finally, we multiply the cost function gradient, the inverse of the Fisher information matrix and a learning rate and add the resulting term to the old actor network parameters.
+To train the network, we use the critic to calculate the advantages for all states we visited since the last update. Then we feed the advantages, states and actions to the actor and update the actors parameters with the natural gradient. For this, we compute the cost function, it's gradient w.r.t the actor network parameters and the inverse of the Fisher information matrix. To get the inverse, we apply singular value decomposition \citep{golub1965calculating}.
 
 \textit{Parameters}: We trained all of the environments without a hidden layer and with a learning rate of 0.001. We tried to add a hidden layer and change the learning rate, but did not get any improved results.
 
@@ -188,25 +188,27 @@ We managed to get a nearly perfect result for the cart pole balancing task. The 
 		\hspace{1mm}
 		\includegraphics[width=0.3\textwidth]{plots/NAC_Qube_time_step_reward.png}
 		\hspace{1.5mm}
-		\caption{Hallo mein name ist p}
-		\label{nac:cp}
+		\caption{This figure shows the application of the natural actor critic algorithm on the simulated ball balancer (left column), cart pole (middle column) and qube (right column). The \textit{top row} shows the training of the respective environment. The average cumulative trajectory reward for each update can be seen. In NAC we have a fixed step size, which means that one update consists of one or more trajectories. The\textit{ bottom row} shows the evaluation of the respective environments, which has been done over 100 trajectories (which may vary in length). The figures show the average reward for each time step and it's standard deviation.}
+		\label{fig:nac}
 	\end{center}
 \end{figure}
 
 \subsection{Evaluation on Qube-v0}
 
-The results we achieved for the Qube were not very good. Our best run had an average cumulative trajectory reward of 0.92278 which is not very high. The Qube manages to swing up the pendulum from time to time, but does not hold it in an upright position. 
+The results we achieved for the Qube were moderate. Our best run had an average cumulative trajectory reward of 0.92278. The Qube manages to swing up the pendulum from time to time, but does not hold it in an upright position. We used 500 updates with 4000 steps and a discount factor of 0.99. 
 
-\section{Evaluation on real systems}
+Figure \ref{fig:nac} shows the training of the qube in the top right corner. We can see that a large number of updates is very important for the system. The average cumulative trajectory reward per update still improved during the 500th update. In the bottom right corner of figure \ref{fig:nac}, the average reward per time step can be found. The high standard deviation and the jumpy average illustrate the incapability of the qube to hold the pendulum in an upright position.
 
-\subsection{Evaluation of Pretrained Models on the Real Ball Balancer System}
+% ----- REAL SYSTEM ----- %
 
-Evaluating our best DDPG model trained in simulation on the real ball balancer was not successful. The chosen actions were too big and the plate instantly tilted. Additionally, it was not possible for us to reset the environment between the evaluation episodes.
 
-Also with our best pretrained NAC model, the actions of our policy seemed to big. We tried to execute a model with 10 times smaller actions, but got the same disappointing results.
+\section{Evaluation of Pretrained Models on real systems}
 
-\subsection{Evaluation of the Pretrained models on the Real Cart Pole System}
-Evaluating our best NAC model with nearly perfect rewards on the real cart pole system was not successful. The actions of the cart had to much power, which is why we clipped the actions from originally [-24, 24] to [-6, 6], but the cart was still far to jumpy to hold the stick upright.
+\textbf{Ball Balancer System:} Evaluating our best DDPG model trained in simulation on the real ball balancer was not successful. The chosen actions were too big and the plate instantly tilted. Additionally, it was not possible for us to reset the environment between the evaluation episodes.
+
+With our best pretrained NAC model, the actions of our policy seemed to strong as well. We tried to execute a model with 10 times smaller actions, but got the same disappointing results.
+\\\\
+\textbf{Cart Pole System:} Evaluating our best NAC model with nearly perfect rewards on the real cart pole system was not successful. The actions of the cart had to much power, which is why we clipped the actions from originally [-24, 24] to [-6, 6], but the cart was still far to jumpy to hold the stick upright.
 
 
 
