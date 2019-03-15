@@ -100,7 +100,7 @@ We started our evaluations with using two hidden layers with 100 and 300 hidden 
 In the left row of figure \ref{ddpg:ball} one can find our first acceptable results. Discounting is set to $\gamma=0.99$, we did soft target updates with $\tau=1e-4$, used a mini-batch size of 64 and a total replay buffer size of 1e6. We slightly increased the noise to $\sigma_{OU}=0.2$ and $\theta_{OU}=0.25$ as the environments action space has an higher amplitude compared to the \textit{Pendulum-v0} trained on in \citep{lillicrap2015continuous}.\\
 The algorithm did learn to balance the ball, but was not very stable, which can also be read from the learning progress plot. To further increase the stability, we increased th mini-batch size used to sample from the replay buffer, and reduced the noise again. Using weight regularization did not seem to be helpful, so we set it to zero.\\
 Figure \ref{ddpg:ball:gamma} shows the training process where discounting is set to $\gamma=0.2$ compared to $\gamma=0.99$. One can see discounting is crucial to solve this environment.\\
-\begin{figure}[H]
+\begin{figure}
 	\centering
 	\includegraphics[width=0.4\textwidth]{plots/ddpg_ball_low_gamma.png}
 	\includegraphics[width=0.4\textwidth]{plots/ddpg_ball_high_gamma.png}
@@ -109,7 +109,7 @@ Figure \ref{ddpg:ball:gamma} shows the training process where discounting is set
 \end{figure}
 We tried to reduce the computational effort by only using a single hidden layer with 100 hidden neurons instead of two layers. The impact on the performance is shown in the middle row of figure \ref{ddpg:ball}. The learning suffered from instabilities, so we decided to weight the stability of using two hidden layers higher than the performance loss.\\
 Our best results can be found in the right row of figure \ref{ddpg:ball} where we set the OU action noise equal to the one used in the original paper with $\sigma_{OU}=0.15$ and $\theta_{OU}=0.2$. We used slightly harder updates with $\tau=1e-3$, and achieved an average cumulative reward of about 650 for 25 episodes of evaluation. The learning process took about 3 hours for 1000 episodes. Further evaluations are needed to improve the training even more.
-\begin{figure}[H]
+\begin{figure}
 	\includegraphics[width=0.325\textwidth]{plots/ddpg_ball_first_train.png}
 	\includegraphics[width=0.325\textwidth]{plots/ddpg_ball_1layer_train.png}
 	\includegraphics[width=0.325\textwidth]{plots/ddpg_ball_best_train.png}
@@ -120,8 +120,6 @@ Our best results can be found in the right row of figure \ref{ddpg:ball} where w
 	\caption{The figure displays the training process in the first row and the evaluation results in the second row. Early learning successes can be found in the left column, while the middle column shows the influence of using only a single hidden layer. The right column gives the plots of our best training result.[EDIT: ALIGN PLOTS + LEFT PLOT IS WRONG (WRONG ENV...)]}
 	\label{ddpg:ball}
 \end{figure}
-\subsection{Evaluation of the Pretrained Model on the Real Ball Balancer System}
-Evaluating our best model trained in simulation on the real ball balancer was not successful. The chosen actions were too big and the plate instantly tilted. Also, it was not possible for us to reset the environment between the evaluation episodes. The result of single episodes of evaluation can be found in figure [x].
 \subsection{Evaluation on CartPoleStabShort-v0}
 The Quanser Robots \textit{CartPoleStabShort-v0} environment consists of a movable car with a singular pendulum attached. The car can be controlled by input actions. The goal is to balance the pendulum, starting from a vertical position and the reward is depending on the angle, with a maximum of 2.0 per time-step for balancing the pendulum straight upright.\\
 We achieved some progress using [x]. The results are displayed in [x].
@@ -130,7 +128,7 @@ The Quanser Robots \textit{Qube-v0} environment implements the Furuta Pendulum, 
 The goal is to balance the second arm in upright position, receiving a maximum reward of 0.02 per time-step. The environment stops after 300 time-steps.
 We did not get any useful results re-using the parameters we found for \textit{BallBalancer-v0}. Using an Ornstein Uhlenbeck similar to the one used in citep{lillicrap2015continuous}, did not seem to help to deal with the local optima of the environment. Setting the randomness $\sigma_{OU}$ too small resulted in too less exploration. Choosing a higher $\sigma_{OU}$ resulted in better exploration but much less stability. Examples are displayed in figure \ref{ddpg:qube}.\\
 No stable training process could be achieved. To address this issue we started using a consistent gaussian noise. Unfortunately this did also not help the training process, and seemed to be even more unstable. Figure \ref{ddpg:qube} shows a result of using gaussian noise in the right plot. The algorithm seemed to learn well for a period of time, but tended to overwrite these progress. Lowering the target update rate $\tau$ did not help, nether did lowering the actor and critic learning rates.
-\begin{figure}[H]
+\begin{figure}
 	\begin{center}
 	\includegraphics[width=0.325\textwidth]{plots/ddpg_qube_ou_bad_train.png}
 	\includegraphics[width=0.325\textwidth]{plots/ddpg_qube_ou_better_train.png}
@@ -139,15 +137,80 @@ No stable training process could be achieved. To address this issue we started u
 	standard deviation $\sigma=0.7$. The mini-batch size was also increased to 
 	256.}
 	\label{ddpg:qube}
-\end{center}
+	\end{center}
 \end{figure}
 Our experiments induced several things: Using a higher batch size seemed to increase the stability to a certain level, but also highly increased the computational effort. 256 seemed to be a good batch-size. The decisions harder or softer updates, controlled by $\tau$, and the amount of action noise for exploration seemed to be very important but also very hard to tune. E.g. choosing $\tau=1e-2$ resulted in an agent tending to overwrite what he already learned, while setting $\tau=1e-4$ prevented him from learning anything. So we chose $\tau=1e-3$, but this alone was not sufficient for effective learning. Reducing the action noise added to the actor output did also not help. Further evaluations are needed to find the right set of hyper-parameters for this environment. 
+
+% ----- NAC ----- %
+
 \section{Natural Actor Critic}
 \label{sec:nac}
-\subsection{Evaluation on CartPoleSwingShort-v0}
+
+The \textit{Natural Actor Critic (NAC)} \citep{peters2008natural} is a model-free, off-policy algorithm, which learns the optimal policy of a reinforcement learning problem by applying the natural gradient \citep{amari1998natural} on an actor-critic \citep{sutton1998introduction} approach. We implemented the episodic NAC \citep{peters2008natural} which takes a fixed number of steps (equals one or more trajectories) in the environment before applying updates to the actor and critic. The actor is an approximation of the policy and the critic is an approximation of the value function, which is used to determine the policy. In this case, we implemented both by using neural networks in tensorflow.
+
+\subsection{The Critic Network}
+For the critic, we introduced a neural network with a single hidden layer. The input layer equals the state dimension of the environment in use. It is fully connected to the hidden layer which again is fully connected to a single output node and uses a ReLu activation function \citep{glorot2011deep}. 
+
+To train the network, we calculated the discounted return for all states we visited since the last update and compared it to the approximation of the critic. As loss we took the least squares error between the two arrays and minimized it by applying an Adam optimizer \citep{kingma2014adam}.
+
+\textit{Parameters:} We used a hidden layer with 10 nodes and a learning rate of 0.1 for all environments. We tried to add more hidden nodes and experimented with the learning rates, but could not depict any significant improvements.
+
+\subsection{The Actor Network}
+
+The actor network has an input and an output layer which are fully connected and run through a softmax activation function. The input layer matches the dimensions of the state, the output layer matches the dimensions of the action space. If we have multidimensional actions, each permutation is represented in the action space. If we put an observation into the network, the softmax layer takes care that we end up with a probability for each action. To select which action to take next, we stochastically sample one action w.r.t these probabilities.
+
+To train the network, we use the critic to calculate the advantages for all states we visited since the last update and feed it along with the states and actions into the actor network. Then we compute the cost function, it's gradient w.r.t the actor network parameters and the inverse of the Fisher information matrix. To get the inverse of the Fisher information matrix, we applied singular value decomposition \citep{golub1965calculating}. Finally, we multiply the cost function gradient, the inverse of the Fisher information matrix and a learning rate and add the resulting term to the old actor network parameters.
+
+\textit{Parameters}: We trained all of the environments without a hidden layer and with a learning rate of 0.001. We tried to add a hidden layer and change the learning rate, but did not get any improved results.
+
 \subsection{Evaluation on the BallBalancerSim-v0}
-\subsection{Evaluation of the Pretrained Model on the Real Ball Balancer System}
-\subsubsection{Learning from the Physical Cart Pole System with pretrained parameters}
+
+The NAC algorithm learned to solve the ball balancer extremely well. Already with 300 updates and 2000 steps per update, the ball balancer manages to hold the ball on the platform and navigate it slowly into the middle. The more steps the environment was allowed to do between updates, the greater became the cumulative reward. The ball balancer learned the faster it rolls the ball into the middle, the higher is the reward. We managed to run a simulation with 1000 updates á 7000 steps, which returned an cumulative average trajectory reward of 600. We believe that we would get an even higher average cumulative trajectory reward with even higher steps per update. 
+
+Nonetheless, we can see in figure \ref{} that even for our best run, the average reward per timestep increased very slowly. This reflects that the environment moves the ball only very slowly to the middle of the ball balancer, where the rewards get higher. Our idea was to apply a basis function to the rewards which pulls apart the high rewards from the low rewards even further, but did not have any success with this idea yet.
+
+The number of updates was not as important as the step size between updates. Figure \ref{} shows that already after 300 steps we reached trajectories with cumulative rewards of 600. But the longer we update the more stable the algorithm got, meaning that nearly all trajectories reached a reward of approximatedly 600 after 800 updates, whereas after 300 updates the cumulative reward per trajectory still fluctuated a lot. 
+
+Regarding the discounting rate when calculating the discounted return for a state, we used 0.99 or 1 which work very well and is very reasonable for the specific problem.
+
+\subsection{Evaluation on CartPoleStabShort-v0}
+
+We managed to get a nearly perfect result for the cart pole balancing task. The average cumulative trajectory reward of our model is 19987.75, which is just slightly less than the possibly maximum of 20000. We used 300 updates with 2000 steps each and a discount factor of 0.99 to achieve these results.
+
+\begin{figure}
+	\begin{center}
+		\includegraphics[width=0.325\textwidth]{plots/NAC_BB_training_mean_600.png}
+		\includegraphics[width=0.325\textwidth]{plots/NAC_BB_training_mean_600.png}
+		\includegraphics[width=0.325\textwidth]{plots/NAC_Qube_mean_traj_update_reward.png}
+		\includegraphics[width=0.28\textwidth]{plots/NAC_BBtime_step_reward.png}	
+		\hspace{4mm}
+		\includegraphics[width=0.285\textwidth]{plots/NAC_BBtime_step_reward.png}
+		\hspace{1mm}
+		\includegraphics[width=0.3\textwidth]{plots/NAC_Qube_time_step_reward.png}
+		\hspace{1.5mm}
+		\caption{Hallo mein name ist p}
+		\label{nac:cp}
+	\end{center}
+\end{figure}
+
+\subsection{Evaluation on Qube-v0}
+
+The results we achieved for the Qube were not very good. Our best run had an average cumulative trajectory reward of 0.92278 which is not very high. The Qube manages to swing up the pendulum from time to time, but does not hold it in an upright position. 
+
+\section{Evaluation on real systems}
+
+\subsection{Evaluation of Pretrained Models on the Real Ball Balancer System}
+
+Evaluating our best DDPG model trained in simulation on the real ball balancer was not successful. The chosen actions were too big and the plate instantly tilted. Additionally, it was not possible for us to reset the environment between the evaluation episodes.
+
+Also with our best pretrained NAC model, the actions of our policy seemed to big. We tried to execute a model with 10 times smaller actions, but got the same disappointing results.
+
+\subsection{Evaluation of the Pretrained models on the Real Cart Pole System}
+Evaluating our best NAC model with nearly perfect rewards on the real cart pole system was not successful. The actions of the cart had to much power, which is why we clipped the actions from originally [-24, 24] to [-6, 6], but the cart was still far to jumpy to hold the stick upright.
+
+
+
+% ----- DISCUSSION ----- % 
 
 \section{Discussion}
 We implemented the DDPG and NAC algorithms and evaluated them on the Quanser Robots environments \textit{BallBalancerSim-v0}, \textit{CartPoleStabShort-v0} and the \textit{Qube-v0}. Both algorithms were able to learn a well performing policy for the first two environments, where the NAC needed less computational time and was more sample efficient. Nonetheless, both algorithms did have troubles to learn a close to optimal policy for the \textit{Qube-v0} environment. They suffered from a very difficult exploration / exploitation trade-off, often with stable learning in the beginning which is overwritten later, or not having enough exploration drive to escape local optima. Further evaluation is needed to optimize the algorithms especially for this environment. Due to technical difficulties it was not really possible to evaluate our pretrained models on the real Quanser Robots systems. Further investigation is needed.
