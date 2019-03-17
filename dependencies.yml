@@ -106,7 +106,6 @@ dependencies:
     - python-xlib==0.25
     - pyzmq==18.0.1
     - qtconsole==4.4.3
-    - quanser-robots==0.1.1
     - requests==2.21.0
     - scipy==1.2.1
     - send2trash==1.5.0
