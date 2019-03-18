@@ -46,8 +46,7 @@ grestore
 \smartqed  % flush right qed marks, e.g. at end of proof
 %
 \usepackage{graphicx}
-%\usepackage[numbers]{natbib} %TODO delete before submission
-%TODO optimiere Zitierweise, fehlen Klammern um die Zitate?
+\usepackage{tikz}
 
 %
  \usepackage{mathptmx}      % use Times fonts if available on your TeX system
@@ -75,19 +74,22 @@ grestore
 
 %\titlerunning{Short form of title}        % if too long for running head
 
-\author{Tabea Wilke \and Maximilian Gehrke \and Yannik Frisch}
+\author{Tabea A. Wilke \and Yannik P. Frisch \and Maximilian A. Gehrke }
 
 %\authorrunning{Wilke, Gehrke, Frisch} % if too long for running head
 
-\institute{F. Author \at
-              first address \\
-              Tel.: +123-45-678910\\
-              Fax: +123-45-678910\\
-              \email{fauthor@example.com}           %  \\
-%             \emph{Present address:} of F. Author  %  if needed
-           \and
-           S. Author \at
-              second address
+\institute{Tabea A. Wilke \at
+	TU Darmstadt, Germany\\
+	\email{tabeaalina.wilke@stud.tu-darmstadt.de}           %  \\
+	%             \emph{Present address:} of F. Author  %  if needed
+	\and
+	Yannik P. Frisch \at
+	TU Darmstadt, Germany\\
+	\email{yannik\_phil.frisch@stud.tu-darmstadt.de}
+	\and
+	Maximilian A. Gehrke \at
+	TU Darmstadt, Germany\\
+	\email{maximilian\_alexander.gehrke@stud.tu-darmstadt.de}
 }
 
 \date{Received: date / Accepted: date}
@@ -99,14 +101,14 @@ grestore
 \begin{abstract}
 The Furuta Pendulum is a complex non-linear system and therefore 
 of big interest in control system theory. It consists of one controllable arm 
-rotating in the horizontal plane and one pendulum uncontrollably moving in the 
-vertical plane, which is attached to the end of this arm.\\
+rotating in the horizontal plane and one pendulum, which is attached to the end 
+of this arm, moving uncontrollably in the vertical plane.\\
 The non-linearities result from an interplay between gravitational, coriolis, 
 centrifugal forces and friction. They can be modelled through equations of 
 motion through the Euler-Lagrange method.\\
-XX We present an overview over it's technical details and discuss algorithms to 
-solve the control problem. XX
-\keywords{First keyword \and Second keyword \and More}
+We present an overview over it's technical details and discuss algorithms to 
+solve the control problem.
+\keywords{Furuta Pendulum \and Reinforcement Learning \and Equations of motion}
 % \PACS{PACS code1 \and PACS code2 \and more}
 % \subclass{MSC code1 \and MSC code2 \and more}
 \end{abstract}
@@ -120,14 +122,18 @@ pendulum)
 has been developed by 
 \cite{furuta1992swing}. The advantages of the Furuta pendulum are that 
 it 
-needs less space and one moving arm is directly linked to the motor, therefore, 
+needs less space and one moving arm is directly linked to the motor. Therefore, 
 the dynamics is less unmodeled thanks to a power transmission mechanism 
 \citep{furuta1992swing}. \\
-The Furuta pendulum is an underactuated system. This %TODO ggf neue Section 
-%oder umschreiben
-means that there  are two degrees of freedom ($\phi,\ \theta$), 
+The Furuta pendulum is an underactuated system. An underacted system is 
+characterized by the difference of the degrees of freedom and the number of 
+actuators. If there are more degrees of freedom, the system is trivially 
+underactuated \citep{tedrake2009underactuated}.Therefore, it is not possible to 
+accelerate the system in every direction. In case of the Furuta pendulum, this 
+means that there are two degrees of freedom ($\phi,\ \theta$), 
 but only one arm is directly controlled by the motor. This is the one which 
-changes the angle $\phi$ in the horizontal plane. The other arm called pendulum 
+changes the angle $\phi$ in the horizontal plane. The other arm, called 
+pendulum, 
 is attached to 
 the end of the controlled arm and therefore is moved indirectly by it in the 
 vertical plane with angle $\theta$ 
@@ -142,9 +148,9 @@ friction and centrifugal forces \citep{izutsu2008swing}.
 	\label{fig:pendulum}
 \end{figure}\\
 Finally, there are two different types of control problems, "swing-up" and 
-"stabilization. The swing-up task consists in bringing the 
+"stabilization". The swing-up task consists in bringing the 
 flexible arm from a hanging position to a position which is nearly upright. 
-Stabilization considers the problem if the arm is nearly upright with low 
+Stabilization considers the problem when the arm is nearly upright with low 
 enough speed, balancing it to hold this state stable. 
 \subsection{Definitions}
 The system (see \ref{fig:pendulum}) consists of an arm with length $l_a$ 
@@ -165,24 +171,31 @@ Modelling\protect\footnote[1]{\cite{akhtaruzzaman2010modeling,furuta1992swing,ga
 		ozbek2010swing,zhang2011optimal,fairus2013fuzzy}}} 
 The kinematics of the pendulum's 
 center of gravity can be described by 
-\[\begin{cases}
-x&=l_a\cos\phi-l_{p}\sin\theta\sin\phi \\ 
-y&=l_a\sin\phi+l_{p}\sin\theta\cos\phi \\ 
-z&=l_{p}\cos\theta.
-\end{cases} \] 
+\[\mathbf{p_{cg}}=\begin{bmatrix}
+x	\\ 
+y	\\ 
+z	
+	\end{bmatrix} =\begin{bmatrix}
+l_a\cos\phi-l_{p}\sin\theta\sin\phi \\ 
+l_a\sin\phi+l_{p}\sin\theta\cos\phi \\ 
+l_{p}\cos\theta
+\end{bmatrix}. \] 
 The relative velocity of the pendulum to the arm can be represented by 
-\[ \begin{cases}
-\dot{x}&=-l_a\ \sin \phi \dot{\phi}-l_{p}\ \cos\phi \sin\theta\dot{\phi}-l_{p} 
+\[\mathbf{v_{cg}}= \begin{bmatrix}
+\dot{x}\\
+\dot{y}\\
+\dot{z}\end{bmatrix}=\begin{bmatrix}
+-l_a\ \sin \phi \dot{\phi}-l_{p}\ \cos\phi \sin\theta\dot{\phi}-l_{p} 
 \ \sin\phi \cos\theta\dot{\theta} \\ 
-\dot{y} &=l_a\ \cos\phi\dot{\phi}-l_{p} \ \sin\phi \sin\theta\dot{\phi}+l_{p} 
+l_a\ \cos\phi\dot{\phi}-l_{p} \ \sin\phi \sin\theta\dot{\phi}+l_{p} 
 \ \cos\theta \cos\phi\dot{\theta} \\
- \dot{z}&=-l_{p} \ \sin\theta\dot{\theta}.
-\end{cases}\]
+-l_{p} \ \sin\theta\dot{\theta}
+\end{bmatrix}.\]
 The equations of motion can be derived through the Euler-Lagrange 
 method. The Lagrangian function is given by the difference of the 
 kinetic and potential energies $L=T-V$, with $T$ as the total sum of the 
 kinetic energies in the system and $V$ the total potential energies.\\
-The only potential energy which is in the system is the one of the pendulum:
+The only potential energy in the system is the one of the pendulum:
 \[V_{total}=V_{pendulum}=m_pgz= m_pgl_{p}\cos\theta\]
 Kinetic energy is available both in the arm and in the pendulum and is composed 
 of the the sum of translation energy and rotational energy. The translation 
@@ -192,9 +205,7 @@ of the squared velocities in all directions:
 \begin{align*}v^2&=\dot{x}^2+\dot{y}^2+\dot{z}^2\\
 &=(l_a^2+l_p^2\ 
 \sin^2\theta)\dot{\phi}^2+l_p^2\dot{\theta}^2+2l_al_p\dot{\phi}\dot{\theta}\cos 
-\theta\end{align*} %TODO ich kann die Herleitung dafür in den Anhang packen, 
-%falls 
-%gewünscht
+\theta\end{align*} 
 \begin{align*}
 T_{arm}&=\frac{1}{2}J_a\dot{\phi}^2\\
 T_{pendulum}&=\frac{1}{2}J_p\dot{\theta}^2+\frac{1}{2}m_pv^2\\
@@ -239,7 +250,7 @@ to
 \frac{\partial^2 L}{\partial t\partial \dot{\phi}}-\frac{\partial 
 	L}{\partial \phi}&=\tau - B_a\dot{\phi}\\
 \frac{\partial^2 L}{\partial t\partial \dot{\theta}}-\frac{\partial 
-	L}{\partial \theta}&=-B_p\dot{\theta}
+	L}{\partial \theta}&=-B_p\dot{\theta}.
 \end{align*}
 The partial derivations of the Lagrangian for the generalized coordinates are:
 
@@ -273,7 +284,7 @@ L}{\partial\dot{\phi}}&=\ddot{\phi}(J_a+m_p(l_a^2+l_p^2\sin^2
 L}{\partial\dot{\theta}}&=\ddot{\theta}(J_p+m_pl_p^2)+\ddot{\phi}m_pl_al_p\cos\theta-\frac{1}{2}\dot{\phi}^2m_pl_p^2\sin(2\theta)-m_pgl_psin\theta
 \end{align*}
 Putting this into a matrix form and filling in the friction, this results in 
-the nonlinear equations of motion (EOM) for the Furuta pendulum.
+the nonlinear equations of motion (EOM) for the Furuta pendulum:
 \begin{align*}
 &\begin{bmatrix}
 J_a+m_p(l_a^2+l_p^2\sin^2\theta)& \quad m_pl_al_p\cos\theta \\ 
@@ -298,16 +309,17 @@ m_pl_p^2\sin(2\theta)\dot{\theta}- B_a& \quad -m_pl_al_p\sin \theta
 \end{bmatrix}=\begin{bmatrix}
 \tau \\
 0
-\end{bmatrix}
+\end{bmatrix}.
 \end{align*}
 \subsection{Linearization of the state-space model}
-As all equations of motion contain a part of a trigonometric function the 
+As all equations of motion contain a part of a trigonometric function, the 
 equations are non-linear. There are several different methods to transform the 
-non-linear equations to linear ones. %TODO which ones
+non-linear equations to linear ones. For example Taylor expansion, Jacobian 
+linearization and truncated Taylor expansion. %TODO Zitat einfügen Zhang[1,2,3]
  For a linearization in the state-space the equation 
-$\dot{x}=Ax+Bu+\tilde{d}$ is used. The linearization is done around the 
-operating point \citep{rigatos2018nonlinear} which is the vertical inverted 
-state and therefore, uses $\theta = 0$ and $\dot{\theta}=0$. This results in 
+$\dot{x}=Ax+Bu$ is used. The linearization is done around the 
+operating point \citep{rigatos2018nonlinear}, which is the vertical inverted 
+state and, therefore, uses $\theta = 0$ and $\dot{\theta}=0$. This results in 
 the following equations: %TODO Gleichung einfügen
 The result is a linear form of the equations of motion which are very close to 
 the system's description by the non-linear model. For an angle of 
@@ -347,17 +359,18 @@ energy should be added. The energy of the pendulum can be described by
 by \cite{aastrom2000swinging} for the normal pendulum.
 As we want to stabilize the pendulum on an upright position, optimally we do 
 not need any further energy in this state. Therefore, this is a logical state 
-to set as state without energy \citep{seman2013swinging}.\\
+to set as state without any energy left \citep{seman2013swinging}.\\
 There are two different directions in which the 
-energy can be supplied either the pendulum seems to be "pulled" or "pushed" 
-\cite{seman2013swinging}. To 
-define this, the following term is used: $\text{sign}(\dot{\theta}\cos\theta)$ 
-The velocity helps to find 
-out whether the pendulum starts to swing in the opposite direction, the $\cos 
-\theta$ defines if the pendulum is in the left or in the right half 
-\citep{awtar2002inverted}. The magnitude of energy which should be provided is 
+energy can be supplied. Either the pendulum seems to be "pulled" or "pushed" 
+\cite{seman2013swinging}. Therefore, we need a sign-function that represents 
+whether to push or pull. The argument of the sign-function is compound by the 
+velocity which specifies whether the pendulum starts to swing in the opposite 
+direction and a cosine that defines the side of the pendulum. This results in 
+the following term: $\text{sign}(\dot{\theta}\cos\theta)$ 
+\citep{awtar2002inverted}. \\
+The magnitude of energy which should be provided is 
 selected by an aggressivity factor and the difference of actual and desired 
-system energy $k_a(E-E_0)$. With $E_0=0$ as the system should have zero energy 
+system energy $k_a(E-E_0)$, with $E_0=0$ as the system should have zero energy 
 at the end. The aggressivity factor handles the amount of input 
 and thereby the number of oscillations which are needed to achieve the 
 swing-up \cite{awtar2002inverted}. Often there is also a saturation function 
@@ -372,42 +385,90 @@ u = sat(k_a(E-E_0))\text{sign}(\dot{\theta}\cos\theta)
 \subsection{Stabilization}
 There are many different approaches for solving the stabilization problem as 
 well. The most common one is the linear quadratic regulation (LQR) because it 
-guarantees the optimal solution \citep{hamza2019current}. But also the 
+guarantees the optimal solution \citep{hamza2019current}. Also the 
 proportional integral derivative (PID) is often used because of its simplicity 
-and robustness and also because of the usage in the industry 
+and robustness and also because of its usage in the industry 
 \citep{hassanzadeh2011controller}. Nevertheless, there are a lot of other 
 algorithms from sliding modes \citep{izutsu2008swing} to particle swarm 
 optimization and other evolutionary algorithms 
 \citep{hassanzadeh2011controller}.
-%TODO LQR beschreiben
+In the following, we will shortly describe how an LQR controller can be modeled 
+for the stabilization problem on the Furuta Pendulum. The LQR is a controller 
+which can be used to make a controllable, but unstable system stable 
+\citep{park2011swing}. It uses the linearized equations of motion in the 
+state-space model in form of a state feedback method \citep{ozbek2010swing}. 
+The cost function can be defined with $x=[\phi \ \theta \ \dot{\phi}\ 
+\dot{\theta}]^T$, $V_m$ as input voltage and $Q$ as weighting matrix by 
+\citep{ozbek2010swing}:
+\[J=\frac{1}{2}\int_{0}^{\infty}(x^TQx+V_m^2)\text{d}t\]
+The constraint for the cost function is the systems dynamic in form of a 
+differential equation derived from the linearization.
 
 \section{Reinforcement Learning on the Furuta Pendulum}
-In reinforcement learning the Furuta pendulum has only a very small influence 
-on the simulation and experimental research because of the complexity of the 
-problem. Only a few algorithms were tested on it with divers results. Even if 
-the robustness of the stabilization control should improve 
+In reinforcement learning, the Furuta pendulum has only a very small influence 
+on research maybe also because of the complexity of the 
+problem. Only a few algorithms were tested on it with divers results. 
+Reinforcement learning should play a bigger role in solving the Furuta pendulum 
+because it could improve the robustness of the stabilization control 
 \citep{wang2004minimum}.\\
 \cite{hennig2011optimal} compares Gaussian process optimal learner with 
-Kalman filter, TD($\lambda$) and as baseline full information. He used the same 
+Kalman filter, TD($\lambda$) and full information as baseline. He used the same 
 baseline function for all algorithms and collated the cumulated loss. 
 Surprisingly, none of the methods could stabilize the swung up pendulum 
 totally, even not the best method, the Gaussian process optimal learner.\\
-Also an artificial neural network (ANN) was used to model the pendulum 
+An artificial neural network (ANN) was used to model the pendulum 
 \citep{quyen2012rotary}. They worked with the voltage of the motor as input 
-values and the angles of arm and pendulum as the output. Different numbers of 
+values and the angles of arm and pendulum as the output. They used a PID 
+controller for a supervised training. Different numbers of 
 hidden neurons were tested with the result that more neurons in the hidden 
-layer led to a smaller mean squared error. The ANN could foresee the angle of 
+layer led to a smaller mean squared error. The ANN could predict the angle of 
 the pendulum very well.\\
-A good approach was done with recurrent neural networks and a Genetic Algorithm 
+Another approach to stabilize the pendulum was done with recurrent neural 
+networks (RNN) and a Genetic Algorithm 
 \citep{shojaei2011hybrid}. They used a recurrent neural network identifier and 
-controller with a proportional integral derivative controller which was 
-responsible for the feedback and the prediction in the derivative action.
+controller with a proportional integral derivative controller, which was 
+responsible for the feedback and the prediction. The RNN identifier checks 
+whether the output of the feedback system is valid or not. The RNN controller 
+handles the power of the system.\\
+The "Application of Reinforcement Learning Methods" course of the TU Darmstadt 
+implemented different reinforcement learning algorithms on different platforms. 
+Some of the algorithms were also tested on the qube simulation of the Quanser 
+system which is identical to the Furuta pendulum. The maximum reward per 
+episode was 6.0 with an maximum episode length of 300 steps. The results can be 
+found in Fig. \ref{fig:rewards} with a simulation evaluation of 100 episodes. 
+None of the different algorithms clearly outperform the others. They have very 
+similar results.\\
+Further on, two groups managed to run their algorithm on the real Qube Quanser 
+robot platform and received 4.88 (PPO, 25 evaluated episodes) and 4.2 (DQN, 10 
+evaluated episodes) out of 6.0 possible reward.  
+
+ \begin{figure}[h]
+ 	\centering
+	\scalebox{.4}{\input{rewards.pgf}}
+	\caption{The figure shows the best results for the different reinforcement 
+	learning algorithms of the "Advanced Reinforcement Learning Methods" 
+	course 
+	of the TU Darmstadt. Some of the algorithms were solved by different 
+	groups, which is shown by a standard deviation of the achieved results.}
+	\label{fig:rewards}
+\end{figure}
+
 
 
 \section{Conclusion}
-The Furuta pendulum is a very complex control problem which could be solved by 
-a very wide variety of approaches. The control problem splits into two mayor 
-problems, the swing-up and the balancing task.
+The Furuta pendulum is a very complex control problem, which could be solved by 
+a very wide variety of approaches. The control problem splits into two major 
+problems, the swing-up and the balancing task. For most of the approaches the 
+equations of motion are needed. Depending on the construction of the pendulum, 
+there are different formulations of the problem. The different algorithms show 
+very different approaches from very simple ones to complex or reinforcement 
+learning approaches. Many of them have the problem that they do not perform a 
+stable result. This problem should be tackled by using or using more 
+reinforcement learning \citep{wang2004minimum}.\\
+It was possible to learn a good policy with many different reinforcement 
+learning algorithms in simulation through a project of the TU Darmstadt. Much 
+more complicated was the usage on the real robot.
+
 
 \bibliographystyle{spbasic}      % basic style, author-year citations
 \bibliography{furuta.bib}   % name your BibTeX data base
