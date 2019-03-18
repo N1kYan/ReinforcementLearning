@@ -1,0 +1,133 @@
+\documentclass{article}
+
+\usepackage{natbib} % delete before submission
+\bibliographystyle{plain} % delete before submission
+\usepackage{amsmath, amssymb}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\newcommand{\x}{\item}
+\DeclareMathOperator{\E}{\mathbb{E}}
+
+\begin{document}
+
+% -------------------- Paper ----------------------- %
+\newpage
+\section{Paper}
+Natural Actor Critic:
+\begin{itemize}
+	\item Main Version \cite{peters2005natural}.
+	\item 2nd Version: Natural Actor-Critic in Neurocomputing \cite{peters2008natural}.
+	\item 3rd version: RL of motor skills with policy gradients in NN \cite{peters2008reinforcement}.
+\end{itemize}
+
+\noindent Must read paper to understand basics by Jan:
+\begin{itemize}
+	\item Policy Evaluation with TD \cite{dann2014policy}.
+\end{itemize}
+
+\noindent Recommended by Jan:
+\begin{itemize}
+	\item Incremental NAC algorithms \cite{bhatnagar2008incremental}.
+	\item Jan said that a paper form C. Dann is very important. Did he mean Policy Evaluation with TD by Dann or did he mean a second paper?
+\end{itemize}
+
+\noindent Research:
+\begin{itemize}
+	\item Comparison of four natural gradient algorithms (co-author Sutton) \cite{bhatnagar2009natural}.
+\end{itemize}
+
+% -------------------- Mettings & Notes ----------------------- %
+\section{Meetings \& Notes}
+
+Meetings:
+\begin{itemize}
+	\item 12.12.18: Notes from Jan can be found in ``.\textbackslash Notes Jan 12.12.18''
+\end{itemize}
+
+% ---------------------- eNAC --------------------------------- %
+
+\section{Ideas}
+\subsection{Fitted NAC}
+
+\begin{align}
+	\pi(a|s) = p(a|s, \Theta) = \mathcal{N}(a|\mu = NN_{\Theta}(s), \sigma) \\
+	f(s,a) = \log p(a|s, \Theta)^T w \\
+	f_V(s) = NN_V(s) \\
+	\text{''fitted''}\\
+	\min_{V_t, W_t} (r(s,a) + \gamma f_{V_{t+1}}(s') - f_{V_t}(s) + f_{W_t}(s,a))^2
+\end{align}
+
+\subsection{Policy Evaluation with Temporal Difference}
+\cite{dann2014policy}
+
+
+\subsection{Ideas of TRPO}
+
+
+
+
+\subsection{Other Extentions}
+
+\begin{itemize}
+	\x stochastic
+	\x minibatches
+	\x importance sampling:
+\end{itemize}
+
+\begin{align}
+	V_{\Theta} J = \sum \mu(s) \pi'(a|s) \nabla \log \pi'(a|s) Q^{\pi'}(a|s) \\
+	\approx \dfrac{1}{N} \sum \nabla \log \pi'(a|s) Q(s,a) = g(\Theta)
+\end{align}
+
+
+
+
+
+\section{Episodic NAC}
+Important to understand beforehand: In episodic NAC, our system of equations has one equation per trajectory and not one equation per action as in the normal NAC algorithm.
+\\\\
+First we start by adding together the advantage function across an episode $e$ where we made $N$ steps.
+
+\begin{align}
+	A(s,a) &= r(s,a) + \gamma V(s') - V(s) \\
+	\gamma A(s',a') &= \gamma r(s', a') + \gamma^2V(s'') - \gamma V(s') \\
+	A(s, a) + \gamma A(s', a') &= r(s,a) + \gamma r(s',a') + \gamma^2 V(s'') - V(s) \\
+	\sum_{i = 0}^{N}\gamma^i A(s_i, a_i) &= \sum_{i = 0}^{N}\gamma^i r(s_i, a_i) + \gamma^N V(S_{N+1}) - V(S_0)
+\end{align}
+
+\noindent If we assume $\gamma \neq 1$, we can remove the term $\gamma^N V(S_{N+1})$, because in the limit the term becomes zero ($\gamma^N \rightarrow 0$). Additionally, if we assume that we always start in the same start $S_0$, we can write $V(S_0)$ as our cost function $J$ because it will exactly sum up the expected Reward/cost of our problem.
+
+\begin{equation}
+	\Rightarrow \sum_{i = 0}^{N}\gamma^i A(s_i, a_i) = \sum_{i = 0}^{N}\gamma^i r(s_i, a_i) - J
+\end{equation}
+
+\noindent Now we can plug in the parametrisized gradient descent for the advantage function. That this works and is indeed the same has been proven by \underline{reference}. Additionally we bring the cost $J$ to the other side of the equation.
+
+\begin{equation}
+	\label{equ:someequ}
+	\Rightarrow \sum_{i = 0}^{N} \gamma^i \nabla_{\Theta} \left[\log \pi(a_i | s_i)^T\right] \cdot w + 1 \cdot J = \sum_{i = 0}^{N}\gamma^i r(s_i, a_i)
+\end{equation}
+
+\noindent Let's do some rewriting. We define the following two terms:
+\begin{align}
+	\Phi_e = \left[  \sum_{i = 0}^{N} \gamma^i \nabla_{\Theta} \left[\log \pi(a_i | s_i)^T\right] , 1 \right]\\
+	R_e = \sum_{i = 0}^{N}\gamma^i r(s_i, a_i)
+\end{align}
+
+\noindent This let's us rewrite equation \ref{equ:someequ} as:
+
+\begin{equation}
+	\Phi_e \cdot \begin{bmatrix} w\\J \end{bmatrix}  = R_e
+\end{equation}
+
+\noindent An easy way to solve this system of equations is by taking the pseudo inverse of $\Phi_e$.
+
+\begin{equation}
+	\begin{bmatrix} w\\J \end{bmatrix} = (\Phi_e^T \Phi_e)^{-1} \Phi_e^T R_e
+\end{equation}
+
+
+\bibliography{NAC-Notes.bib}   % name your BibTeX data base
+
+\end{document}

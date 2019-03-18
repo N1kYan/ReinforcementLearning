@@ -1,5 +1,11 @@
 \begin{thebibliography}{10}
 
+\bibitem{amari1987differential}
+Shun-ichi Amari.
+\newblock Differential geometry of a parametric family of invertible linear
+  systems—riemannian metric, dual affine connections, and divergence.
+\newblock {\em Mathematical systems theory}, 20(1):53--82, 1987.
+
 \bibitem{amari1998natural}
 Shun-Ichi Amari and Scott~C Douglas.
 \newblock Why natural gradient?
@@ -13,20 +19,15 @@ Shalabh Bhatnagar, Mohammad Ghavamzadeh, Mark Lee, and Richard~S Sutton.
 \newblock In {\em Advances in neural information processing systems}, pages
   105--112, 2008.
 
-\bibitem{bhatnagar2009natural}
-Shalabh Bhatnagar, Richard~S Sutton, Mohammad Ghavamzadeh, and Mark Lee.
-\newblock Natural actor--critic algorithms.
-\newblock {\em Automatica}, 45(11):2471--2482, 2009.
+\bibitem{boyan2002technical}
+Justin~A Boyan.
+\newblock Technical update: Least-squares temporal difference learning.
+\newblock {\em Machine learning}, 49(2-3):233--246, 2002.
 
 \bibitem{boyd2004convex}
 Stephen Boyd and Lieven Vandenberghe.
 \newblock {\em Convex optimization}.
 \newblock Cambridge university press, 2004.
-
-\bibitem{dann2014policy}
-Christoph Dann, Gerhard Neumann, and Jan Peters.
-\newblock Policy evaluation with temporal differences: A survey and comparison.
-\newblock {\em The Journal of Machine Learning Research}, 15(1):809--883, 2014.
 
 \bibitem{desjardins2013metric}
 Guillaume Desjardins, Razvan Pascanu, Aaron Courville, and Yoshua Bengio.
@@ -34,10 +35,21 @@ Guillaume Desjardins, Razvan Pascanu, Aaron Courville, and Yoshua Bengio.
   machines.
 \newblock {\em arXiv preprint arXiv:1301.3545}, 2013.
 
+\bibitem{haykin2009neural}
+Simon~S Haykin, Simon~S Haykin, Simon~S Haykin, Kanada Elektroingenieur, and
+  Simon~S Haykin.
+\newblock {\em Neural networks and learning machines}, volume~3.
+\newblock Pearson Upper Saddle River, 2009.
+
 \bibitem{hoerl1970ridge}
 Arthur~E Hoerl and Robert~W Kennard.
 \newblock Ridge regression: Biased estimation for nonorthogonal problems.
 \newblock {\em Technometrics}, 12(1):55--67, 1970.
+
+\bibitem{howard1960dynamic}
+Ronald~A Howard.
+\newblock Dynamic programming and markov processes.
+\newblock 1960.
 
 \bibitem{jurvcivcek2011natural}
 Filip Jur{\v{c}}{\'\i}{\v{c}}ek, Blaise Thomson, and Steve Young.
@@ -52,6 +64,11 @@ Byungchan Kim, Jooyoung Park, Shinsuk Park, and Sungchul Kang.
   actor-critic algorithm.
 \newblock {\em IEEE Transactions on Systems, Man, and Cybernetics, Part B
   (Cybernetics)}, 40(2):433--443, 2010.
+
+\bibitem{lagoudakis2003least}
+Michail~G Lagoudakis and Ronald Parr.
+\newblock Least-squares policy iteration.
+\newblock {\em Journal of machine learning research}, 4(Dec):1107--1149, 2003.
 
 \bibitem{melo2008fitted}
 Francisco~S Melo and Manuel Lopes.
@@ -88,11 +105,6 @@ Jan Peters and Stefan Schaal.
 \newblock Natural actor-critic.
 \newblock {\em Neurocomputing}, 71(7-9):1180--1190, 2008.
 
-\bibitem{peters2008reinforcement}
-Jan Peters and Stefan Schaal.
-\newblock Reinforcement learning of motor skills with policy gradients.
-\newblock {\em Neural networks}, 21(4):682--697, 2008.
-
 \bibitem{peters2005natural}
 Jan Peters, Sethu Vijayakumar, and Stefan Schaal.
 \newblock Natural actor-critic.
@@ -111,11 +123,29 @@ Jascha Sohl-Dickstein.
   tricks for its use.
 \newblock {\em arXiv preprint arXiv:1205.1828}, 2012.
 
+\bibitem{sutton2018reinforcement}
+Richard~S Sutton and Andrew~G Barto.
+\newblock {\em Reinforcement learning: An introduction}.
+\newblock MIT press, 2018.
+
+\bibitem{sutton2000policy}
+Richard~S Sutton, David~A McAllester, Satinder~P Singh, and Yishay Mansour.
+\newblock Policy gradient methods for reinforcement learning with function
+  approximation.
+\newblock In {\em Advances in neural information processing systems}, pages
+  1057--1063, 2000.
+
 \bibitem{thomas2014bias}
 Philip Thomas.
 \newblock Bias in natural actor-critic algorithms.
 \newblock In {\em International Conference on Machine Learning}, pages
   441--448, 2014.
+
+\bibitem{williams1992simple}
+Ronald~J Williams.
+\newblock Simple statistical gradient-following algorithms for connectionist
+  reinforcement learning.
+\newblock {\em Machine learning}, 8(3-4):229--256, 1992.
 
 \bibitem{witsch2011enhancing}
 Andreas Witsch, Roland Reichle, Kurt Geihs, Sascha Lange, and Martin

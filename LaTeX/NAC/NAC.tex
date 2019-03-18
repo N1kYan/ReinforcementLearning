@@ -64,6 +64,7 @@ grestore
 
 \newcommand{\x}{\item}
 \DeclareMathOperator{\E}{\mathbb{E}}
+\setlength\parindent{0pt}
 
 % please place your own definitions here and don't use \def but
 % \newcommand{}{}
@@ -117,56 +118,67 @@ In this paper we describe the natural actor critic approach and provide an exten
 
 % FÜR PROJECT: Our implementation is very basic that can be extended arbitrarily granular. The emphasis of this paper is a detailed description of the implementation process and how it can be used. Results are reported for several of the standard reinforcement learning problems, using the publicly available gym library.
 
-\keywords{Natural Gradient \and Neural Networks \and Advantage Function \and Actor Criti \and NAC}
+\keywords{Natural Gradient \and Neural Networks \and Advantage Function \and Actor Critic \and NAC}
 % \PACS{PACS code1 \and PACS code2 \and more}
 % \subclass{MSC code1 \and MSC code2 \and more}
 \end{abstract}
 
 % ---------------------- Introduction --------------------------------- %
-\section{Introduction}
-\label{intro}
 
-Policy gradient methods have dominated the field of reinforcement learning in the last years. These methods build on estimating the policy function by an differentiable function approximation. They optimize an objective function $J(\theta)$ by repeatedly calculating the gradient of the approximated policy $\pi(a|s,\theta)$ w.r.t. the parameters $\theta$ and updating the parameters in that direction by stochastic gradient descent.[EDIT: DELETE NAMES OF LIBRARIES?] Python machine learning libraries like Keras, Tensorflow or PyTorch are used for implementing neural networks as differentiable function approximators, which are then trained using the policy gradients of their weights:
+\newpage
+\section{Introduction}
+\label{sec:intro}
+
+Policy gradient methods have dominated the field of reinforcement learning in the last years [LOT OF CITES]. These methods represent the policy using differentiable function approximation. They optimize an objective function $J(\theta)$ by repeatedly estimating the gradient of the approximated return w.r.t. the parameters $\theta$ of the policy and updating the parameters in that direction by stochastic gradient descent.
+
+% ----- PRELIMINARIES ----- %
+
+\section{Preliminaries}
+\label{sec:preliminaries}
+
+We consider a standard reinforcement learning framework, in which a learning agent interacts with a Markov Decision Process (MDP) \citep{howard1960dynamic, sutton2018reinforcement}. For each discrete time step $t \in \{0,1,2,...\}$, the state, action and reward is denoted as $s_t \in \mathit{S}$, $a_t \in A$ and $r_{t+1} \in \mathit{R} \subset \mathbb{R}$ respectively. The dynamics of the environment are described by the state-transition probabilities $P^a_{ss'} = \text{Pr}\{S_t = s' | S_{t-1} = s, A_{t-1} = a\}$ and the expected immediate rewards $R^a_s = \E[R_t | S_{t-1} = s, A_{t-1} = a]$, for all $s, s' \in S, a \in A$. The agent's behavior at each time step $t$ is specified by a policy $\pi_{\theta}(a|s) = \text{Pr}\{A_t = a | S_{t} = s, \theta\}$, where $\theta$ denotes the parameters of the policy. 
+\\\\
+We assume that $\pi$ is differentiable w.r.t. it's parameters, so that $\tfrac{\partial\pi(a|s)}{\partial \theta}$ exists and we can estimate the gradient of the objective function $J(\theta)$ by applying the policy gradient theorem \citep{sutton2000policy}
+
 \begin{equation}
-\label{equ:polupdate}
-\Delta_{\theta} = \alpha \nabla_{\theta} J(\theta)
+\label{equ:policygradienttheorem}
+\nabla_{\theta}J(\theta)=\E_{\pi_{\theta}}[\nabla_{\theta}\log\pi_{\theta}(a|s) Q^{\pi_{\theta}}(s, a)],
 \end{equation}
-Simple calculus tells us that the gradient is the steepest direction so eventually this method will converge to a local maximum. So how do we get the gradient of the objective function $J(\theta)$ w.r.t. the parameters $\theta$? Applying some transformations and the likelihood-ratio trick, we obtain the policy gradient theorem [EDIT: REF], which gives us the gradient of the objective function:
-\begin{equation}
-	\label{equ:policygradienttheorem}
-	\nabla_{\theta}J(\theta)=\E_{\pi_{\theta}}[\nabla_{\theta}\log\pi_{\theta}(a|s) Q^{\pi_{\theta}}(s, a)]
-\end{equation}
-One of the most basic policy gradient algorithms, the \textit{REINFORCE} algorithm [EDIT: SOURCE], the action-value function $Q^{\pi_{\theta}}$ is estimated by the Monte-Carlo return: 
-\begin{equation}
-\label{equ:reinforce}
-Q^{\pi_\theta} \approx \mathit{R}_\tau = TODO
-\end{equation}
-However, one could also use any other admissible estimator. Also estimating the action-value function with a function approximation $Q^{\pi_\theta}(s, a) \approx Q_w(s,a)$ is called an \textit{actor critic method} [EDIT: REF]. One could then apply temporal difference like updates after one or arbitrarily many steps which reduce the variance [EDIT: OF?] because we do not have to roll out the complete episode to update our parameters.\\
-Further, one could introduce a baseline [EDIT: REF]. This does not change the expected value and further reduces our variance. Equation \ref{equ:policygradienttheorem} redefines to:
+
+where $Q^{\pi_{\theta}}(s, a)$ denotes an action-value function. One of the most basic policy gradient algorithms, \textit{REINFORCE} \citep{williams1992simple}, estimates the action-value function $Q^{\pi_{\theta}}$ by using the expected discounted return, also known as Monte-Carlo return
+	\begin{equation}
+	\label{equ:reinforce}
+	Q^{\pi_\theta}(s, a) \approx \mathit{G}_t = \sum_{k=0}^{\infty}\gamma^k R_{t+k+1},
+	\end{equation}
+where $\gamma$ is a discount factor with $\gamma \in [0, 1]$. Policy gradient methods use the gradient of the objective function $J(\theta)$ and a learning rate $\alpha \in \left[0,1\right]$ to recursively update the parameters of $\pi_{\theta}(a|s)$, $\theta_{t+1} = \theta_t + \alpha \nabla_{\theta} J(\theta)$, and find a local optimum. 
+\\\\
+However, instead of using a Monte-Carlo estimate directly, Actor-Critic methods model the action-value function with a function approximator $Q^{\pi_\theta}(s, a) \approx Q_w(s,a)$ \citep{sutton2000policy}. $Q_w(s,a)$ is called the critic and introduces a second set of parameters, $w$, which need to be optimized; $\pi_{\theta}(a|s)$ is called the actor. By introducing a baseline $B(s,a)$, we can reduce the variance of the action-value function estimate and accelerate learning \citep{sutton2018reinforcement}:
+
 \begin{equation}
 \label{equ:policybaseline}
-\nabla_{\theta}J(\theta)=\E_{\pi_{\theta}}[\nabla_{\theta}\log\pi_{\theta}(a|s) Q_w(s, a) - B(s,a)]
+\nabla_{\theta}J(\theta)=\E_{\pi_{\theta}}[\nabla_{\theta}\log\pi_{\theta}(a|s) Q_w(s, a) - B(s,a)].
 \end{equation}
-where $B(s, a)$ defines the baseline. A good baseline with minimal variance is in many cases the value function of the network. If we take the action-value function and reduce it by the value function, we are left with the advantage function $A(s,a)$. We can immediately estimate the advantage function $A_w(s,a)$, which we will do throughout this paper. Equation \ref{equ:policybaseline} changes to:
+
+A good baseline with minimal variance is the value function. Subtracting the value function from the action-value function yields the Advantage function $A(s,a) = Q(s,a)-V(s)$. However, the critic can directly estimate the advantage function $A_w(s,a)$ for computing the gradient:
+
 \begin{equation}
-	\nabla_{\theta}J(\theta)=\E_{\pi_{\theta}}[\nabla_{\theta}\log\pi_{\theta}(a|s) A_w(s, a)]
+	\nabla_{\theta}J(\theta)=\E_{\pi_{\theta}}[\nabla_{\theta}\log\pi_{\theta}(a|s) A_w(s, a)].
 \end{equation}
-Using the stochastic gradient of the objective function to optimize it is very prune to reparameterizations. One could instead use the \textit{natural gradient}, which is described in the next section.
+
+Optimzing the objective function with vanilla gradient descent is sensitive to parametrization and can be inefficient. One could instead use the \textit{natural gradient}, which is described in the next section.
+
+% ------ NATURAL GRADIENT ----- %
 
 \section{Natural Gradient}
-The natural gradient was first introduced by Amari in 1998 \cite{amari1998natural}. The main difference between the natural gradient and the ordinary stochastic gradient method, is the direction it points to. Despite many expectations, the ordinary gradient does not always point to the steepest direction, especially not if the parameter space has a Riemann metric structure and is not Euclidean. For example, the parameter space of neural networks has been shown to exhibit a Riemannian character.\\
-In comparison to vanilla gradient methods, the natural gradient finds the steepest direction for Riemannian parameter spaces. It utilizes the $n \times n$ matrix $G = (g_{ij})$, called the Riemannian metric tensor, which in general depend on $\theta$. The natural gradient is defined as
+\citep{amari1987differential}
+The natural gradient was first introduced by Amari in 1998 \cite{amari1998natural}. The difference between the natural gradient and the ordinary vanilla gradient, is the direction it points to. The ordinary vanilla gradient does only point to the steepest direction, if the parameter space has an Euclidean character [x]. The natural gradient, however, points to the steepest direction of a Riemann parameter space, which is a generalization of the Euclidean parameter space \citep{haykin2009neural, amari1998natural}. This is especially convenient, if our function approximator exhibits a Riemannian character, e.g. neural networks \citep{amari1998natural}.
+\\\\
+The natural gradient utilizes the $n \times n$ matrix $G = (g_{ij})$, called Riemannian metric tensor, which in general depend on $\theta$. It is defined as
 \begin{equation}
 	\widetilde{\nabla}_{\theta} J(\theta) = G^{-1} \nabla_\theta J(\theta)
 \end{equation}
-where $\widetilde{\nabla}_{\theta}$ is the natural gradient w.r.t the parameters $\theta$.  Learning should be carried out with an gradient descent like update rule:
-\begin{equation}
-	\theta_{t+1} = \theta_{t+1} + \alpha \widetilde{\nabla}_{\theta} J(\theta)
-\end{equation}
-In the special case that the parameter space is Euclidean and the coordinate system is orthonormal, the conventional gradient equals the natural gradient:
-\begin{equation}
-	\widetilde{\nabla}_{\theta} J(\theta) = \nabla_{\theta}
-\end{equation}
+where $\widetilde{\nabla}_{\theta}$ is the natural gradient w.r.t the parameters $\theta$.  Learning should be carried out with a gradient descent like update rule: $\theta_{t+1} = \theta_{t} + \alpha \widetilde{\nabla}_{\theta} J(\theta)$. In the special case that the parameter space is Euclidean and the coordinate system is orthonormal, the conventional gradient equals the natural gradient: $\widetilde{\nabla}_{\theta} J(\theta) = \nabla_{\theta}$.
+\\\\
 The natural gradient is the steepest ascent direction of our performance object with respect to any metric. Well, but how do we calculate the matrix $G$? The Hessian $H$ at $x_0$ (which exists since the first derivative vanishes) is the purely covariant form of the Riemann curvature tensor. To estimate the Hessian $H$, we can use the Fisher information metric 
 \begin{equation}
 	F_\theta=\E_{s\sim\rho^{\pi},a\sim\pi_{\theta}}\left[\nabla_{\theta}log\pi_{\theta}(a|s)^{T}\nabla_{\theta}log\pi_{\theta}(a|s)\right]
@@ -186,11 +198,14 @@ so steepest ascent direction reduces to
 M_{\mu}(\theta)^{-1}\nabla_{\theta}J_{\beta}(\mu_{\theta})=w
 \end{equation} 
 Natural gradient algorithms have been applied successfully in various fields such as road traffic optimization \cite{richter2007natural}, robotic control tasks \cite{kim2010impedance}, motor primitive learning \cite{peters2007applying} and locomotion of a two-linked robot arm \cite{park2005rls}. Using the natural gradient has several advantages and properties, which are listed in the next section.
+
 % ---------------------- Properties --------------------------------- %
+
+\newpage
 \section{Properties of the natural gradient}
 In the following we present several properties of using the natural gradient for optimizing a reinforcement learning loss function.
 \subsection{Online Learning}
-The natural gradient can be used online. This means that we can learn from incomplete sequences and by this reduce the variance [EDIT:OF?]. It is also possible to use an offline, episodic variant of the natural gradient which can be seen in section ??. With both variations at hand, one can make the decision regarding the structure of our problem \cite{pascanu2013revisiting, peters2008natural}.
+The natural gradient can be used online. This means that we can learn from incomplete sequences and by this reduce the variance of our estimation of the return or the advantage function. It is also possible to use an offline, episodic variant of the natural gradient which can be seen in section ??. With both variations at hand, one can make the decision regarding the structure of our problem \cite{pascanu2013revisiting, peters2008natural}.
 
 \subsection{1st order method}
 The natural gradient is a first order method, but implements many second order advantages \cite{pascanu2013revisiting}. This is especially relevant for problems, where the cost function is accessible indirectly. For example Deep Boltzmann Machines exhibit this characteristics and recent studies showed possible solutions with natural gradients \cite{desjardins2013metric} whereas second order methods are hard to apply.
@@ -209,37 +224,101 @@ Natural actor critic has much better sample complexity guarantees than gradient-
 
 \subsection{More properties}
 Look at Berkley slides
+
+\subsection{Drawbacks}
+The matrix W is nonsingular (i.e., invertible).
+
+\subsection{NN and learning machines}
+1. The algorithm is computationally efficient, since it avoids the need for inverting
+the demixing matrix W.
+2. The convergence rate of the algorithm is relatively fast.
+3. The algorithm lends itself to implementation in the form of an adaptive neural system.
+4. Being a stochastic gradient algorithm, the algorithm has a built-in capability to
+track statistical variations of a nonstationary environment.
 \\
 \\
 We will present an application of using the natural gradient together with an actor critic method in the next section.
+
 % ---------------------- NAC algorithm --------------------------------- %
+
+\newpage
 \section{Natural Actor Critic}
-In this section we present an episodic algorithm called \textit{Natural Actor Critic} (NAC) \cite{peters2005natural} using the methods mentioned above. The pseudo-code for NAC can be found in algorithm \ref{enac-algo}. We show several possible extensions to the algorithm in the next section.
+In this section we describe the \textit{Natural Actor Critic} (NAC) algorithm \citep{peters2005natural}. We focus on the trajectory based formulation, called episodic NAC, and present the pseudo code in algorithm \ref{enac-algo}.
+\\\\
+In episodic NAC, we have a fixed amount of updates $u$ and a fixed amount of steps the agent executes in the environment every update. Therefore, if a trajectory $e$ has reached a terminal state before the agent executed all it's steps, the algorithm samples a new trajectory. This repeats until the maximum number of steps is met and the current trajectory is interrupted. During this process, all states we see, all actions we take and all rewards we get are stored for each trajectory.
+\\\\
+After sampling, we perform the critic evaluation. We determine the compatible function approximation, the basis functions and the reward statistics for the samples of a single episode and solve a linear equation system to get $w_e$. We update $w_t$ by adding $w_e$ multiplied by a learning rate $\beta \in [0,1]$. We repeat this process for all trajectories encountered during the update. Then, we check if the angle between $w_{t+1}$ and $w$ is smaller than some fixed value $\epsilon$ and if so, we update the policy parameters $\theta$ by adding $w_{t+1}$ multiplied by a learning rate $\alpha \in [0,1]$.
+
 \begin{algorithm}
-	\caption{Episodic Natural Actor Critic Algorithm (eNAC)}\label{enac-algo}
-	\begin{algorithmic}
-		\REQUIRE Parameterized policy $\pi(a|s,\theta)$ with initial parameters $\theta=\theta_0$
-		\REQUIRE It's derivative $\nabla_\theta\log\pi(a|s,\theta)$
+	\caption{Episodic Natural Actor Critic (eNAC)}\label{enac-algo}
+	\begin{algorithmic}[1]
+		\REQUIRE Parameterized policy $\pi_{\theta}(a|s)$ and it's derivative $\nabla_\theta\log\pi_{\theta}(a|s)$\\
+		\hspace{1.05cm}  with initial parameters $\theta=\theta_0$.
 		\FOR{$u = 1,2,3,\dots$}
 		\FOR{$e = 1,2,3,\dots$}
 		\STATE \textbf{Execute roll-out:} Draw initial state $s_0 \sim p(s_0)$
 		\FOR{$t =1,2,3,\dots,N$}
-		\STATE Draw action $a_t\sim\pi(a_t|s_t,\theta_t)$, observe next state $s_{t+1} \sim p(s_{t+1}|s_t, a_t)$, and reward $r_t = r(s_t, a_t)$.
+		\STATE Draw action $a_t\sim\pi_{\theta_t}(a_t|s_t)$, observe next state $s_{t+1} \sim p(s_{t+1}|s_t, a_t)$\\
+		and reward $r_{t+1} = r(s_t, a_t)$.
 		\ENDFOR
 		\ENDFOR
-		\STATE \textbf{Critic Evaluation (Episodic):} Determine the advantage function by using compatible function approximation: $A(s, a) \approx \hat{A}(s, a|w)$
-		\STATE Update: Determine basis functions: $\phi_t = \left[\sum_{t=0}^T\gamma^t\nabla_\theta\log\pi(a_t|s_t,\theta)^T, 1\right]^T$: reward statistics: $R_t=\sum_{t=0}^T\gamma^t r_t$
-		%TODO Add angle
-		\STATE \textbf{Actor Update:} When the natural gradient is converged ($(w_{t+1}, w_t)\leq\epsilon$), update the policy parameters: $\theta_{t+1} = \theta_t + \alpha w_{t+1}$
+		\STATE \textbf{Critic Evaluation (repeat for each sampled trajectory):} Determine compatible function approximation of advantage function $A(s,a) \approx A_{w_t}(s, a)$.
+		\STATE Determine basis functions: $\Phi_e = \left[\sum_{t=0}^T\gamma^t\nabla_\theta\log\pi_{\theta}(a_t|s_t)^T, 1\right]^T$, \\
+		reward statistics: $R_e=\sum_{t=0}^T\gamma^t r_t$ and solve $\begin{bmatrix} w_{e}\\J \end{bmatrix} = (\Phi_e^T \Phi_e)^{-1} \Phi_e^T R_e$.\\
+		Update critic parameters: $w_{t+1} = w_t + \beta w_{e}$.
+		
+		\STATE \textbf{Actor Update:} When the natural gradient is converged, $\measuredangle (w_{t+1}, w_t)\leq\epsilon$, update the policy parameters: $\theta_{t+1} = \theta_t + \alpha w_{t+1}$.
 		\ENDFOR
 	\end{algorithmic}
 \end{algorithm}
-[EDIT: DRAWBACKS? WHY EXTENSIONS?]
+
+Our cost function is the expected return $\E[G_t]$, which can be written as the discounted sum of advantages, which in return can be written in terms of the expected reward and value function \citep{peters2005natural}
+
+\begin{align}
+\sum_{t = 0}^{N}\gamma^t A(s_t, a_t) &= \sum_{t = 0}^{N}\gamma^i r(s_t, a_t) + \gamma^N V(S_{N+1}) - V(S_0),
+\end{align}
+
+where $N$ is the number of steps executed in a trajectory. If we assume $\gamma \neq 1$, we can remove the term $\gamma^N V(S_{N+1})$, because in the limit the term becomes zero ($\lim_{N \rightarrow \infty}\gamma^N = 0$). Additionally, if we assume that we always start in the same start state $S_0$, we can write $V(S_0)$ as our cost function $J(\theta)$:
+
+\begin{equation}
+	\sum_{t = 0}^{N}\gamma^t A(s_t, a_t) = \sum_{t = 0}^{N}\gamma^t r(s_t, a_t) - J(\theta).
+\end{equation}
+
+One of the key aspects of the NAC algorithm is the use of a compatible function approximation $A_w(s, a)$ to estimate $A(s, a)$ \citep{sutton2000policy}, which by definition has the property that it's gradient can be expressed in terms of the policy. This also means, that we can express the advantage function by taking the derivative w.r.t. the policy and multiplying it by $w$:
+
+\begin{align}
+	\nabla_w A_w(s,a) &= \nabla_{\theta} \log \pi_{\theta}(s|a)\label{eq:adv1}\\
+	A_w(s,a) &= \nabla_{\theta} \log \pi_{\theta}(s|a)w. \label{eq:adv2}
+\end{align}
+
+ Inserting this and bringing the cost function $J(\theta)$ to the left hand side:
+
+\begin{equation}
+	\sum_{i = 0}^{N} \gamma^i \nabla_{\theta} \log \pi_{\theta}(a_i | s_i)^T \cdot w + 1 \cdot J = \sum_{i = 0}^{N}\gamma^i r(s_i, a_i)
+\end{equation}
+
+This is exactly the equation, which we solve in algorithm \ref{enac-algo} by taking the left pseudo inverse to update the critics parameters $w$.
+\\\\
+The update of the policy parameters in direction of the critic parameters can also be explained by the compatible function approximation (equation \ref{eq:adv2}). With this the natural policy gradient [REF: EQUATION] simplifies:
+\begin{align}
+\nabla_\theta J(\theta) &= \E_{\pi_{\theta}} \left[\nabla_{\theta} \log \pi_{\theta}(s|a) A_w(s,a)\right]\\
+&= \E_{\pi_{\theta}}  \left[\nabla_{\theta} \log \pi_{\theta}(s|a) \nabla_{\theta} \log \pi_{\theta}(s|a)^T w\right]\\
+&= G_\theta w\\
+\widetilde{\nabla}_{\theta} J(\theta) &= w
+\end{align}
+
+We show several modifications to the algorithm in the next section and discuss it's advantages and drawbacks.
+
 % ---------------------- Extensions --------------------------------- %
+
 \newpage
-\section{Extensions}
+\section{Modifications}
 In this section we list several extensions to the NAC algorithm. 
-\subsection{Episodic NAC}
+
+\subsection{LSTD-Q NAC}
+
+Peters did not only specify the episodic NAC algorithm in his original paper \citep{peters2005natural}, but also an NAC algorithm using LSTD-Q($\lambda$) \citep{lagoudakis2003least, boyan2002technical}. LSTD-Q($\lambda$) uses Least Squares Temporal Difference learning to learn the weighted least squares fixed-point approximation of the state-action value function of a fixed policy $\pi$. one update per action instead of one update per trajectory.
+
 
 \subsection{Fitted NAC}
 Fitted natural actor critic (FNAC) is a fitted version of the natural actor critic algorithm \cite{melo2008fitted}. It allows the utilization of general function approximations and efficient data reuse. This combination is especially appealing, because it combines the faster convergence properties of natural gradient algorithms with the efficient data use of regression algorithms.
@@ -310,188 +389,17 @@ Melo et. al additionally implemented importance sampling, which increased the ef
 	\end{equation}
 
 % ---------------------- Discussion --------------------------------- %
+
 \section{Discussion}
 
 Some sources claim that the eNAC and the NAC-LSTD algorithms use a biased estimate of the natural gradient \cite{thomas2014bias}.
 
 
-% -------------------- Paper ----------------------- %
-\newpage
-\section{Paper}
-Natural Actor Critic:
-\begin{itemize}
-	\item Main Version \cite{peters2005natural}.
-	\item 2nd Version: Natural Actor-Critic in Neurocomputing \cite{peters2008natural}.
-	\item 3rd version: RL of motor skills with policy gradients in NN \cite{peters2008reinforcement}.
-\end{itemize}
-
-\noindent Must read paper to understand basics by Jan:
-\begin{itemize}
-	\item Policy Evaluation with TD \cite{dann2014policy}.
-\end{itemize}
-
-\noindent Recommended by Jan:
-\begin{itemize}
-	\item Incremental NAC algorithms \cite{bhatnagar2008incremental}.
-	\item Jan said that a paper form C. Dann is very important. Did he mean Policy Evaluation with TD by Dann or did he mean a second paper?
-\end{itemize}
-
-\noindent Research:
-\begin{itemize}
-	\item Comparison of four natural gradient algorithms (co-author Sutton) \cite{bhatnagar2009natural}.
-\end{itemize}
-
-% -------------------- Mettings & Notes ----------------------- %
-\section{Meetings \& Notes}
-
-Meetings:
-\begin{itemize}
-	\item 12.12.18: Notes from Jan can be found in ``.\textbackslash Notes Jan 12.12.18''
-\end{itemize}
-
-% ---------------------- eNAC --------------------------------- %
-
-\section{Ideas}
-\subsection{Fitted NAC}
-
-\begin{align}
-	\pi(a|s) = p(a|s, \Theta) = \mathcal{N}(a|\mu = NN_{\Theta}(s), \sigma) \\
-	f(s,a) = \log p(a|s, \Theta)^T w \\
-	f_V(s) = NN_V(s) \\
-	\text{''fitted''}\\
-	\min_{V_t, W_t} (r(s,a) + \gamma f_{V_{t+1}}(s') - f_{V_t}(s) + f_{W_t}(s,a))^2
-\end{align}
-
-\subsection{Policy Evaluation with Temporal Difference}
-\cite{dann2014policy}
-
-
-\subsection{Ideas of TRPO}
-
-
-
-
-\subsection{Other Extentions}
-
-\begin{itemize}
-	\x stochastic
-	\x minibatches
-	\x importance sampling:
-\end{itemize}
-
-\begin{align}
-	V_{\Theta} J = \sum \mu(s) \pi'(a|s) \nabla \log \pi'(a|s) Q^{\pi'}(a|s) \\
-	\approx \dfrac{1}{N} \sum \nabla \log \pi'(a|s) Q(s,a) = g(\Theta)
-\end{align}
-
-
-
-
-
-\section{Episodic NAC}
-Important to understand beforehand: In episodic NAC, our system of equations has one equation per trajectory and not one equation per action as in the normal NAC algorithm.
-\\\\
-First we start by adding together the advantage function across an episode $e$ where we made $N$ steps.
-
-\begin{align}
-	A(s,a) &= r(s,a) + \gamma V(s') - V(s) \\
-	\gamma A(s',a') &= \gamma r(s', a') + \gamma^2V(s'') - \gamma V(s') \\
-	A(s, a) + \gamma A(s', a') &= r(s,a) + \gamma r(s',a') + \gamma^2 V(s'') - V(s) \\
-	\sum_{i = 0}^{N}\gamma^i A(s_i, a_i) &= \sum_{i = 0}^{N}\gamma^i r(s_i, a_i) + \gamma^N V(S_{N+1}) - V(S_0)
-\end{align}
-
-\noindent If we assume $\gamma \neq 1$, we can remove the term $\gamma^N V(S_{N+1})$, because in the limit the term becomes zero ($\gamma^N \rightarrow 0$). Additionally, if we assume that we always start in the same start $S_0$, we can write $V(S_0)$ as our cost function $J$ because it will exactly sum up the expected Reward/cost of our problem.
-
-\begin{equation}
-	\Rightarrow \sum_{i = 0}^{N}\gamma^i A(s_i, a_i) = \sum_{i = 0}^{N}\gamma^i r(s_i, a_i) - J
-\end{equation}
-
-\noindent Now we can plug in the parametrisized gradient descent for the advantage function. That this works and is indeed the same has been proven by \underline{reference}. Additionally we bring the cost $J$ to the other side of the equation.
-
-\begin{equation}
-	\label{equ:someequ}
-	\Rightarrow \sum_{i = 0}^{N} \gamma^i \nabla_{\Theta} \left[\log \pi(a_i | s_i)^T\right] \cdot w + 1 \cdot J = \sum_{i = 0}^{N}\gamma^i r(s_i, a_i)
-\end{equation}
-
-\noindent Let's do some rewriting. We define the following two terms:
-\begin{align}
-	\Phi_e = \left[  \sum_{i = 0}^{N} \gamma^i \nabla_{\Theta} \left[\log \pi(a_i | s_i)^T\right] , 1 \right]\\
-	R_e = \sum_{i = 0}^{N}\gamma^i r(s_i, a_i)
-\end{align}
-
-\noindent This let's us rewrite equation \ref{equ:someequ} as:
-
-\begin{equation}
-	\Phi_e \cdot \begin{bmatrix} w\\J \end{bmatrix}  = R_e
-\end{equation}
-
-\noindent An easy way to solve this system of equations is by taking the pseudo inverse of $\Phi_e$.
-
-\begin{equation}
-	\begin{bmatrix} w\\J \end{bmatrix} = (\Phi_e^T \Phi_e)^{-1} \Phi_e^T R_e
-\end{equation}
-
-
-
-% ---------------------- How to use this template  --------------------------------- %
-
-%\section{Section title}
-%\label{sec:1}
-%Text with citations \cite{RefB} and \cite{RefJ}.
-%\subsection{Subsection title}
-%\label{sec:2}
-%as required. Don't forget to give each section
-%and subsection a unique label (see Sect.~\ref{sec:1}).
-%\paragraph{Paragraph headings} Use paragraph headings as needed.
-%\begin{equation}
-%a^2+b^2=c^2
-%\end{equation}
-%
-%% For one-column wide figures use
-%\begin{figure}
-%% Use the relevant command to insert your figure file.
-%% For example, with the graphicx package use
-%  \includegraphics{example.eps}
-%% figure caption is below the figure
-%\caption{Please write your figure caption here}
-%\label{fig:1}       % Give a unique label
-%\end{figure}
-%%
-%% For two-column wide figures use
-%\begin{figure*}
-%% Use the relevant command to insert your figure file.
-%% For example, with the graphicx package use
-%  \includegraphics[width=0.75\textwidth]{example.eps}
-%% figure caption is below the figure
-%\caption{Please write your figure caption here}
-%\label{fig:2}       % Give a unique label
-%\end{figure*}
-%%
-%% For tables use
-%\begin{table}
-%% table caption is above the table
-%\caption{Please write your table caption here}
-%\label{tab:1}       % Give a unique label
-%% For LaTeX tables use
-%\begin{tabular}{lll}
-%\hline\noalign{\smallskip}
-%first & second & third  \\
-%\noalign{\smallskip}\hline\noalign{\smallskip}
-%number & number & number \\
-%number & number & number \\
-%\noalign{\smallskip}\hline
-%\end{tabular}
-%\end{table}
-
-% -------------------- Acknowledgements ----------------------- %
-%\begin{acknowledgements}
-%If you'd like to thank anyone, place your comments here
-%and remove the percent signs.
-%\end{acknowledgements}
 
 
 
 % -------------------- References ----------------------- %
+\newpage
 % TODO: alle unten angegbenen Stile machen ganz komische Sachen
 % Wer weiß, wie wir das fixen, bitte machen und oben \usepackage{natbib}
 % und \bibliographystyle{plain} raus nehmen

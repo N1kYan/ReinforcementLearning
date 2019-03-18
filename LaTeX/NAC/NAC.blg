@@ -3,50 +3,51 @@ Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
 The top-level auxiliary file: NAC.aux
 The style file: plain.bst
 Database file #1: NAC-bibliography.bib.bib
-Repeated entry---line 199 of file NAC-bibliography.bib.bib
+Repeated entry---line 258 of file NAC-bibliography.bib.bib
  : @article{amari1998natural
  :                          ,
 I'm skipping whatever remains of this entry
+Warning--empty journal in howard1960dynamic
 Warning--empty journal in nemirovski2005efficient
-You've used 21 entries,
+You've used 26 entries,
             2118 wiz_defined-function locations,
-            619 strings with 7607 characters,
-and the built_in function-call counts, 8046 in all, are:
-= -- 822
-> -- 335
-< -- 10
-+ -- 133
-- -- 110
-* -- 525
-:= -- 1257
-add.period$ -- 68
-call.type$ -- 21
-change.case$ -- 117
+            648 strings with 8341 characters,
+and the built_in function-call counts, 9520 in all, are:
+= -- 966
+> -- 386
+< -- 12
++ -- 154
+- -- 126
+* -- 606
+:= -- 1495
+add.period$ -- 83
+call.type$ -- 26
+change.case$ -- 138
 chr.to.int$ -- 0
-cite$ -- 22
-duplicate$ -- 336
-empty$ -- 645
-format.name$ -- 110
-if$ -- 1751
+cite$ -- 28
+duplicate$ -- 406
+empty$ -- 775
+format.name$ -- 126
+if$ -- 2068
 int.to.chr$ -- 0
-int.to.str$ -- 21
-missing$ -- 22
-newline$ -- 108
-num.names$ -- 42
-pop$ -- 136
+int.to.str$ -- 26
+missing$ -- 29
+newline$ -- 133
+num.names$ -- 52
+pop$ -- 169
 preamble$ -- 1
-purify$ -- 97
+purify$ -- 115
 quote$ -- 0
-skip$ -- 261
+skip$ -- 312
 stack$ -- 0
-substring$ -- 554
-swap$ -- 111
-text.length$ -- 10
+substring$ -- 638
+swap$ -- 128
+text.length$ -- 12
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 82
-warning$ -- 1
-while$ -- 82
-width$ -- 23
-write$ -- 233
+type$ -- 98
+warning$ -- 2
+while$ -- 97
+width$ -- 28
+write$ -- 285
 (There was 1 error message)
