@@ -250,7 +250,7 @@ to
 \frac{\partial^2 L}{\partial t\partial \dot{\phi}}-\frac{\partial 
 	L}{\partial \phi}&=\tau - B_a\dot{\phi}\\
 \frac{\partial^2 L}{\partial t\partial \dot{\theta}}-\frac{\partial 
-	L}{\partial \theta}&=-B_p\dot{\theta}
+	L}{\partial \theta}&=-B_p\dot{\theta}.
 \end{align*}
 The partial derivations of the Lagrangian for the generalized coordinates are:
 
@@ -284,7 +284,7 @@ L}{\partial\dot{\phi}}&=\ddot{\phi}(J_a+m_p(l_a^2+l_p^2\sin^2
 L}{\partial\dot{\theta}}&=\ddot{\theta}(J_p+m_pl_p^2)+\ddot{\phi}m_pl_al_p\cos\theta-\frac{1}{2}\dot{\phi}^2m_pl_p^2\sin(2\theta)-m_pgl_psin\theta
 \end{align*}
 Putting this into a matrix form and filling in the friction, this results in 
-the nonlinear equations of motion (EOM) for the Furuta pendulum.
+the nonlinear equations of motion (EOM) for the Furuta pendulum:
 \begin{align*}
 &\begin{bmatrix}
 J_a+m_p(l_a^2+l_p^2\sin^2\theta)& \quad m_pl_al_p\cos\theta \\ 
@@ -309,14 +309,15 @@ m_pl_p^2\sin(2\theta)\dot{\theta}- B_a& \quad -m_pl_al_p\sin \theta
 \end{bmatrix}=\begin{bmatrix}
 \tau \\
 0
-\end{bmatrix}
+\end{bmatrix}.
 \end{align*}
 \subsection{Linearization of the state-space model}
 As all equations of motion contain a part of a trigonometric function, the 
 equations are non-linear. There are several different methods to transform the 
-non-linear equations to linear ones. %TODO which ones
+non-linear equations to linear ones. For example Taylor expansion, Jacobian 
+linearization and truncated Taylor expansion. %TODO Zitat einfügen Zhang[1,2,3]
  For a linearization in the state-space the equation 
-$\dot{x}=Ax+Bu+\tilde{d}$ is used. The linearization is done around the 
+$\dot{x}=Ax+Bu$ is used. The linearization is done around the 
 operating point \citep{rigatos2018nonlinear}, which is the vertical inverted 
 state and, therefore, uses $\theta = 0$ and $\dot{\theta}=0$. This results in 
 the following equations: %TODO Gleichung einfügen
@@ -361,12 +362,13 @@ not need any further energy in this state. Therefore, this is a logical state
 to set as state without any energy left \citep{seman2013swinging}.\\
 There are two different directions in which the 
 energy can be supplied. Either the pendulum seems to be "pulled" or "pushed" 
-\cite{seman2013swinging}. To 
-define this, the following term is used: $\text{sign}(\dot{\theta}\cos\theta)$ 
-The velocity helps to find 
-out whether the pendulum starts to swing in the opposite direction, the $\cos 
-\theta$ defines if the pendulum is in the left or in the right half 
-\citep{awtar2002inverted}. The magnitude of energy which should be provided is 
+\cite{seman2013swinging}. Therefore, we need a sign-function that represents 
+whether to push or pull. The argument of the sign-function is compound by the 
+velocity which specifies whether the pendulum starts to swing in the opposite 
+direction and a cosine that defines the side of the pendulum. This results in 
+the following term: $\text{sign}(\dot{\theta}\cos\theta)$ 
+\citep{awtar2002inverted}. \\
+The magnitude of energy which should be provided is 
 selected by an aggressivity factor and the difference of actual and desired 
 system energy $k_a(E-E_0)$, with $E_0=0$ as the system should have zero energy 
 at the end. The aggressivity factor handles the amount of input 
@@ -390,11 +392,21 @@ and robustness and also because of its usage in the industry
 algorithms from sliding modes \citep{izutsu2008swing} to particle swarm 
 optimization and other evolutionary algorithms 
 \citep{hassanzadeh2011controller}.
-%TODO LQR beschreiben
+In the following, we will shortly describe how an LQR controller can be modeled 
+for the stabilization problem on the Furuta Pendulum. The LQR is a controller 
+which can be used to make a controllable, but unstable system stable 
+\citep{park2011swing}. It uses the linearized equations of motion in the 
+state-space model in form of a state feedback method \citep{ozbek2010swing}. 
+The cost function can be defined with $x=[\phi \ \theta \ \dot{\phi}\ 
+\dot{\theta}]^T$, $V_m$ as input voltage and $Q$ as weighting matrix by 
+\citep{ozbek2010swing}:
+\[J=\frac{1}{2}\int_{0}^{\infty}(x^TQx+V_m^2)\text{d}t\]
+The constraint for the cost function is the systems dynamic in form of a 
+differential equation derived from the linearization.
 
 \section{Reinforcement Learning on the Furuta Pendulum}
 In reinforcement learning, the Furuta pendulum has only a very small influence 
-on the simulation and experimental research because of the complexity of the 
+on research maybe also because of the complexity of the 
 problem. Only a few algorithms were tested on it with divers results. 
 Reinforcement learning should play a bigger role in solving the Furuta pendulum 
 because it could improve the robustness of the stabilization control 
