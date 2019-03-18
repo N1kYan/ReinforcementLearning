@@ -1,4 +1,4 @@
-\begin{thebibliography}{13}
+\begin{thebibliography}{15}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{{#1}}
 \providecommand{\urlprefix}{URL }
@@ -7,6 +7,12 @@
   \providecommand{\doi}{DOI~\discretionary{}{}{}\begingroup
   \urlstyle{rm}\Url}\fi
 \providecommand{\eprint}[2][]{\url{#2}}
+
+\bibitem[{Barth-Maron et~al.(2018)Barth-Maron, Hoffman, Budden, Dabney, Horgan,
+  Muldal, Heess, and Lillicrap}]{barth2018distributed}
+Barth-Maron G, Hoffman MW, Budden D, Dabney W, Horgan D, Muldal A, Heess N,
+  Lillicrap T (2018) Distributed distributional deterministic policy gradients.
+  arXiv preprint arXiv:180408617
 
 \bibitem[{Glynn and Iglehart(1989)}]{glynn1989importance}
 Glynn PW, Iglehart DL (1989) Importance sampling for stochastic simulations.
@@ -47,6 +53,10 @@ Moore AW, Atkeson CG (1993) Prioritized sweeping: Reinforcement learning with
 Plappert M, Houthooft R, Dhariwal P, Sidor S, Chen RY, Chen X, Asfour T, Abbeel
   P, Andrychowicz M (2017) Parameter space noise for exploration. arXiv
   preprint arXiv:170601905
+
+\bibitem[{Ricciardi and Sacerdote(1979)}]{ricciardi1979ornstein}
+Ricciardi LM, Sacerdote L (1979) The ornstein-uhlenbeck process as a model for
+  neuronal activity. Biological cybernetics 35(1):1--9
 
 \bibitem[{Riedmiller(2005)}]{riedmiller2005neural}
 Riedmiller M (2005) Neural fitted q iteration--first experiences with a data
