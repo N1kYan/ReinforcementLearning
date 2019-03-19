@@ -7,6 +7,9 @@
 \usepackage{graphicx}
 \usepackage{natbib}
 
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
 \newcommand{\x}{\item}
 \newcommand{\parTitle}[1]{\textbf{#1:}}
 \DeclareMathOperator{\E}{\mathbb{E}}
@@ -14,15 +17,13 @@
 
 \begin{document}
 	
-	\title[Furuta Pendulum]{Reviewing Natural Actor Critic methods}
+	\title[Natural Actor Critic]{Natural Actor Critic \\Components and Extensions}
 	\subtitle{Maximilian Gehrke\\Tabea Wilke\\Yannik Frisch\\\\Group 19 Oleg 
 	Arenz}
 	
 	\author[Maximilian Gehrke et al.]{Tabea Wilke, Yannik Frisch and Maximilial 
 	Gehrke}
-	\institute[IAS TU Darmstadt | Group 19]{Institute for Intelligent 
-	Autonomous 
-	Systems, TU Darmstadt}
+	\institute[IAS TU Darmstadt | Group 19]{Institute for Intelligent Autonomous Systems, TU Darmstadt}
 	
 	
 	\logo{\includegraphics{iasLogo}}
@@ -45,51 +46,64 @@
 			\end{align*}
 			\x Solution:
 			\begin{equation*}
-				\widetilde{\nabla}_{\theta} J(\theta) = F_\theta^{-1} \nabla_\theta J(\theta).
+				\widetilde{\nabla}_{\theta} J(\theta) = F_\theta^{-1} \nabla_\theta J(\theta)
 			\end{equation*}
 			\x Fisher Information Matrix:
 			\begin{equation*}
 					F_\theta=\E_{\pi_\theta}\left[\nabla_{\theta}\log\pi_{\theta}(a|s)\nabla_{\theta}\log\pi_{\theta}(a|s)^{T}\right]
 			\end{equation*}
 		\end{itemize}
+		\vspace{3mm}
+		\hspace{3mm}$\Rightarrow$\hspace{7mm} \textit{Parametrization invariant, data efficient \& fast convergence}
 	\end{frame}
 	\begin{frame}
 		\frametitle{\\The Natural Actor Critic algorithm}
-		
-		\begin{itemize}
-			\x Compatible Function Approximation:
-			\begin{align*}
-			\nabla_w A_w(s,a) &= \nabla_{\theta} \log \pi_{\theta}(a|s)\\
-			A_w(s,a) &= \nabla_{\theta} \log \pi_{\theta}(a|s)w
-			\end{align*}
-			
-			\x Actor update:
-			\begin{align*}
-			\nabla_\theta J(\theta) &= \E_{\pi_{\theta}} \left[\nabla_{\theta} \log \pi_{\theta}(a|s) A_w(s,a)\right]\\
-			&= \E_{\pi_{\theta}}  \left[\nabla_{\theta} \log \pi_{\theta}(a|s) \nabla_{\theta} \log \pi_{\theta}(a|s)^T w\right] = F_\theta w\\
-			\widetilde{\nabla}_{\theta} J(\theta) &= w
-			\end{align*}
-			
-			\x Critic update: \hspace{1.5cm} Episodic $\Leftrightarrow$ LSTD($\lambda$)
-		\end{itemize}
-
+		\centering
+		\vspace{-3.5mm}
+		\includegraphics[scale=0.24]{nac_algorithm.png}
 	\end{frame}
 
 	\begin{frame}
 		\frametitle{\\Extensions}
-		
 		\begin{itemize}
 			\x Recursive Least Squares
-			\x Fitted NAC + Importance Sampling
-			\x Incremental NAC
-			\x Implicit Incremental NAC
+			\vspace{1mm}
+			\x Fitted NAC + Importance Sampling (FNAC)			\vspace{1mm}
+			\x Incremental NAC (INAC)			\vspace{1mm}
+			\x Implicit Incremental NAC (I2NAC)			\vspace{1mm}
+			\x Regularization
 		\end{itemize}
 	\end{frame}
 
 	\begin{frame}
 		\frametitle{\\Conclusion \& Discussion}
+		\begin{itemize}
+			\x NAC has several advantages over vanilla PGM
+			\vspace{4mm}
+			\x Different approaches for:
+			\begin{itemize}
+				\x Updating critic (\& adjusting learning rate)
+				\x Fisher inverse
+				\x Actor update frequency 
+			\end{itemize}
+		\vspace{4mm}
+			\x Open Questions:
+			\begin{itemize}
+				\x Inverse of Fisher Information Matrix (expensive!)
+				\x NPG estimation might be biased \citep{thomas2014bias}
+				\x POMDP's \citep{jurvcivcek2011natural}
+			\end{itemize}
+		\end{itemize}
+	\end{frame}
+
+
+	
+	\begin{frame}
+		\frametitle{\\Sources}
+		For publication references please see our paper \textit{``Natural Actor Critic: Components and Extensions''}.
 		
-		
+		\bibliographystyle{dinat}
+		\bibliography{Group19_nac_presentation.bib} 
 		
 	\end{frame}
 	
