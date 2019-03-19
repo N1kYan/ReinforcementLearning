@@ -10,7 +10,7 @@
 \begin{document}
 	
 	\title[DDPG]{Deep Deterministic Policy Gradients -\\ Components and Extensions}
-	\subtitle{Yannik Frisch\\Tabea Wilke\\Maximilian Gehrke \\Group 19 Oleg Arenz}
+	\subtitle{Yannik Frisch\\Tabea Wilke\\Maximilian Gehrke \\\\Group 19 Oleg Arenz}
 	
 	\author[Yannik Frisch et al.]{Yannik Frisch, Tabea Wilke and Maximilian Gehrke}
 	\institute[IAS TU Darmstadt | Group 19]{Institute for Intelligent 
@@ -28,13 +28,14 @@
 \end{titleframe}
 \section{Deep Deterministic Policy Gradient}
 	\begin{frame}
-		\frametitle{Deep Deterministic Policy Gradient}
+		\frametitle{\\Deep Deterministic Policy Gradient}
 		\begin{itemize}
 			\item \textbf{Actor-Critic Method}
 			\begin{itemize}
 				\item Approximated critic $Q(s,a|\theta^Q)$
 				\item Approximated actor $\pi(s|\theta^\pi)$
 			\end{itemize}
+			\vspace{2mm}
 			\item \textbf{Deep Q-Learning}
 			\begin{itemize}
 				\item Q-Learning with approximated critic by nn
@@ -43,19 +44,20 @@
 				\item Experience Replay Buffer
 				\item Target Network(s)
 			\end{itemize}
+			\vspace{2mm}
 			\item \textbf{Deterministic Policy Gradient}
 			\begin{itemize}
 				\item $\nabla_{\theta^\pi}J(\theta^\pi)\approx {\rm I\!E}\left[\nabla_aQ(s,a)|_{a=\pi(s|\theta^\pi)} \nabla_{\theta^\pi}\pi(s|\theta^\pi)\right]$
-				\item Enables to learn a deterministic policy while following a stochastic exploratory policy
+				\item Enables to learn a deterministic policy while following a \\stochastic exploratory policy
 			\end{itemize}
 		\end{itemize}
 	\end{frame}
 	\begin{frame}
-		\frametitle{DDPG Pseudocode}
+		\frametitle{\\DDPG Pseudocode}
 		\includegraphics[scale=0.28]{ddpg_pseudocode.png}
 	\end{frame}
 	\begin{frame}
-		\frametitle{Improvements for DDPG}
+		\frametitle{\\Improvements for DDPG}
 		\begin{itemize}
 			\item \textbf{D4PG}
 			\begin{itemize}
@@ -76,7 +78,7 @@
 		\end{multicols}
 	\end{frame}
 	\begin{frame}
-		\frametitle{Sources}
+		\frametitle{\\Sources}
 		\begin{itemize}
 			\item For publication references please see our paper "Deep Deterministic Policy Gradients: Components and Extensions"
 			\item GoogLenet: https://towardsdatascience.com/an-intuitive-guide-to-deep-network-architectures-65fdc477db41
