@@ -39,7 +39,7 @@
 			\item \textbf{Deep Q-Learning}
 			\begin{itemize}
 				\item Q-Learning with approximated critic by nn
-				\item $\nabla_{\theta^Q}L(\theta^Q)={\rm I\!E} \left[\left(r+\gamma \max_{a'} Q(s', 
+				\item $\nabla_{\theta^Q}J(\theta^Q)\approx{\rm I\!E} \left[\left(r+\gamma \max_{a'} Q(s', 
 				a'|\theta^Q)-Q(s,a|\theta^Q)\right)\nabla_{\theta^Q}Q(s,a|\theta^Q)\right] $
 				\item Experience Replay Buffer
 				\item Target Network(s)
@@ -57,7 +57,7 @@
 		\centering
 		%\includegraphics[scale=0.28]{ddpg_pseudocode_alt.png}
 		\vspace{-4.5mm}
-		\includegraphics[scale=0.215]{ddpg_pseudocode.png}
+		\includegraphics[scale=0.2]{ddpg_pseudocode.png}
 	\end{frame}
 	\begin{frame}
 		\frametitle{\\Improvements for DDPG}
