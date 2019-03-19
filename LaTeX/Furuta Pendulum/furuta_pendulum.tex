@@ -157,7 +157,7 @@ The system (see \ref{fig:pendulum}) consists of an arm with length $l_a$
 mounted to a DC motor, which is 
 able to apply a torque $\tau$ to it. It has a mass of $m_a$. Another arm with 
 length $l_p$ and mass 
-$m_p$ %located at $\frac{l_p}{2}$ 
+$m_p$
 is attached to the remaining side of the 
 first arm. Both arms have a moment of inertia $J_a$ and $J_p$ respectively. The 
 counter force to the input torque is the viscous damping $B_a$ because of the 
@@ -166,9 +166,7 @@ force that is directly applied to the pendulum is damping at the connection to
 the arm $B_p$. The angles are given in radian, where an angle $\theta$ of zero 
 refers to the upright position.
 
-\section{Mathematical 
-Modelling\protect\footnote[1]{\cite{akhtaruzzaman2010modeling,furuta1992swing,gafvert2016modelling,
-		ozbek2010swing,zhang2011optimal,fairus2013fuzzy}}} 
+\section{Mathematical Modelling} 
 The kinematics of the pendulum's 
 center of gravity can be described by 
 \[\mathbf{p_{cg}}=\begin{bmatrix}
@@ -295,9 +293,9 @@ m_pl_al_p\cos\theta& \quad J_p+m_pl_p^2
 \ddot{\theta}
 \end{bmatrix} + \\
 &\begin{bmatrix}
-m_pl_p^2\sin(2\theta)\dot{\theta}- B_a& \quad -m_pl_al_p\sin \theta 
+m_pl_p^2\sin(2\theta)\dot{\theta}+ B_a& \quad -m_pl_al_p\sin \theta 
 \dot{\theta}\\
--\frac{1}{2}m_pl_p^2\sin(2\theta)\dot{\phi} &\quad -B_p
+-\frac{1}{2}m_pl_p^2\sin(2\theta)\dot{\phi} &\quad B_p
 \end{bmatrix}
 \begin{bmatrix}
 \dot{\phi}\\
@@ -314,13 +312,42 @@ m_pl_p^2\sin(2\theta)\dot{\theta}- B_a& \quad -m_pl_al_p\sin \theta
 \subsection{Linearization of the state-space model}
 As all equations of motion contain a part of a trigonometric function, the 
 equations are non-linear. There are several different methods to transform the 
-non-linear equations to linear ones. For example Taylor expansion, Jacobian 
-linearization and truncated Taylor expansion. %TODO Zitat einfügen Zhang[1,2,3]
+non-linear equations to linear ones, for example Taylor expansion with 
+substituting non-linear parts \citep{hamza2015genetic}, Jacobian 
+linearization \citep{al2013experimental} or optimal linearization 
+\citep{zhang2011optimal}.
  For a linearization in the state-space the equation 
 $\dot{x}=Ax+Bu$ is used. The linearization is done around the 
-operating point \citep{rigatos2018nonlinear}, which is the vertical inverted 
+operating point \citep{furuta1992swing}, which is the vertical inverted 
 state and, therefore, uses $\theta = 0$ and $\dot{\theta}=0$. This results in 
-the following equations: %TODO Gleichung einfügen
+the following equations: 
+\begin{align}
+\begin{bmatrix}
+	\dot{\phi}\\
+	\ddot{\phi}\\
+	\dot{\theta}\\
+	\ddot{\theta}
+\end{bmatrix}=
+\begin{bmatrix}
+0	& 0 &1  &0  \\ 
+0	&  0& 0 &  0\\ 
+0	& 0 & 0 &1  \\ 
+0	& 0 & 0 & 0
+\end{bmatrix} 
+\begin{bmatrix}
+	\phi\\ 
+	\theta\\ 
+	\dot{\phi}\\ 
+	\dot{\theta}
+\end{bmatrix} +
+\begin{bmatrix}
+0	\\ 
+0	\\ 
+0	\\ %TODO Formel richtig machen
+0
+\end{bmatrix} \tau
+\label{eq:liner}
+\end{align}
 The result is a linear form of the equations of motion which are very close to 
 the system's description by the non-linear model. For an angle of 
 $\theta<25\degree$  
@@ -380,7 +407,7 @@ with a linear function, in the following described as a wildcard $sat$. The
 whole 
 swing-up controller is then implemented by 
 \begin{align*}
-u = sat(k_a(E-E_0))\text{sign}(\dot{\theta}\cos\theta)
+u = sat(k_a(E-E_0))\text{sign}(\dot{\theta}\cos\theta).
 \end{align*}
 \subsection{Stabilization}
 There are many different approaches for solving the stabilization problem as 
@@ -391,18 +418,26 @@ and robustness and also because of its usage in the industry
 \citep{hassanzadeh2011controller}. Nevertheless, there are a lot of other 
 algorithms from sliding modes \citep{izutsu2008swing} to particle swarm 
 optimization and other evolutionary algorithms 
-\citep{hassanzadeh2011controller}.
+\citep{hassanzadeh2011controller}.\\
 In the following, we will shortly describe how an LQR controller can be modeled 
 for the stabilization problem on the Furuta Pendulum. The LQR is a controller 
 which can be used to make a controllable, but unstable system stable 
 \citep{park2011swing}. It uses the linearized equations of motion in the 
 state-space model in form of a state feedback method \citep{ozbek2010swing}. 
 The cost function can be defined with $x=[\phi \ \theta \ \dot{\phi}\ 
-\dot{\theta}]^T$, $V_m$ as input voltage and $Q$ as weighting matrix by 
-\citep{ozbek2010swing}:
-\[J=\frac{1}{2}\int_{0}^{\infty}(x^TQx+V_m^2)\text{d}t\]
+\dot{\theta}]^T$, $R$ and $Q$ as weighting matrix by 
+\citep{al2013experimental},
+\[J=\int_{0}^{\infty}\left(x^TQx+u^TRu\right)\text{d}t.\]
 The constraint for the cost function is the systems dynamic in form of a 
-differential equation derived from the linearization.
+differential equation derived from the linearization $\dot{x}=Ax+Bu$, see 
+Eq. \ref{eq:liner}. To solve 
+the cost function linear state feedback with a constant gain matrix $K$ is 
+used: $u(t)=-Kx(t)$ with $K=-R^{-1}B^TP$. $P(t)$ is the 
+solution matrix which will stabilize ($\dot{P}(t)=0$) for a convergent system 
+\citep{chen2007linear}. It 
+is a symmetric matrix which holds the algebraic Riccati equation (ARE) 
+\citep{al2013experimental}
+\[PA+A^TP-PBR^{-1}B^TP+Q=0.\]
 
 \section{Reinforcement Learning on the Furuta Pendulum}
 In reinforcement learning, the Furuta pendulum has only a very small influence 
