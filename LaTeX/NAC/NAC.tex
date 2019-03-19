@@ -111,12 +111,10 @@ grestore
 
  % ------------------------------- Abstract ---------------------------------- %
 \begin{abstract}
-In this paper we describe the natural actor critic approach and provide an extensive overview about the current research. This includes a basic description of the natural gradient, actor critic approaches and comparisons between existing extensions. Additionally, we improve the episodic Natural Actor Critic algorithm by applying it with two neural networks instead of basis functions.
+In this paper we describe the natural actor critic approach and provide an extensive overview about the current research. This includes a basic description of the natural gradient, actor critic approaches and comparisons between existing natural actor critic modifications and extensions. 
 
 
-% FÜR PROJECT: Our implementation is very basic that can be extended arbitrarily granular. The emphasis of this paper is a detailed description of the implementation process and how it can be used. Results are reported for several of the standard reinforcement learning problems, using the publicly available gym library.
-
-\keywords{Natural Gradient \and Neural Networks \and Advantage Function \and Actor Critic \and NAC}
+\keywords{Natural Gradient \and Advantage Function \and Actor Critic \and NAC}
 % \PACS{PACS code1 \and PACS code2 \and more}
 % \subclass{MSC code1 \and MSC code2 \and more}
 \end{abstract}
@@ -125,20 +123,20 @@ In this paper we describe the natural actor critic approach and provide an exten
 \section{Introduction}
 \label{sec:intro}
 
-Natural actor critic (NAC) methods \citep{peters2005natural} have been very successful in the last years. They could be applied to various fields, including traffic optimization \citep{richter2007natural}, dialog systems \citep{jurvcivcek2011natural} and high dimensional control tasks \citep{peters2007applying, peters2008natural, peters2008reinforcement, peters2003reinforcement}. NAC methods belong to the policy gradient family with the characteristics of employing the natural gradient, an actor critic approach and a compatible function approximation. Natural gradient algorithms have been applied successfully in various fields such as road traffic optimization \cite{richter2007natural}, robotic control tasks \cite{kim2010impedance}, motor primitive learning \cite{peters2007applying} and locomotion of a two-linked robot arm \cite{park2005rls}. Using the natural gradient has several advantages and properties, which are listed in the next section.
+Natural actor critic (NAC) methods \citep{peters2005natural} have been very successful in the last two decades. They could be applied to various fields, including traffic optimization \citep{richter2007natural}, dialog systems \citep{jurvcivcek2011natural} and high dimensional control tasks \citep{kim2010impedance, park2005rls, peters2007applying, peters2008natural, peters2008reinforcement, peters2003reinforcement}. The NAC is an actor critic policy gradient method (PGM), which optimizes a policy using gradient ascent.
 \\\\
-Every gradient algorithm has very good sample complexity guarantees \cite{nemirovski2005efficient}. Policy gradient methods represent the policy using differentiable function approximation. They optimize a scalar performance measure $J(\theta)$, called cost function by repeatedly estimating it's gradient w.r.t. the policy parameters $\theta$ and updating the policy parameters $\theta$ a proportion in that direction: \(\theta_{t+1} = \theta_{t} + \alpha \nabla J(\theta_{t})\). PGM have several advantages. They are model-free, have good convergence properties, can learn stochastic policies and are effective in high-dimensional or continuous action spaces. However, PGM is typically inefficient, has high variance and it typically converge to a local rather than a global optimum. Further, with PGM we can introduce a prior on the policy, we can converge to a deterministic policy and don't have to chose a suboptimal action for exploration purposes and we can chose our actions stochastically. However, the policy needs to be differentiable w.r.t it's parameters.
+PGM's represent a policy by using differentiable function approximation. They optimize a scalar performance measure $J$, called objective function, by repeatedly estimating it's gradient w.r.t. the policy parameters and updating the policy parameters a proportion in it's direction. PGM have several advantages. In comparison to value based algorithms, policy gradient methods have very good sample complexity guarantees \cite{nemirovski2005efficient} and convergence properties. In addition, PGM's are model-free, can learn stochastic policies and are effective in high-dimensional or continuous action spaces. Further, with PGM we can introduce a prior on the policy, we can converge to a deterministic policy and don't have to chose a suboptimal action for exploration purposes and we can chose our actions stochastically. However, PGM's are typically inefficient, have high variance and typically converge to a local rather than global optimum. It is also necessary, that the policy is differentiable w.r.t it's parameters, which is not always the case.
 \\\\
-Actor-critic methods approximate a value function beside the policy. This means that we have to estimate two set of weights, $w$ for the value function $v_w(s)$ (which is a state-action value function in most cases) and $\theta$ for the policy $\pi_{\theta}(a|s)$. The value function estimator is used to learn the policy, where actor refers to the policy and critic to the value function. The actor tells the agent which actions to execute, the critic rates the observations, updates it's own parameters and finally the actor updates it's parameters w.r.t the critic.
+Actor-critic methods are special cases of PGM's. They approximate a value function (typically a state-action value function), which helps approximate the policy. This means that we have to estimate two sets of parameters: the parameters of the policy (\textit{actor}) and the parameters of the value function (\textit{critic}). The actor tells the agent, which actions to execute. The agent executes the action in the environment and the environment returns an observation. The critic rates the observations and updates it's own parameters. Immediately afterwards or if a specific criterion is met, the actor updates it's parameters w.r.t the critic.
 \\\\
-The paper structures itself in the following way: We start by setting up some preliminaries in section \ref{sec:preliminaries}. In section \ref{sec:NG} we introduce the natural gradient and discuss it's properties in section \ref{sec:properties}. The natural actor critic algorithm will be presented in section \ref{sec:nac} and the modifications and extensions currently known in section \ref{sec:modifications}. Finally, we close with a discussion in section \ref{sec:discussion}.
+The NAC utilizes the natural gradient in an actor critic environment to optimize a policy. How exactly this works and possible modifications to the NAC will be the scope of this paper. We start by setting up some preliminaries in section \ref{sec:preliminaries}. In section \ref{sec:NG} we introduce the natural gradient and discuss it's properties. The natural actor critic algorithm will be presented in section \ref{sec:nac} and modifications and extensions to the NAC in section \ref{sec:modifications}. Finally, we close with a discussion in section \ref{sec:discussion}.
 
 
 % ----- PRELIMINARIES ----- %
 \section{Preliminaries}
 \label{sec:preliminaries}
 
-We consider a standard reinforcement learning framework, in which a learning agent interacts with a Markov Decision Process (MDP) \citep{howard1960dynamic, sutton2018reinforcement}. For each discrete time step $t \in \{0,1,2,...\}$, the state, action and reward is denoted as $s_t \in \mathit{S}$, $a_t \in A$ and $r_{t+1} \in \mathit{R} \subset \mathbb{R}$ respectively. The dynamics of the environment are described by the state-transition probabilities $P^a_{ss'} = \text{Pr}\{S_t = s' | S_{t-1} = s, A_{t-1} = a\}$ and the expected immediate rewards $R^a_s = \E[R_t | S_{t-1} = s, A_{t-1} = a]$, for all $s, s' \in S, a \in A$. The agent's behavior at each time step $t$ is specified by a policy $\pi_{\theta}(a|s) = \text{Pr}\{A_t = a | S_{t} = s, \theta\}$, where $\theta$ denotes the parameters of the policy. 
+We consider a standard reinforcement learning framework, in which a learning agent interacts with a Markov Decision Process (MDP) \citep{howard1960dynamic, sutton2018reinforcement}. For each discrete time step $t \in \{0,1,2,...\}$, the state, action and reward is denoted as $s_t \in \mathit{S}$, $a_t \in A$ and $r_{t+1} \in \mathit{R} \subset \mathbb{R}$ respectively. The dynamics of the environment are described by the state-transition probabilities $p(s|s', a) = \text{Pr}\{S_t = s' | S_{t-1} = s, A_{t-1} = a\}$ and the expected immediate rewards $r(s, a) = \E[R_t | S_{t-1} = s, A_{t-1} = a]$, for all $s, s' \in S, a \in A$. The agent's behavior at each time step $t$ is specified by a policy $\pi_{\theta}(a|s) = \text{Pr}\{A_t = a | S_{t} = s, \theta\}$, where $\theta$ denotes the parameters of the policy. 
 \\\\
 We assume that $\pi$ is differentiable w.r.t. it's parameters, so that $\tfrac{\partial\pi(a|s)}{\partial \theta}$ exists and we can estimate the gradient of the objective function $J(\theta)$ by applying the policy gradient theorem \citep{sutton2000policy}
 
@@ -147,35 +145,32 @@ We assume that $\pi$ is differentiable w.r.t. it's parameters, so that $\tfrac{\
 \nabla_{\theta}J(\theta)=\E_{\pi_{\theta}}[\nabla_{\theta}\log\pi_{\theta}(a|s) Q^{\pi_{\theta}}(s, a)],
 \end{equation}
 
-where $Q^{\pi_{\theta}}(s, a)$ denotes an action-value function. One of the most basic policy gradient algorithms, \textit{REINFORCE} \citep{williams1992simple}, estimates the action-value function $Q^{\pi_{\theta}}$ by using the expected discounted return, also known as Monte-Carlo return
-	\begin{equation}
-	\label{equ:reinforce}
-	Q^{\pi_\theta}(s, a) \approx \mathit{G}_t = \sum_{k=0}^{\infty}\gamma^k R_{t+k+1},
-	\end{equation}
-where $\gamma$ is a discount factor with $\gamma \in [0, 1]$. Policy gradient methods use the gradient of the objective function $J(\theta)$ and a learning rate $\alpha \in \left[0,1\right]$ to recursively update the parameters of $\pi_{\theta}(a|s)$, $\theta_{t+1} = \theta_t + \alpha \nabla_{\theta} J(\theta)$, and find a local optimum. 
+where $Q^{\pi_{\theta}}(s, a)$ denotes an action-value function. One of the most basic policy gradient algorithms, \textit{REINFORCE} \citep{williams1992simple}, estimates the action-value function $Q^{\pi_{\theta}}$ by using the expected discounted return (also known as Monte-Carlo return), \(Q^{\pi_\theta}(s, a) \approx \mathit{G}_t = \sum_{k=0}^{\infty}\gamma^k R_{t+k+1}\),
+where $\gamma$ is a discount factor with $\gamma \in [0, 1]$. With the gradient of the objective function $\nabla_{\theta}J(\theta)$ and a learning rate $\alpha \in \left[0,1\right]$, policy gradient methods recursively update the parameters of the policy, $\theta_{t+1} = \theta_t + \alpha \nabla_{\theta} J(\theta)$. After a finite number of steps, the parameters converge to a local optimum. 
 \\\\
-However, instead of using a Monte-Carlo estimate directly, Actor-Critic methods model the action-value function with a function approximator $Q^{\pi_\theta}(s, a) \approx Q_w(s,a)$ \citep{sutton2000policy}. $Q_w(s,a)$ is called the critic and introduces a second set of parameters, $w$, which need to be optimized; $\pi_{\theta}(a|s)$ is called the actor. By introducing a baseline $B(s,a)$, we can reduce the variance of the action-value function estimate and accelerate learning \citep{sutton2018reinforcement}:
+Instead of using a Monte-Carlo estimate directly, actor-critic methods employ the critic to model the action-value function with a function approximation $Q^{\pi_\theta}(s, a) \approx Q_w(s,a)$ \citep{sutton2000policy}, where $w$ denotes the parameters of the critic, which need to be optimized. In addition, the introduction of a baseline $B(s,a)$, reduces the variance of the action-value function estimate and accelerates learning \citep{sutton2018reinforcement}:
 
 \begin{equation}
 \label{equ:policybaseline}
 \nabla_{\theta}J(\theta)=\E_{\pi_{\theta}}[\nabla_{\theta}\log\pi_{\theta}(a|s) Q_w(s, a) - B(s,a)].
 \end{equation}
 
-A good baseline with minimal variance is the value function. Subtracting the value function from the action-value function yields the Advantage function $A(s,a) = Q(s,a)-V(s)$. However, the critic can directly estimate the advantage function $A_w(s,a)$ for computing the gradient:
+A good baseline with minimal variance is the value function. Subtracting the value function from the action-value function yields the advantage function $A(s,a) = Q(s,a)-V(s)$. The critic is able to directly estimate the advantage function $A_w(s,a)$:
 
 \begin{equation}
+	\label{eq:3}
 	\nabla_{\theta}J(\theta)=\E_{\pi_{\theta}}[\nabla_{\theta}\log\pi_{\theta}(a|s) A_w(s, a)].
 \end{equation}
 
-Optimzing the objective function with vanilla gradient descent is sensitive to parametrization and can be inefficient. One could instead use the \textit{natural gradient}, which is described in the next section.
+Equation \ref{eq:3} will help us understand how the NAC algorithm in section \ref{sec:nac} works. But beforehand, we need to get an understanding of the natural gradient.
 
 % ------ NATURAL GRADIENT ----- %
 \section{Natural Gradient}
 \label{sec:NG}
-\citep{amari1987differential}
-The natural gradient was first introduced by Amari in 1998 \cite{amari1998natural}. The difference between the natural gradient and the ordinary vanilla gradient, is the direction it points to. The ordinary vanilla gradient only points to the steepest direction, if the parameter space has an Euclidean character [x]. The natural gradient, however, points to the steepest direction of a Riemann parameter space (e.g. neural networks  \citep{amari1998natural}).
+
+The natural gradient was first introduced by Amari in 1998 \cite{amari1998natural}. The difference between the natural gradient and the ordinary vanilla gradient, is the direction it points to. The ordinary vanilla gradient only points to the steepest direction, if the parameter space has an Euclidean character \citep{amari1987differential}. The natural gradient, however, points to the steepest direction of a Riemann parameter space (e.g. neural networks  \citep{amari1998natural}).
 \\\\
-A Riemannian parameter space is a differentiable manifold, where for each tangent space an inner product $<\cdot , \cdot >$ exists. For two tangent vectors $\mathbf{u}$ and $\mathbf{v}$, the inner product $<\mathbf{u}, \mathbf{v}>$ yields a real number. This makes it possible to define notions such as length, areas, angles or volumes. To calculate the gradient, we need to be able to calculate the squared length of a small incremental vector $d\textbf{w}$ connecting a point $\textbf{w}$ and $\textbf{w} + d\textbf{w}$. Equation \ref{eq:riem} shows on the left the formular for Riemanian spaces and on the right the formular for Euqulidean spaces:
+A Riemann parameter space is a differentiable manifold, where for each tangent space an inner product $<\cdot , \cdot >$ exists. For two tangent vectors $\mathbf{u}$ and $\mathbf{v}$, the inner product $<\mathbf{u}, \mathbf{v}>$ yields a real number. This makes it possible to define notions such as length, areas, angles or volumes. To calculate the gradient, we need to be able to calculate the squared length of a small incremental vector $d\textbf{w}$ connecting a point $\textbf{w}$ and $\textbf{w} + d\textbf{w}$. Equation \ref{eq:riem} shows the formula for Riemann spaces on the left and the formula for Euclidean spaces on the right:
 
 \begin{equation}
 	\label{eq:riem}
