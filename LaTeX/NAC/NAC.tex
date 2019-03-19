@@ -63,6 +63,7 @@ grestore
 %\usepackage{hyperref}
 
 \newcommand{\x}{\item}
+\newcommand{\parTitle}[1]{\textbf{#1:}}
 \DeclareMathOperator{\E}{\mathbb{E}}
 \setlength\parindent{0pt}
 
@@ -73,7 +74,7 @@ grestore
 % \journalname{myjournal}
 %
 \begin{document}
-\title{Reviewing and improving Natural Actor Critic methods
+\title{Reviewing Natural Actor Critic methods
 %\thanks{Grants or other notes
 %about the article that should go on the front page should be
 %placed here. General acknowledgments should be placed at the end of the article.}
@@ -88,16 +89,13 @@ grestore
 %\authorrunning{Short form of author list} % if too long for running head
 
 \institute{Maximilian A. Gehrke \at
-              TU Darmstadt, Germany\\
               \email{maximilian\_alexander.gehrke@stud.tu-darmstadt.de}           %  \\
 %             \emph{Present address:} of F. Author  %  if needed
            \and
            Yannik P. Frisch \at
-           TU Darmstadt, Germany\\
            \email{yannik\_phil.frisch@stud.tu-darmstadt.de}
            \and
            Tabea A. Wilke \at
-           TU Darmstadt, Germany\\
            \email{tabeaalina.wilke@stud.tu-darmstadt.de}
 }
 \date{Received: date / Accepted: date}
@@ -113,30 +111,32 @@ grestore
 
  % ------------------------------- Abstract ---------------------------------- %
 \begin{abstract}
-In this paper we describe the natural actor critic approach and provide an extensive overview about the current research. This includes a basic description of the natural gradient, actor critic approaches and comparisons between existing extensions. Additionally, we improve the episodic Natural Actor Critic algorithm by applying it with two neural networks instead of basis functions.
+In this paper we describe the natural actor critic approach and provide an extensive overview about the current research. This includes a basic description of the natural gradient, actor critic approaches and comparisons between existing natural actor critic modifications and extensions. 
 
 
-% FÜR PROJECT: Our implementation is very basic that can be extended arbitrarily granular. The emphasis of this paper is a detailed description of the implementation process and how it can be used. Results are reported for several of the standard reinforcement learning problems, using the publicly available gym library.
-
-\keywords{Natural Gradient \and Neural Networks \and Advantage Function \and Actor Critic \and NAC}
+\keywords{Natural Gradient \and Advantage Function \and Actor Critic \and NAC}
 % \PACS{PACS code1 \and PACS code2 \and more}
 % \subclass{MSC code1 \and MSC code2 \and more}
 \end{abstract}
 
 % ---------------------- Introduction --------------------------------- %
-
-\newpage
 \section{Introduction}
 \label{sec:intro}
 
-Policy gradient methods have dominated the field of reinforcement learning in the last years [LOT OF CITES]. These methods represent the policy using differentiable function approximation. They optimize an objective function $J(\theta)$ by repeatedly estimating the gradient of the approximated return w.r.t. the parameters $\theta$ of the policy and updating the parameters in that direction by stochastic gradient descent.
+Natural actor critic (NAC) methods \citep{peters2005natural} have been very successful in the last two decades. They could be applied to various fields, including traffic optimization \citep{richter2007natural}, dialog systems \citep{jurvcivcek2011natural} and high dimensional control tasks \citep{kim2010impedance, park2005rls, peters2007applying, peters2008natural, peters2008reinforcement, peters2003reinforcement}. The NAC is an actor critic policy gradient method (PGM), which optimizes a policy using gradient ascent.
+\\\\
+PGM's represent a policy by using differentiable function approximation. They optimize a scalar performance measure $J$, called objective function, by repeatedly estimating it's gradient w.r.t. the policy parameters and updating the policy parameters a proportion in it's direction. PGM have several advantages. In comparison to value based algorithms, policy gradient methods have very good sample complexity guarantees \cite{nemirovski2005efficient} and convergence properties. In addition, PGM's are model-free, can learn stochastic policies and are effective in high-dimensional or continuous action spaces. Further, with PGM we can introduce a prior on the policy, we can converge to a deterministic policy and don't have to chose a suboptimal action for exploration purposes and we can chose our actions stochastically. However, PGM's are typically inefficient, have high variance and typically converge to a local rather than global optimum. It is also necessary, that the policy is differentiable w.r.t it's parameters, which is not always the case.
+\\\\
+Actor-critic methods are special cases of PGM's. They approximate a value function (typically a state-action value function), which helps approximate the policy. This means that we have to estimate two sets of parameters: the parameters of the policy (\textit{actor}) and the parameters of the value function (\textit{critic}). The actor tells the agent, which actions to execute. The agent executes the action in the environment and the environment returns an observation. The critic rates the observations and updates it's own parameters. Immediately afterwards or if a specific criterion is met, the actor updates it's parameters w.r.t the critic.
+\\\\
+The NAC utilizes the natural gradient in an actor critic environment to optimize a policy. How exactly this works and possible modifications to the NAC will be the scope of this paper. We start by setting up some preliminaries in section \ref{sec:preliminaries}. In section \ref{sec:NG} we introduce the natural gradient and discuss it's properties. The natural actor critic algorithm will be presented in section \ref{sec:nac} and modifications and extensions to the NAC in section \ref{sec:modifications}. Finally, we close with a discussion in section \ref{sec:discussion}.
+
 
 % ----- PRELIMINARIES ----- %
-
 \section{Preliminaries}
 \label{sec:preliminaries}
 
-We consider a standard reinforcement learning framework, in which a learning agent interacts with a Markov Decision Process (MDP) \citep{howard1960dynamic, sutton2018reinforcement}. For each discrete time step $t \in \{0,1,2,...\}$, the state, action and reward is denoted as $s_t \in \mathit{S}$, $a_t \in A$ and $r_{t+1} \in \mathit{R} \subset \mathbb{R}$ respectively. The dynamics of the environment are described by the state-transition probabilities $P^a_{ss'} = \text{Pr}\{S_t = s' | S_{t-1} = s, A_{t-1} = a\}$ and the expected immediate rewards $R^a_s = \E[R_t | S_{t-1} = s, A_{t-1} = a]$, for all $s, s' \in S, a \in A$. The agent's behavior at each time step $t$ is specified by a policy $\pi_{\theta}(a|s) = \text{Pr}\{A_t = a | S_{t} = s, \theta\}$, where $\theta$ denotes the parameters of the policy. 
+We consider a standard reinforcement learning framework, in which a learning agent interacts with a Markov Decision Process (MDP) \citep{howard1960dynamic, sutton2018reinforcement}. For each discrete time step $t \in \{0,1,2,...\}$, the state, action and reward is denoted as $s_t \in \mathit{S}$, $a_t \in A$ and $r_{t+1} \in \mathit{R} \subset \mathbb{R}$ respectively. The dynamics of the environment are described by the state-transition probabilities $p(s|s', a) = \text{Pr}\{S_t = s' | S_{t-1} = s, A_{t-1} = a\}$ and the expected immediate rewards $r(s, a) = \E[R_t | S_{t-1} = s, A_{t-1} = a]$, for all $s, s' \in S, a \in A$. The agent's behavior at each time step $t$ is specified by a policy $\pi_{\theta}(a|s) = \text{Pr}\{A_t = a | S_{t} = s, \theta\}$, where $\theta$ denotes the parameters of the policy. 
 \\\\
 We assume that $\pi$ is differentiable w.r.t. it's parameters, so that $\tfrac{\partial\pi(a|s)}{\partial \theta}$ exists and we can estimate the gradient of the objective function $J(\theta)$ by applying the policy gradient theorem \citep{sutton2000policy}
 
@@ -145,104 +145,82 @@ We assume that $\pi$ is differentiable w.r.t. it's parameters, so that $\tfrac{\
 \nabla_{\theta}J(\theta)=\E_{\pi_{\theta}}[\nabla_{\theta}\log\pi_{\theta}(a|s) Q^{\pi_{\theta}}(s, a)],
 \end{equation}
 
-where $Q^{\pi_{\theta}}(s, a)$ denotes an action-value function. One of the most basic policy gradient algorithms, \textit{REINFORCE} \citep{williams1992simple}, estimates the action-value function $Q^{\pi_{\theta}}$ by using the expected discounted return, also known as Monte-Carlo return
-	\begin{equation}
-	\label{equ:reinforce}
-	Q^{\pi_\theta}(s, a) \approx \mathit{G}_t = \sum_{k=0}^{\infty}\gamma^k R_{t+k+1},
-	\end{equation}
-where $\gamma$ is a discount factor with $\gamma \in [0, 1]$. Policy gradient methods use the gradient of the objective function $J(\theta)$ and a learning rate $\alpha \in \left[0,1\right]$ to recursively update the parameters of $\pi_{\theta}(a|s)$, $\theta_{t+1} = \theta_t + \alpha \nabla_{\theta} J(\theta)$, and find a local optimum. 
+where $Q^{\pi_{\theta}}(s, a)$ denotes an action-value function. One of the most basic policy gradient algorithms, \textit{REINFORCE} \citep{williams1992simple}, estimates the action-value function $Q^{\pi_{\theta}}$ by using the expected discounted return (also known as Monte-Carlo return), \(Q^{\pi_\theta}(s, a) \approx \mathit{G}_t = \sum_{k=0}^{\infty}\gamma^k R_{t+k+1}\),
+where $\gamma$ is a discount factor with $\gamma \in [0, 1]$. With the gradient of the objective function $\nabla_{\theta}J(\theta)$ and a learning rate $\alpha \in \left[0,1\right]$, policy gradient methods recursively update the parameters of the policy, $\theta_{t+1} = \theta_t + \alpha \nabla_{\theta} J(\theta)$. After a finite number of steps, the parameters converge to a local optimum. 
 \\\\
-However, instead of using a Monte-Carlo estimate directly, Actor-Critic methods model the action-value function with a function approximator $Q^{\pi_\theta}(s, a) \approx Q_w(s,a)$ \citep{sutton2000policy}. $Q_w(s,a)$ is called the critic and introduces a second set of parameters, $w$, which need to be optimized; $\pi_{\theta}(a|s)$ is called the actor. By introducing a baseline $B(s,a)$, we can reduce the variance of the action-value function estimate and accelerate learning \citep{sutton2018reinforcement}:
+Instead of using a Monte-Carlo estimate directly, actor-critic methods employ the critic to model the action-value function with a function approximation $Q^{\pi_\theta}(s, a) \approx Q_w(s,a)$ \citep{sutton2000policy}, where $w$ denotes the parameters of the critic, which need to be optimized. In addition, the introduction of a baseline $B(s,a)$, reduces the variance of the action-value function estimate and accelerates learning \citep{sutton2018reinforcement}:
 
 \begin{equation}
 \label{equ:policybaseline}
 \nabla_{\theta}J(\theta)=\E_{\pi_{\theta}}[\nabla_{\theta}\log\pi_{\theta}(a|s) Q_w(s, a) - B(s,a)].
 \end{equation}
 
-A good baseline with minimal variance is the value function. Subtracting the value function from the action-value function yields the Advantage function $A(s,a) = Q(s,a)-V(s)$. However, the critic can directly estimate the advantage function $A_w(s,a)$ for computing the gradient:
+A good baseline with minimal variance is the value function. Subtracting the value function from the action-value function yields the advantage function $A(s,a) = Q(s,a)-V(s)$. The critic is able to directly estimate the advantage function $A_w(s,a)$:
 
 \begin{equation}
+	\label{eq:3}
 	\nabla_{\theta}J(\theta)=\E_{\pi_{\theta}}[\nabla_{\theta}\log\pi_{\theta}(a|s) A_w(s, a)].
 \end{equation}
 
-Optimzing the objective function with vanilla gradient descent is sensitive to parametrization and can be inefficient. One could instead use the \textit{natural gradient}, which is described in the next section.
+Equation \ref{eq:3} will help us understand how the NAC algorithm in section \ref{sec:nac} works. But beforehand, we need to get an understanding of the natural gradient.
 
 % ------ NATURAL GRADIENT ----- %
-
 \section{Natural Gradient}
-\citep{amari1987differential}
-The natural gradient was first introduced by Amari in 1998 \cite{amari1998natural}. The difference between the natural gradient and the ordinary vanilla gradient, is the direction it points to. The ordinary vanilla gradient does only point to the steepest direction, if the parameter space has an Euclidean character [x]. The natural gradient, however, points to the steepest direction of a Riemann parameter space, which is a generalization of the Euclidean parameter space \citep{haykin2009neural, amari1998natural}. This is especially convenient, if our function approximator exhibits a Riemannian character, e.g. neural networks \citep{amari1998natural}.
+\label{sec:NG}
+
+The natural gradient was first introduced by Amari in 1998 \cite{amari1998natural}. The difference between the natural gradient and the ordinary vanilla gradient, is the direction it points to. The ordinary vanilla gradient only points to the steepest direction, if the parameter space has an Euclidean character \citep{amari1987differential}. The natural gradient, however, points to the steepest direction of a Riemann parameter space (e.g. neural networks  \citep{amari1998natural}).
 \\\\
-The natural gradient utilizes the $n \times n$ matrix $G = (g_{ij})$, called Riemannian metric tensor, which in general depend on $\theta$. It is defined as
+A Riemann parameter space is a differentiable manifold, where for each tangent space an inner product $<\cdot , \cdot >$ exists. For two tangent vectors $\mathbf{u}$ and $\mathbf{v}$, the inner product $<\mathbf{u}, \mathbf{v}>$ yields a real number. This makes it possible to define notions such as length, areas, angles or volumes. To calculate the gradient, we need to be able to calculate the squared length of a small incremental vector $d\textbf{w}$ connecting a point $\textbf{w}$ and $\textbf{w} + d\textbf{w}$. Equation \ref{eq:riem} shows the formula for Riemann spaces on the left and the formula for Euclidean spaces on the right:
+
 \begin{equation}
-	\widetilde{\nabla}_{\theta} J(\theta) = G^{-1} \nabla_\theta J(\theta)
+	\label{eq:riem}
+	|d\textbf{w}|^2 = \sum_{i,j}g_{ij}(\textbf{w}) dw_i dw_j ~,~ |d\textbf{w}|^2 = \sum_{i=1}^{n}(dw_i)^2,
 \end{equation}
-where $\widetilde{\nabla}_{\theta}$ is the natural gradient w.r.t the parameters $\theta$.  Learning should be carried out with a gradient descent like update rule: $\theta_{t+1} = \theta_{t} + \alpha \widetilde{\nabla}_{\theta} J(\theta)$. In the special case that the parameter space is Euclidean and the coordinate system is orthonormal, the conventional gradient equals the natural gradient: $\widetilde{\nabla}_{\theta} J(\theta) = \nabla_{\theta}$.
-\\\\
-The natural gradient is the steepest ascent direction of our performance object with respect to any metric. Well, but how do we calculate the matrix $G$? The Hessian $H$ at $x_0$ (which exists since the first derivative vanishes) is the purely covariant form of the Riemann curvature tensor. To estimate the Hessian $H$, we can use the Fisher information metric 
+
+where $g_{ij}(\textbf{w})$ is a function, enabling us to create a measure of distance. It is also written as an $n \times n$ matrix $G = (g_{ij})$, called Riemannian metric tensor, and reduces to the unit matrix $I$ in the case of an Euclidean orthonormal parameter space. Therefore, the riemannian case is a generalization of the Euclidean orthononormal case \citep{haykin2009neural, amari1998natural}. We can utilize the Riemannian metric tensor to construct a gradient which points in the steepest direction of Riemannian spaces:
 \begin{equation}
-	F_\theta=\E_{s\sim\rho^{\pi},a\sim\pi_{\theta}}\left[\nabla_{\theta}log\pi_{\theta}(a|s)^{T}\nabla_{\theta}log\pi_{\theta}(a|s)\right]
+	\label{eq:ngradient}
+	\widetilde{\nabla}_{\theta} J(\theta) = G^{-1} \nabla_\theta J(\theta).
 \end{equation}
-For deterministic policies: 
+$\widetilde{\nabla}_{\theta}$ is the natural gradient w.r.t the parameters $\theta$.  Learning should be carried out with a gradient descent like update rule: $\theta_{t+1} = \theta_{t} + \alpha \widetilde{\nabla}_{\theta} J(\theta)$. In the special case that the parameter space is Euclidean and the coordinate system is orthonormal, the conventional gradient equals the natural gradient: $\widetilde{\nabla}_{\theta} J(\theta) = \nabla_{\theta}$.
+If the Fisher information matrix (FIM) exists, it could be shown that we can use it in equation \ref{eq:ngradient} as the Riemannian metric tensor and get a natural gradient \citep{peters2008natural, amari1998efficiently}. The FIM of a policy $\pi_{\theta}$ is defined as:
+
 \begin{equation}
-	M_{\mu}(\theta)=E_{s\sim\rho^{\mu}}[\nabla_{\theta}\mu_{\theta}(s)\nabla_{\theta}\mu_{\theta}(s)^{T}w]
+	F_\theta=\E_{s,a}\left[\nabla_{\theta}\log\pi_{\theta}(a|s)^{T}\nabla_{\theta}\log\pi_{\theta}(a|s)\right].
 \end{equation}
-$\rightarrow$ Limiting case of the Fisher information metric: policy variance reduced to zero.\\
-%TODO: Rewrite next part
-Combining DPG theorem with compatible function approximation gives 
-\begin{equation}
-\nabla_{\theta}J(\mu_{\theta}) = E_{s\sim\rho^{\mu}}[\nabla_{\theta} \mu_{\theta}(s) \nabla_{\theta} \mu_{\theta}(s)^{T}w]
-\end{equation} 
-so steepest ascent direction reduces to
-\begin{equation}
-M_{\mu}(\theta)^{-1}\nabla_{\theta}J_{\beta}(\mu_{\theta})=w
-\end{equation} 
-Natural gradient algorithms have been applied successfully in various fields such as road traffic optimization \cite{richter2007natural}, robotic control tasks \cite{kim2010impedance}, motor primitive learning \cite{peters2007applying} and locomotion of a two-linked robot arm \cite{park2005rls}. Using the natural gradient has several advantages and properties, which are listed in the next section.
 
-% ---------------------- Properties --------------------------------- %
+If we look at the problem from a different angle, we can see the uniqueness of the natural gradient: it's invariance to parameterization \cite{pascanu2013revisiting, peters2008natural}. Equation \ref{ng1} defines our objective. With policy gradient methods, we want to change the parameters of the policy, so that the resulting parameters maximize the objective function $J$. This can be done by taking the vanilla gradient. However, the vanilla gradient has the downfall that in flat regions of the parameter space, the algorithm will move very slowly, whereas in steep regions the algorithm will move very fast and even shoot beyond the local maximum. This is because for every parametrization $\theta$ the gradient is different. This is why we ought to search for a way to measure the distance between two distributions. One of these is the Kullback-Leibler divergence which can be approximated by the second-order Taylor expansion, as shown in equation \ref{ng2}. We constrain the Kullback-Leibler divergence to be less than a fixed value $\epsilon$. This means, that the parameters change exactly for a given distance in the parameterspace. Equation \ref{ng1} and \ref{ng2} together form an optimization problem:
 
-\newpage
-\section{Properties of the natural gradient}
-In the following we present several properties of using the natural gradient for optimizing a reinforcement learning loss function.
-\subsection{Online Learning}
-The natural gradient can be used online. This means that we can learn from incomplete sequences and by this reduce the variance of our estimation of the return or the advantage function. It is also possible to use an offline, episodic variant of the natural gradient which can be seen in section ??. With both variations at hand, one can make the decision regarding the structure of our problem \cite{pascanu2013revisiting, peters2008natural}.
+\begin{align}
+	\max_{\delta\theta} J(\theta + \delta\theta) \approx J(\theta) + \delta\theta^T\nabla_\theta J(\theta)\label{ng1}\\
+	\text{s.t. } \epsilon = D_{KL}(\pi_{\theta} || \pi_{\theta + \delta\theta}) \approx \tfrac{1}{2} \delta\theta^T F_\theta \delta\theta\label{ng2}
+\end{align}
 
-\subsection{1st order method}
-The natural gradient is a first order method, but implements many second order advantages \cite{pascanu2013revisiting}. This is especially relevant for problems, where the cost function is accessible indirectly. For example Deep Boltzmann Machines exhibit this characteristics and recent studies showed possible solutions with natural gradients \cite{desjardins2013metric} whereas second order methods are hard to apply.
+which solution yields equation \ref{eq:ngradient}, applied with the FIM $F_\theta$.
 
-\subsection{Parameterization invariant}
-The natural gradient is invariant regarding parameterizations. This is a result from the KL-divergence constraint we apply, which measures the changes of our probability density estimation regardless how it was parameterized \cite{pascanu2013revisiting}. This is comparable to signal noise whitening \cite{sohl2012natural}.
+\begin{itemize}
+	\x \parTitle{Online Learning} The NG can be used online and therefore can learn from incomplete sequences and reduce the variance of the action-value function estimation \cite{pascanu2013revisiting, peters2008natural}.
+	\x \parTitle{1st order method} he natural gradient is a first order method, but implements second order advantages \cite{pascanu2013revisiting}. This is especially relevant for problems, where the cost function is accessible indirectly \cite{desjardins2013metric}.
+	\x \parTitle{Better \& faster convergence} In many cases the NG converge faster than vanilla gradient algorithms \cite{sohl2012natural, amari1998natural} and avoids getting stuck in plateaus \cite{amari1998efficiently, amari1998natural}.
+	\x \parTitle{Drawbacks} The Riemanian metric tensor needs to be nonsingular and invertible. This is not always the case and even if, the inversion of a matrix is very costly. In addition, by applying the NG, the policy variance might reduce to zero. This poses a problem, which is dealt with in the TRPO \& PPO algorithms.
+\end{itemize}
 
-\subsection{Faster convergence}
-In many cases natural gradient algorithms converge faster than vanilla gradient algorithms \cite{sohl2012natural, amari1998natural}. This is due to the fact that a metric is used which removes the dependencies and differences in scaling between the parameters. This means that these are perpendicular to each other and their space can be explored more efficiently \cite{sohl2012natural}.
-
-\subsection{Better convergence properties}
-Using the natural gradient instead of the vanilla gradient avoids getting stuck in local optima during optimization \cite{amari1998natural}.
-
-\subsection{Sample efficiency}
-Natural actor critic has much better sample complexity guarantees than gradient-free algorithms, due to the fact that it is a gradient method \cite{nemirovski2005efficient}.
-
-\subsection{More properties}
-Look at Berkley slides
-
-\subsection{Drawbacks}
-The matrix W is nonsingular (i.e., invertible).
-
-\subsection{NN and learning machines}
-1. The algorithm is computationally efficient, since it avoids the need for inverting
-the demixing matrix W.
-2. The convergence rate of the algorithm is relatively fast.
-3. The algorithm lends itself to implementation in the form of an adaptive neural system.
-4. Being a stochastic gradient algorithm, the algorithm has a built-in capability to
-track statistical variations of a nonstationary environment.
-\\
-\\
-We will present an application of using the natural gradient together with an actor critic method in the next section.
+\iffalse
+	\parTitle{Online Learning} The natural gradient can be used online. This means that we can learn from incomplete sequences and reduce the variance of the action-value function estimation. It is also possible to use an offline, episodic variant of the natural gradient. With both variations at hand, one can make the decision regarding the structure of our problem \cite{pascanu2013revisiting, peters2008natural}.
+	\\\\
+	\parTitle{1st order method} The natural gradient is a first order method, but implements second order advantages \cite{pascanu2013revisiting}. This is especially relevant for problems, where the cost function is accessible indirectly. For example Deep Boltzmann Machines exhibit this characteristics and recent studies showed possible solutions with natural gradients \cite{desjardins2013metric}, whereas second order methods are hard to apply.
+	\\\\
+	\parTitle{Better \& faster convergence}
+	In many cases natural gradient algorithms converge faster than vanilla gradient algorithms \cite{sohl2012natural, amari1998natural}. This is due to the fact that a metric is used which removes the dependencies and differences in scaling between the parameters. This means that the parameter spaces are perpendicular to each other and their space can be explored more efficiently \cite{sohl2012natural}. Using the natural gradient instead of the vanilla gradient avoids getting stuck in local optima during optimization, but jumping out of plateaus \cite{amari1998efficiently, amari1998natural}.
+	\\\\
+	\subsection{More properties}
+	Look at Berkley slides
+	\\\\
+\fi
 
 % ---------------------- NAC algorithm --------------------------------- %
-
-\newpage
 \section{Natural Actor Critic}
+\label{sec:nac}
 In this section we describe the \textit{Natural Actor Critic} (NAC) algorithm \citep{peters2005natural}. We focus on the trajectory based formulation, called episodic NAC, and present the pseudo code in algorithm \ref{enac-algo}.
 \\\\
 In episodic NAC, we have a fixed amount of updates $u$ and a fixed amount of steps the agent executes in the environment every update. Therefore, if a trajectory $e$ has reached a terminal state before the agent executed all it's steps, the algorithm samples a new trajectory. This repeats until the maximum number of steps is met and the current trajectory is interrupted. During this process, all states we see, all actions we take and all rewards we get are stored for each trajectory.
@@ -294,10 +272,10 @@ One of the key aspects of the NAC algorithm is the use of a compatible function 
  Inserting this and bringing the cost function $J(\theta)$ to the left hand side:
 
 \begin{equation}
-	\sum_{i = 0}^{N} \gamma^i \nabla_{\theta} \log \pi_{\theta}(a_i | s_i)^T \cdot w + 1 \cdot J = \sum_{i = 0}^{N}\gamma^i r(s_i, a_i)
+	\sum_{i = 0}^{N} \gamma^i \nabla_{\theta} \log \pi_{\theta}(a_i | s_i)^T \cdot w + J(\theta) = \sum_{i = 0}^{N}\gamma^i r(s_i, a_i)
 \end{equation}
 
-This is exactly the equation, which we solve in algorithm \ref{enac-algo} by taking the left pseudo inverse to update the critics parameters $w$.
+This is exactly the equation, which we solve in algorithm \ref{enac-algo} by taking the left pseudo inverse. Besides the parameter vector $w$, we receive the cost function $J(\theta)$ as a side product.
 \\\\
 The update of the policy parameters in direction of the critic parameters can also be explained by the compatible function approximation (equation \ref{eq:adv2}). With this the natural policy gradient [REF: EQUATION] simplifies:
 \begin{align}
@@ -310,90 +288,49 @@ The update of the policy parameters in direction of the critic parameters can al
 We show several modifications to the algorithm in the next section and discuss it's advantages and drawbacks.
 
 % ---------------------- Extensions --------------------------------- %
-
-\newpage
-\section{Modifications}
-In this section we list several extensions to the NAC algorithm. 
-
-\subsection{LSTD-Q NAC}
-
-Peters did not only specify the episodic NAC algorithm in his original paper \citep{peters2005natural}, but also an NAC algorithm using LSTD-Q($\lambda$) \citep{lagoudakis2003least, boyan2002technical}. LSTD-Q($\lambda$) uses Least Squares Temporal Difference learning to learn the weighted least squares fixed-point approximation of the state-action value function of a fixed policy $\pi$. one update per action instead of one update per trajectory.
-
-
-\subsection{Fitted NAC}
-Fitted natural actor critic (FNAC) is a fitted version of the natural actor critic algorithm \cite{melo2008fitted}. It allows the utilization of general function approximations and efficient data reuse. This combination is especially appealing, because it combines the faster convergence properties of natural gradient algorithms with the efficient data use of regression algorithms.
-
-\subsection{Importance Sampling}
-Melo et. al additionally implemented importance sampling, which increased the efficient use of data even further \cite{melo2008fitted}.
-
-\subsection{Incremental NAC}
-``The way we use natural gradients is distinctive in that it is totally incremental: the policy is changed on every time step, yet the gradient computation is never reset as it is in the algorithm of Peters et al. (2005). Alg. 3 is perhaps the most interesting of the three natural-gradient algorithms. It never explicitly stores an estimate of the inverse Fisher information matrix and, as a result, it requires less computation. In empirical experiments using our algorithms (not reported here) we observed that it is easier to ﬁnd good parameter settings for Alg. 3 than it is for the other natural-gradient algorithms and, perhaps because of this, it converged more rapidly than the others and than Konda’s algorithm.'' \cite{bhatnagar2008incremental}
-
-\subsection{Implicit incremental NAC}
-
-
-
-\subsection{Regularization on NAC}
+\section{NAC Modifications}
+\label{sec:modifications}
+\parTitle{Least Squares} Besides the episodic NAC, Peters specified another approach, NAC using LSTD-Q($\lambda$) \citep{lagoudakis2003least, boyan2002technical}, in his original Paper \citep{peters2005natural}. The main difference is the estimation of the critic's parameters. LSTD-Q($\lambda$) uses least squares temporal difference learning \citep{boyan1999least} to estimate the parameters of the critic after every step taken in the environment. The algorithm uses eligibility traces \cite{sutton2018reinforcement} and two linear functions: $A_w(s,a) = \nabla_{\theta} \log \pi_{\theta}(a|s)^Tw$ and $V_v(s) = \phi(s)v$.  The latter is an approximation of the value function and needed to update the critic by solving a linear set of equations induced by the least squares error between our observation and a value function approximation. As in the episodic case, when the angle between the critics parameters is smaller than a fixed value, the actor is updated a proportion in the direction of the critic.
+\\\\
+\parTitle{Recursive Least Squares:} The ``RLS-based natural actor-critic algorithm'' equips the LSTD-Q NAC algorithm with a recursive update rule for the parameters of the critic \cite{park2005rls}. The old parameter values are reused during the current update which increases efficiency \citep{xu2002efficient}.
+\\\\
+\parTitle{Fitted NAC \& Importance Sampling} Fitted natural actor critic (FNAC) is a fitted version of the natural actor critic algorithm \cite{melo2008fitted}.  It employs a memory $D$, which is filled by sampling data from the environment. Once filled, the least squares NAC algorithm is executed as usual. Normally, after an policy update, we would need to sample $D$ again, this time with the improved policy. However, Melo et at. implemented importance sampling (IS) \cite{sutton2018reinforcement} to avoid the re-sampling. In addition to the current policy parameters $\theta$, IS also saves the policy parameters $\theta^{-}$, which were used to sample the memory $D$. Every time we evaluate the critic, we multiply our estimation by the importance weights, \(\tfrac{\pi_{\theta}(a|s)}{\pi_{\theta^{-}}(a|s)}\), to estimate the proportion we need to change the current critic parameters. The memory $D$ is independent of the current learning policy. This approach is extremely data efficient and brings fundamental advantages in situations, where collecting data is costly or time consuming. Additionally, FNAC makes use of regression methods to update the critic's parameters, which allow the use of a general function approximatior for the value function instead of compulsory linear one. This positively impacts the accuracy of the critic's estimation. 
+\\\\
+\parTitle{Incremental NAC (INAC)} The incremental NAC algorithm combines linear function approximation and bootstrapping \citep{bhatnagar2008incremental}. It reuses existing approach, namely temporal difference learning \citep{sutton2018reinforcement} and two-timescale stochastic approximation \citep{bhatnagar1998two}. Bhatnagar et al. provide three new natural gradient algorithms and proved that they locally converge to a local maximum. The main feature of the algorithms is the totally incremental estimation of the policy, the policy is changed every time step, and the incrementally update of the gradient. In comparison to Peters et al., the policy gradient is not reset every update, but saved and reused to support calculating the gradient of the next iteration. These improvements facilitate the application to large-scale reinforcement learning problems, decreases computation time and makes the algorithm more efficient than conventional actor critic methods. Further, one of the algorithms can be executed without explicitly computing the inverse Fischer information matrix. This authors report even faster convergence.
+\\\\
+\parTitle{Implicit Incremental NAC (I2NAC)} INAC algorithms suffer from a difficult to tune step size and an unstable and sometimes divergent estimation of the natural gradient. Iwaki et al. analyzed the reasons for these drawbacks and created an improved algorithm, the implicit incremental NAC algorithm \citep{iwaki2019implicit}. This algorithm uses the ideas of implicit stochastic gradient descent \citep{toulis2014statistical} and the implicit temporal diﬀerences \citep{tamar2014implicit} to overcome these difficulties. The change between INAC and I2NAC is a weight vector, which is multiplied with the update of the critic's parameter vector. It makes use of the eligibility traces and a new hyper parameter $\beta$. This stabilizes learning and empirical results show less divergence.
+\\\\
+\parTitle{Regularization on NAC}
 	Even if we find the inverse of $G$, it can be ill defined. An example for this are extremely small eigenvalues which appear due to noise in our data. These eigenvalues will become extremely large if we take the inverse of $G$ and thus the parameters belonging to the eigenvalues will get a lot of credibility which they should not have and which will falsify our inverse.
-	
-	That is why there have been some approaches to introduce a regularization term \cite{sohl2012natural}. Regularizing the matrix inverse can for example be done by a technique called stochastic robust approximation \cite{boyd2004convex}, where $G^{-1}$ is replaced by 
-	
-	\begin{equation}
-		G^{-1}_{\text{reg}} = \left( G^T G + \epsilon I \right)^{-1} G^T
-	\end{equation}
-	
-	\noindent where $\epsilon$ denotes for a small constant (e.g 0.01).
-	
-	Another idea is the application of ridge regression \cite{hoerl1970ridge}, which has a build in regularizer. We can calculate $\widetilde{\nabla}_{\theta} J(\theta)$ by solving the linear equation
-	
-	\begin{equation}
-		G(\theta) \widetilde{\nabla}_{\theta} J(\theta) = \nabla_{\theta} J(\theta)
-	\end{equation}
-	
-	\noindent in the direction of $\widetilde{\nabla}_{\theta} J(\theta)$.
-	
-	Witsch et al. use an approach similar to least squares regularization \cite{witsch2011enhancing}. 
-	
-	\begin{equation}
-		\widetilde{\nabla}_{\theta} J(\theta) = \left( F + \lambda I \right)^{-1} \nabla_\theta J(\theta)
-	\end{equation}
-	
-	\noindent If $\lambda$ is huge, the Fisher matrix only has a small influence on the change in direction. Therefore, we want to scale $\lambda$ regarding $F$:
-	
-	\begin{equation}
-		\lambda = \dfrac{\alpha}{\text{det}(F) + 1}
-	\end{equation}
-
-	\noindent with $\alpha$ a small constant, e.g. $0.01$.
-	
-	
-	\subsection{POMDPs}
-	There have been some approaches to apply the NAC to POMDPS. A promising approach is the Natural Actor and Belief Critic \cite{jurvcivcek2011natural}, which learns parameters in statistical dialogue systems. These can be modeled as POMDPs.
-	
-	\subsection{Least Squares}
-	
-	Recursive least squares: \cite{park2005rls}
-	
-	\subsection{Truncated Natural Policy Gradient}
-	
-	We use conjugate gradients (CG) to avoid calculating the inverse of the fisher matrix. We apply CG by solving the equation
-	
-	\begin{equation}
-		x_k \approx H_k^{-1} g_k \Rightarrow H^{-1}_k x_k \approx g_k
-	\end{equation}
-	
-	If we transform it into an optimization problem for quadratic equations, we have to optimize
-	
-	\begin{equation}
-		\min_{x \in \mathbb{R}^n} \dfrac{1}{2} x^T H x - g^T x
-	\end{equation}
+	\\\\
+	That is why there have been some approaches to introduce a regularization term \cite{sohl2012natural}. Regularizing the matrix inverse can for example be done by a technique called stochastic robust approximation \cite{boyd2004convex}, where $G^{-1}$ is replaced by \(G^{-1}_{\text{reg}} = \left( G^T G + \epsilon I \right)^{-1} G^T\) and $\epsilon$ denotes a small constant (e.g 0.01).
+	\\\\
+	Witsch et al. use an approach similar to least squares regularization \cite{witsch2011enhancing}: \( \widetilde{ \nabla }_{\theta} J(\theta) = \left( F + \lambda I \right)^{-1} \nabla_\theta J(\theta)\). If $\lambda$ is huge, the Fisher matrix only has a small influence on the change in direction. Therefore, we want to scale $\lambda$ regarding $F$: \(\lambda = \tfrac{\alpha}{\text{det}(F) + 1}\), where $\alpha$ is small constant, e.g. $0.01$.
+	\\\\
+	Another idea is the application of ridge regression \cite{hoerl1970ridge}, which has a build in regularizer. We can calculate $\widetilde{\nabla}_{\theta} J(\theta)$ by solving the linear equation \(G(\theta) \widetilde{\nabla}_{\theta} J(\theta) = \nabla_{\theta} J(\theta)\) in the direction of $\widetilde{\nabla}_{\theta} J(\theta)$.
+	\\\\
+	\parTitle{POMDPs} There have been first approaches to apply the NAC to POMDPS. A promising approach is the Natural Actor and Belief Critic \cite{jurvcivcek2011natural}, which modifies NAC to learn parameters using belief states in statistical dialogue systems.
 
 % ---------------------- Discussion --------------------------------- %
 
 \section{Discussion}
+\label{sec:discussion}
 
-Some sources claim that the eNAC and the NAC-LSTD algorithms use a biased estimate of the natural gradient \cite{thomas2014bias}.
+In this paper we described the natural gradient, the natural actor critic algorithm and modifications which have been applied to the NAC in the last years. NAC is a state of the art algorithm which can be applied model-free and with continuous action spaces. It has been reported, that NAC converges faster than vanilla gradient methods and that it can jump out of plateaus. These are key advantages why we expect to see more use of NAC's in the future. 
 
+Disadvantages are clearly the need to invert a matrix and the extinction of variance. For the first, people may need to come up with a solution to faster invert matrices or even how to avoid the estimation. The latter has already been tackled by some algorithms, namely TRPO and PPO. A very alarming study claims that NAC methods exhibit, in contrast to the expectations, a bias \cite{thomas2014bias}. Further research have to shed light on this issue.
+
+Further, some of the modifications still need application to real-world problems to assess their ultimate utility. Most of the times the modifications are only applied in a special way and further research is needed to incorporate eligiblity traces, least-squares methods, online implementation extend it to the deterministic policy gradient method.
+
+\iffalse
+\begin{itemize}
+	\x Incremental: There are a number of ways in which our results are limited and suggest future work. 1) It is important to characterize the quality of the converged solutions, either by bounding the performance loss due to bootstrapping and approximation error, or through a thorough empirical study. 2) The algorithms can be extended to incorporate eligibility traces and least-squares methods. As discussed earlier, the former seems straightforward whereas the latter requires more fundamental extensions. 3) Application of the algorithms to real-world problems is needed to assess their ultimate utility.
+	
+	\x FNAC: The work portrayed here also suggests several interesting avenues for future research. First of all, and although not discussed in the paper, an online implementation of our algorithm can easily be obtained by an iterative implementation of the regression routines. Our convergence result holds if the relative weight of each sample in the data-set is stored (in terms of sampling policy). 
+	
+	Also, our initial experimental results illustrate the eﬃcient use of data of our algorithm, since FNAC could attain good performance, reusing the same dataset at every iteration. Currently we are exploring the performance of the algorithm in more demanding tasks (namely, robotic grasping tasks encompassing high-dimensional state and action spaces). It would also be interesting to have some quantitative evaluation of the advantages of FNAC in face of other methods for MDPs with continuous state-action spaces. However, a direct comparison is not possible: in the current implementation of FNAC, the data gathering process is completely decoupled from the actual algorithm, while in most methods both processes occur simultaneously, thus impacting the corresponding learning times. On a more general perspective, the critic component in FNAC estimates at each iteration the value function V θ by minimizing the empirical Bellman residual. Approximations relying on Bellman residual minimization are more stable and more “predictable” than TD-based approaches [28]. It would be interesting to further explore these results to gain a deeper understanding of the advantages of this type of approximation in the setting considered here. Finally, the simple and elegant results arising from the consideration of natural gradients suggests that it may be possible to further extend this approach and make use of higher-order derivatives (e.g., as in Newton-like methods) to develop policy search methods for RL problems.
+\end{itemize}
+\fi
 
 
 

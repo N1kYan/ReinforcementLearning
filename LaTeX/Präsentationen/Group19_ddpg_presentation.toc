@@ -1,0 +1,2 @@
+\babel@toc {english}{}
+\beamer@sectionintoc {1}{Deep Deterministic Policy Gradient}{2}{0}{1}
