@@ -50,6 +50,7 @@ grestore
 \usepackage{amsmath}
 \usepackage{algorithm}
 \usepackage{algorithmic}
+\usepackage{verbatim}
 \renewcommand{\algorithmicrequire}{\textbf{Initialize:}}
 
 %TODO Zitierweise ändern, sieht schrecklich aus
@@ -108,58 +109,44 @@ TODO
 
 \section{Introduction}
 \label{sec:intro}
-%TODO Maybe rewrite this
-%TODO Brief introduction about RL and brief description of DPG, DQN and DDPG and their connections
-%TODO Purpose of this paper
-The field of Reinforcement Learning deals with solving problems that are accessible through the interaction of an agent with it's environment. Such problems can be defined as Markov Decision Processes [x], which consist of a tuple $(S, A, R, P, \gamma)$, where $S$ is the state-distribution, $A$ is the action-distribution, $R:S,A\rightarrow r$ is the reward function mapping states and actions to a scalar reward $r$, $P:S,A\rightarrow S$ is the state transition function mapping states and actions to states, and $\gamma$ is the discount factor used to make an agent more or less farsighted.\\
-For many applications the environment details, i.e. $R$ and $P$, are not available. This requires the use of so called model-free algorithms. An early one was Q-Learning [x], which updates an internal representation of the action-value function $Q(s,a)$ by the temporal-difference error [EDIT: EXPLAIN BETTER].\\
-The internal representation of this function is not tractable for large state-action spaces. This problem is addressed by value function methods, e.g. the DQN-Algorithm \citep{mnih2013playing}, which is an adaption to Q-Learning, where the action-value function is approximated with deep neural networks.\\
-Instead of approximating the value-function, one could also approximate the policy $\pi(s|a)$ directly. 
-[EDIT: BRIEFLY DESCRIBE DPG]\\
-Actor critic methods \citep{konda2000actor} approximate the value-function as well as the policy.
-Finally, the Deep Deterministic Policy Gradient (DDPG) approach \citep{lillicrap2015continuous} combines the above mentioned methods to an actor critic algorithm using neural network function approximation for the policy and the action-value function, which learns a deterministic policy.\\
-We will give more detailed insights into the algorithms and how DDPG evolved from them in the next section, before we describe some possible extensions to it in section \ref{sec:1}.
+The field of reinforcement learning deals with solving problems that are accessible through the interaction of an agent with its environment. Such problems can be defined as \textit{Markov Decision Processes} \citep{howard1960dynamic}, which consist of a tuple $(S, A, R, P, \gamma)$, where $S$ is the state-distribution, $A$ is the action-distribution, $R:S\times A\rightarrow {\rm I\!R}$ is the reward function mapping states and actions to a scalar reward $r\in{\rm I\!R}$, $P:S\times  A \rightarrow S$ is the state transition function mapping states and actions to states, and $\gamma$ is the discount factor used to make an agent more or less farsighted. The goal of an agent can then be defined by finding an optimal policy $\pi^*:S\rightarrow A$ that determines when to take which action in order to maximize the observed reward. This is equal to taking the action that maximizes the optimal action-value function $Q^*:S \times A \rightarrow {\rm I\!R}$ that defines the value of state-action pairs $(s, a)$.\\ 
+For many applications the environment details, i.e. $R$ and $P$, are not available and the agent can only observe the state $s$ of his environment, perform an action $a$ in it and observe an immediate reward $r$ and a successor state $s'$. This requires the use of so called model-free algorithms, e.g. \textit{Q-Learning} \citep{watkins1992q}, which updates an internal representation of the action-value function $Q(s,a)$ by the temporal-difference error between the current and the successor state after performing an action. The internal lookup-table representation of this algorithm is not tractable for large state-action spaces. This problem is addressed by \textit{value function methods}, e.g. the \textit{Deep Q-Learning} (DQN) algorithm \citep{mnih2013playing}, which is an adaption to Q-Learning where the action-value function is approximated with a deep neural network. Instead of approximating the value-function one could also approximate the policy $\pi(s|a)$ directly, known as \textit{policy-gradient methods}. \textit{Actor-critic methods} \citep{konda2000actor} approximate the value-function as well as the policy.\\
+Finally, the \textit{Deep Deterministic Policy Gradient} (DDPG) approach \citep{lillicrap2015continuous} combines the above mentioned methods with the \textit{Deterministic Policy Gradient} (DPG) \citep{silver2014deterministic} to an actor-critic algorithm using neural networks to approximate the policy and the action-value function while learning a deterministic policy.\\
+We will give more detailed insights into the mentioned algorithms and how DDPG evolved from them in the next sections before we describe some possible extensions for it in section \ref{sec:improvements}.
 
-\section{Preliminaries}
-The general goal of an reinforcement learning algorithm is to find an optimal behavior policy $\pi(a|s)$, or $\pi(s)$ in the deterministic case, which maximizes the expected total reward an agent collects while following it. An optimal policy can be defined by 
-%TODO E richtig darstellen
+\section{Deep Q-Learning}
+\label{sec:pre}
+The general goal of a reinforcement learning algorithm is to find an optimal behavior policy $\pi^*(a|s)$ or $\pi^*(s)$ in the deterministic case, which maximizes the expected total reward an agent collects while following it during an episode. Such an optimal policy can be defined by 
 \[ 
-\pi^*(a|s)=\max_a Q^*(s,a)=E \left[
+\pi^*(a|s)=\max_a Q^*(s,a)=\max_a {\rm I\!E} \left[
 \sum_{t=0}^{T}\gamma^{t}r_t\right] 
 \]
-Where $t$ is the current time-step and $T$ the final time-step ending an episode.
-This policy is just greedily choosing the action maximizing the optimal action-value function $Q^*(s,a)$. By definition this optimal value function yields the bellman equation \citep{sutton2018reinforcement} and can be reinterpreted as maximizing the current reward and the discounted action-value of the resulting state. In formula this gives:
-%TODO E
+[EDIT: REFORMULATE EQUATION]
+where $t$ is the current time-step and $T$ the final time-step ending the episode.
+This policy is greedily choosing the action maximizing the optimal action-value function $Q^*(s,a)$. By definition, this optimal value function yields the bellman equation \citep{sutton2018reinforcement} and can be reinterpreted as maximizing the current reward and the discounted action-value of the resulting state. The function can be rewritten as
 \[
-Q^*(s,a) = E_{s'\sim P(s,a), r\sim R(s,a)}\left[
-r + \gamma \max_{a'}Q^*(s',a')|s,a \right]
+Q^*(s,a) = {\rm I\!E} \left[
+r(s,a) + \gamma \max_{a'}Q^*(s',a')|s,a \right]
 \]
-\subsection{Q-Learning}
-The Q-Learning approach [x] calculates the optimal value function by ...
-\subsection{Deep Q-Learning}
-\nocite{mnih2015human}
-\label{sec:DQN}
-The Deep Q-Network approach (DQN) \citep{mnih2013playing} combines the approximation power of neural networks with the traditional Q-learning. The algorithm is an off-policy, model-free approach and is able to find a close to optimal action-value function for many cases [x] and from this a close to optimal policy. For approximating the action-value function $Q(s,a|\theta)\approx Q(s,a)$ the approach uses a deep neural network with parameters $\theta$, called the Q-Network.
-The Q-Network can be trained by sequentially minimizing the loss function $L_i(\theta)$, depending on the parameters
+The \textit{Q-Learning} approach \citep{watkins1992q}, one of the earliest reinforcement learning methods, uses lookup-tables to represent the policy $\pi(a|s)$ and action-value function $Q(s,a)$. The optimal action-value function is calculated by applying the bellman equation using the temporal difference error from current to successor states. The iterative update rule is 
 \[
-L^{(i)}(\theta)=E_{s,s'\sim\rho^\pi,a\sim\pi^\theta}
-\left[\left(r+\gamma \max_{a'} Q(s', 
-a'|\theta^{(i-1)})-Q(s,a|\theta^{(i)})\right)^2\right] 
+Q^{(i+1)}(s,a) \leftarrow (1-\alpha) Q^{(i)}(s,a) + \alpha \left( r + \gamma \max_{a'} Q^{(i)}(s',a') \right)
 \]
-%TODO E richtig machen
-This loss function is similar to the classical temporal-difference loss used in Q-Learning, but with approximated action-value functions instead of lookup-tables. Derivating this loss w.r.t. the approximation's weights gives:
-%TODO clarify rho and epsilon!!!
+where $\alpha$ is a learning rate hyper-parameter. This update rule is proven to converge to the optimal action-value function using a lookup-table representation [x], but becomes intractable for large state-action spaces. \\
+The \textit{Deep Q-Learning} approach (DQN) \citep{mnih2013playing} combines the approximation power of neural networks with traditional Q-learning to overcome this issue. The algorithm is an off-policy, model-free approach and is able to find a close to optimal action-value function for many cases \citep{mnih2015human}, and from this a close to optimal policy. For approximating the action-value function $Q(s,a|\theta)\approx Q(s,a)$ the approach uses a deep neural network with parameters $\theta$, called the Q-Network.
+This network can be trained by sequentially minimizing the loss function $L_i(\theta)$ depending on the parameters
 \[
-\nabla_{\theta^{(i)}}L^{(i)}(\theta)=E_{s,s'\sim\rho^\pi,a\sim\pi^\theta}
-\left[\left(r+\gamma \max_{a'} Q(s', 
+L^{(i)}(\theta)={\rm I\!E} \left[\left(r+\gamma \max_{a'} Q(s',a'|\theta^{(i-1)})-Q(s,a|\theta^{(i)})\right)^2\right] 
+\]
+This loss function is similar to the temporal-difference loss used in Q-Learning but with approximated action-value functions instead of lookup-tables. Derivating this loss w.r.t. the approximation's weights yields the gradient
+\[
+\nabla_{\theta^{(i)}}L^{(i)}(\theta)={\rm I\!E} \left[\left(r+\gamma \max_{a'} Q(s', 
 a'|\theta^{(i-1)})-Q(s,a|\theta^{(i)})\right)\nabla_{\theta^{(i)}}Q(s,a|\theta^{(i)})\right] 
 \]
 The expectation can be approximated by sampling from an environment and this gradient can be used to optimize the loss function by using stochastic gradient descent.\\
-Furthermore, a replay buffer is used which stores samples of the environment. This allows random mini-batch sampling, which decorrelates the samples and is proven to improve the data efficiency [x]. The mini-batch sampling also enables the use of improved derivatives of vanilla stochastic gradient descent, e.g. \textit{RPROP} as in the \textit{Neural Fitted Q-Learning} approach \citep{riedmiller2005neural} or \textit{ADAM Update} \citep{kingma2014adam}.\\
-%TODO Rewrite the target network stuff
-There are different ways of estimating the expected Q-values. Either with a target network with the same structure as the network for the action-value function or the normal network. If a target network is used, the target weights need to be updated after some training steps \citep{mnih2015human}.\\
-A pseudo-code for the DQN approach can be found in algorithm \ref{DQN-algo}.
-The DQN approach was able to significantly outperform earlier learning methods despite incorporating almost no prior knowledge about the inputs \citep{mnih2013playing}. However, it is limited by the disability to cope with continuous and high-dimensional action spaces due to the max operator in the action selection \citep{lillicrap2015continuous}. This limitations can be adressed by combining the approach with the Deterministic Policy Gradient, which is described in the following section.
+Most optimization algorithms for neural networks assume independently and identically distributed data, which does not hold for experience samples sequentially generated by an agent interacting with its environment. Therefore, an \textit{experience replay buffer} is used, which stores a fixed amount of samples of the environment. This allows random mini-batch sampling, which temporarily decorrelates the samples and ensures a fixed size of updates, unlike using whole trajectories of the agent. It furthermore improves the data efficiency as single episodes might potentially be used in several update steps. Sampling mini-batches also enables the efficient use of hardware optimization. This could be improved further by using empowered derivatives of stochastic gradient descent, e.g. \textit{RPROP} as in the \textit{neural fitted Q-Learning} approach \citep{riedmiller2005neural} or \textit{ADAM update} \citep{kingma2014adam}.\\
+Using the approximated action-value function $Q(s,a|\theta)$ directly to calculate the target for the update of itself turned out to be unstable in many cases \citep{mnih2015human}. This problem can be addressed by using a \textit{target network}, which is initialized with the same structure and parameters as the Q-network. This target network is only updated after a fixed amount of time-steps.\\
+A pseudo-code for the DQN approach can be found in algorithm \ref{DQN-algo}. It was able to significantly outperform earlier learning methods despite incorporating almost no prior knowledge about the inputs \citep{mnih2013playing}. However, it is limited by the disability to cope with continuous and high-dimensional action spaces due to the max operator in the action selection \citep{lillicrap2015continuous}. These limitations can be addressed by combining the approach with the \textit{Deterministic Policy Gradient} \citep{silver2014deterministic}, which is described in the following section.
 
 \begin{algorithm}
 	\caption{Deep Q-Learning (DQN)}\label{DQN-algo}
@@ -196,87 +183,54 @@ The DQN approach was able to significantly outperform earlier learning methods d
 \end{algorithm}
 
 
-\subsection{Deterministic Policy Gradient}
+\section{Deterministic Policy Gradient}
 \label{sec:DPG}
-Most problems in reinforcement learning consist of a continuous action space which makes it very difficult to greedily choose the best action given a policy, due to the max operator. From a stochastic point of view, the policy is a probability distribution $a\sim\pi(a|s)$ over all actions. In order to calculate the gradient of a parameterized policy $\pi(a,s|\theta)$ over the total reward w.r.t. the weights, one needs to solve an integral over all actions and states, which becomes intractable for large state-action spaces.
-From a deterministic view the policy is a discrete mapping from states to actions $a=\pi(s)$ and thus only one integration over the state space is sufficient.\\ 
-%TODO Explain likelihood ratio gradients?
-The \textit{policy gradient theorem} \citep{sutton2018reinforcement} gives the update rule for a parameterized policy, optimizing the loss function: 
+Many model-free reinforcement learning algorithms adapt the \textit{generalized policy iteration} which consist of interleaving steps of \textit{policy evaluation} and \textit{policy improvement} \citep{sutton2018reinforcement}. The most common approach to the policy improvement step for a deterministic policy is to greedily select the action maximizing the (estimated) action-value function
 \[
-\nabla_{\theta}J(\theta)=E_{s\sim\rho^\pi,a\sim\pi_\theta}
-\left[\nabla_\theta \log \pi_\theta(a|s)Q^\pi(s,a)\right] 
+\pi(s) = \arg\max_a Q(s, a)
 \]
-From this, a deterministic approach is derived in [EDIT: by?] [\cite{silver2014deterministic}], which gives the update rule for a parameterized deterministic policy function $\pi(s|\theta)$. Rather than trying to maximize the action-value function $Q(s,a)$ globally by greedy improvements of the policy, the authors move the policy in the direction of the gradient of $Q(s,a)$:
+Though most problems in reinforcement learning consist of a continuous action space what makes it very difficult to greedily choose the best action given a policy because the max operator in the policy improvement step would require a global optimization at every iteration.\\ 
+Rather than trying to maximize the action-value function $Q(s,a)$ globally by greedy improvements of the policy, one could move the policy in the direction of the gradient of $Q(s,a)$ w.r.t. the policy's parameters:
 \[
-\nabla_{\theta^\pi}J\approx E_{s\sim\rho^\pi}\left[\nabla_{\theta^\pi}Q(s,a|\theta^Q)\right]
+\nabla_{\theta^\pi}J(\theta^\pi)\approx {\rm I\!E}\left[\nabla_{\theta^\pi}Q(s,a)\right]
 \]
-%TODO s  ... Beta or Pi?
-Applying the chain rule to this equation gives the \textit{deterministic policy gradient (DPG) theorem}:
+Applying the chain rule to this equation leads to the \textit{deterministic policy gradient (DPG) theorem}:
 \begin{align*}
-\nabla_{\theta^\pi}J\approx E_{s\sim\rho^\pi}\left[\nabla_aQ(s,a|\theta^Q)|_{a=\pi(s|\theta^\pi)} \nabla_{\theta^\pi}\pi(s|\theta^\pi)\right]
+\nabla_{\theta^\pi}J(\theta^\pi)\approx {\rm I\!E}\left[\nabla_aQ(s,a)|_{a=\pi(s|\theta^\pi)} \nabla_{\theta^\pi}\pi(s|\theta^\pi)\right]
 \end{align*}
-where the expectation can again be approximated by sampling from an environment.
-Only using deterministic action outputs will vanish the algorithms exploration, so one needs to make sure there still is exploration [EDIT: FORMULATION]. This is realized by using an off-policy approach which follows a stochastic policy while learning a deterministic policy. The authors also introduce the notion of \textit{compatible function approximation}.
-[EDIT: DESCRIBE] Using these to estimate the gradient, an unbiased approximation is guaranteed.\\
-The following section describes a typical structure of how to use deep neural networks for function approximation in reinforcement learning. Together with this section this led to the algorithm described in chapter \ref{sec:DDPG}.
+where the expectation can again be approximated by sampling from an environment.\\
+The deterministic policy gradient is potentially more sample efficient especially for large action spaces as it only requires integrating over the state space
+\[
+\nabla_{\theta^\pi}J(\theta^\pi) = \int_{\mathit{S}}\rho^\pi(s) \nabla_{\theta^\pi}\pi(s|\theta^\pi)\nabla_a Q(s,a)|_{a=\pi(s)} ds
+\]
+while the stochastic policy gradient \citep{sutton2018reinforcement} requires integrating over the state and the action space
+\[
+\nabla_{\theta^\pi}J(\theta^\pi)=\int_{\mathit{S}}\rho^\pi(s)\int_{\mathit{A}}\nabla_{\theta^\pi}\pi(a|s,\theta^\pi)Q(s, a) da ds
+\]
+where $\rho^\pi(s)$ is distribution of visited states depending on the current (parameterized) policy in both cases.\\
+Using only deterministic action outputs will make an agent fully exploiting what it already knows, so one needs to make sure there still is exploration. This is realized by using an off-policy approach, which follows a stochastic policy while learning a deterministic policy and could be implemented by simply adding some noise to the policy output. The following section describes an actor-critic architecture combining the above mentioned methods [EDIT: TO...?].
 
-\subsection{Actor-Critic Methods}
-\label{sec:actor-critic}
-A lot of recent success in reinforcement learning is based on \textit{Actor-Critic} methods [\cite{konda2000actor}].
-In contrast to value-function or policy-gradient methods, they parameterize both, the value function $Q(s,a) \approx \hat{Q}(s,a|\theta^Q)$, also known as the \textit{Critic}, and the policy $\pi(s|a) \approx  \hat{\pi}(s|a,\theta^\pi)$. To get an intuition about these methods figure \ref{fig:actor-critic} illustrates the update-cycle:
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.4\linewidth]{actor-critic}
-	\caption{Intuition about actor-critic methods (figure from 
-	\cite{sutton2018reinforcement})}
-	\label{fig:actor-critic}
-\end{figure}
-While the actor learns how to choose the right action and is responsible to update his policy, the critic has to learn and update the parameters of the state-value function. The actors' and the 
-critics' parameters can be updated following the TD-error of the critic which is computed from 
-the observed reward and the current error of the estimated state values in every time-step. As Fig. 
-\ref{fig:actor-critic} illustrates, the actor has no information about the 
-current reward and the critic has no direct influence on the actions.  
-%TODO direct influence richtig formuliert?
-A pseudo-code for an actor-critic method using TD-errors [x] is shown in algorithm \ref{actor-critic-algo}.
-\begin{algorithm}
-	\caption{Episodic One-step Actor-Critic for Estimating $\pi(a|s,\theta^\pi) \approx \pi^*(a|s)$}\label{actor-critic-algo}
-	\begin{algorithmic}
-		\REQUIRE Differentiable policy parameterization $\pi(a|s,\theta^\pi)$
-		\REQUIRE Differentiable action-value function parameterization $Q(s,a|\theta^Q)$
-		\REQUIRE Random initial weights $\theta^\pi$ and $\theta^Q$
-		\REQUIRE Step size parameters $\alpha^Q > 0$ and $\alpha^\pi >0$
-		\REQUIRE Discount factor $\gamma$
-		\FOR{episode $1$ \TO $M$}
-		\STATE Get initial state s
-		\STATE $i \leftarrow 1$
-		\FOR{time-step 1 to T}
-		\STATE{Draw action from actor: $a\sim\pi(s|a,\theta^\pi)$}
-		\STATE{Do action a, observe reward r and successor state $s'$}
-		\STATE{Calculate the TD-error:\\
-		\qquad $\delta \leftarrow r + \gamma \max_a' Q(s',a'|\theta^Q) - Q(s,a|\theta^Q)$}
-		%TODO Check if TD-error is correct for Q-Function
-		\STATE{Update the weights:\\
-		\qquad $\theta^Q \leftarrow \theta^Q + \alpha^Q\delta\nabla_{\theta^Q}Q(s,a|\theta^Q)$\\
-		\qquad $\theta^\pi \leftarrow \theta^\pi + \alpha^\pi i \delta\nabla_{\theta^\pi}\log\pi(a|s,\theta^\pi)$}
-		\STATE{Update:\\
-		\qquad $i \leftarrow \gamma i$\\
-		\qquad $s \leftarrow s'$}		
-		\ENDFOR
-		\ENDFOR
-	\end{algorithmic}
-\end{algorithm}
 
 \section{Deep Deterministic Policy Gradient}
 \label{sec:DDPG}
-\nocite{lillicrap2015continuous}
-The combination of above approaches led to the \textit{Deep Deterministic Policy Gradient (DDPG)} approach [\cite{lillicrap2015continuous}], which is a model-free and off-policy algorithm. It can be grouped into the class actor-critic methods and uses a deterministic target policy and deep Q-Learning. Both, the actor and the critic, are realized by deep neural networks. The pseudo-code for DDPG can be found in \ref{DDPG-algo}.\\
-It consists of a parameterized deterministic policy, the actor, $\pi(s|\theta^\pi)$ and a parameterized action-value function $Q(s,a|\theta^Q)$, the critic. The critic is updated using the \textit{Bellman Equation} with a TD-error similar in Q-Learning [\cite{watkins1992q}] [EDIT: EQUATION?] and the actor is updated using the DPG theorem [EDIT: LINK? EQUATIONS WITH NUMBERS?].\\
-The use of neural networks to parameterize the above functions means that the convergence guarantees do not hold anymore. Therefore the Actor-Critic DPG approach is combined with recent successes from DQN.\\
-To ensure independently and identically distributed data, the authors use a replay buffer and sample random mini-batches from it. This again decorrelates the samples and allows the efficient use of hardware optimization, e.g. the ADAM update [\cite{kingma2014adam}].\\
-To adress instability issues from applying deep neural network approximation to Q-Learning they also use \textit{target networks} which are copies of the actor $\pi'(s|\theta^{\pi'})$ and the critic $Q'(s,a|\theta^{Q'})$. These target-networks track the learned networks and are constrained to slow changes by using soft updates: $\theta' \leftarrow \tau\theta + (1-\tau)\theta'$ with $\tau << 1$. These consistent targets might slow down the learning process but greatly improve the stability of it.\\
-Using low dimensional feature input might give very different scales for the single states. This can lead to problematic learning for the neural networks and is adresses by using \textit{batch normalization} which normalizes each dimension across the samples in a mini-batch.\\
-To ensure exploration while using a deterministic policy, a noise process $\mathit{N}$ is added to the action output of the actor network. This noise process can be chosen to suit the environment. 
-\begin{algorithm}
+The combination of above approaches led to the \textit{Deep Deterministic Policy Gradient (DDPG)} approach \citep{lillicrap2015continuous}, which is a model-free and off-policy algorithm that uses actor-critic methods, a deterministic target policy and deep Q-Learning. Both, the actor and the critic, are realized by deep neural networks. The pseudo-code for DDPG can be found in \ref{DDPG-algo}.\\
+It consists of a parameterized deterministic policy, the actor, $\pi(s|\theta^\pi)$ and a parameterized action-value function $Q(s,a|\theta^Q)$, the critic. The critic is updated using the \textit{bellman equation} with a TD-error similar to Q-Learning \citep{watkins1992q} resulting in the loss function
+\[
+J(\theta^Q)={\rm I\!E}\left[
+Q(s,a|\theta^Q)-(r(s,a) + \gamma Q(s', \pi(s'|\theta^\pi)|\theta^{Q}))^2\right]
+\]
+The actor is updated using the DPG theorem:
+\[
+\nabla_{\theta^\pi}J\approx {\rm I\!E}\left[\nabla_aQ(s,a|\theta^Q)|_{a=\pi(s|\theta^\pi)} \nabla_{\theta^\pi}\pi(s|\theta^\pi)\right]
+\]
+The use of neural networks to parameterize the above functions implies that convergence guarantees do not hold anymore. Therefore, the actor-critic DPG approach is combined with recent successes from DQN:\\
+To ensure independently and identically distributed data, the authors use a \textit{experience replay buffer} and sample random mini-batches from it. This again decorrelates the samples and allows the efficient use of hardware optimization.\\
+To address instability issues from directly combining the deep neural network approximation and the DPG theorem, they also use \textit{target networks} which are copies of the actor $\pi'(s|\theta^{\pi'})$ and the critic $Q'(s,a|\theta^{Q'})$. These target-networks track the learned networks and are constrained to slow changes by using soft updates: $\theta' \leftarrow \tau\theta + (1-\tau)\theta'$ with $\tau \ll 1$. These consistent targets might slow down the learning process but greatly improve the stability of it, because using an older set of parameters to generate the targets adds a delay between the time we update our functions and the time these updates affect our targets. This makes divergence or oscillations during the learning process much more unlikely \citep{mnih2015human}.\\
+Using low dimensional feature input might give very different scales for the single states, e.g. the angle of a joint which is bounded to $[-\pi, \pi]$ and the angular velocity which is potentially unbounded. This can lead to problematic learning for the neural networks and is addressed by using \textit{batch normalization}, which normalizes each dimension across the samples in a mini-batch.\\
+To ensure exploration while using a deterministic policy, a \textit{noise process} $\mathit{N}$ is added to the action output of the actor network. This noise process can be chosen to suit the environment, e.g. a time-dependent Ornstein-Uhlenbeck process \citep{ricciardi1979ornstein} or a consistent Gaussian noise \citep{barth2018distributed}.\\
+The algorithm was evaluated on more than 20 simulated physical tasks using the same algorithm, network structures and hyper-parameters including classic control problems like the cart-pole environment. Using low-dimensional feature input, it was able to find close to optimal policies for most of the tasks. Their performance is competitive with those found by a controller with full access to the environment. The algorithm was also able to find good policies using high dimensional pixel input. For simple tasks this turned out to be as fast as using low dimensional state features.\\
+The most challenging issues of the approach are his still poor sample efficiency and instabilities during learning. We present some possible extensions to DDPG in the next chapter which might improve on these issues.
+\begin{algorithm} [H]
 	\caption{Deep Deterministic Policy Gradient (DDPG)}\label{DDPG-algo}
 	\begin{algorithmic}
 		\REQUIRE Replay buffer $\mathit{D}$ with high capacity
@@ -302,33 +256,25 @@ To ensure exploration while using a deterministic policy, a noise process $\math
 		\ENDFOR
 	\end{algorithmic}
 \end{algorithm}
-The algorithm was evaluated on more than 20 simulated physical tasks using the same algorithm, network structures and hyper-parameters, including classic control problems like the cart-pole environment. Using low-dimensional feature input, it was able to find policies performing really well on most of the tasks. Their performance is competitive with these found by a controller with full access to the environment. The algorithm is even able to find good policies using high dimensional pixel input. For simple tasks this turned out to be as fast as using low dimensional state features.\\
-The most challenging issues of the approach are his poor sample efficiency and some instabilities. We present some possible extensions to DDPG in the next chapter which might improve on these issues.
-\\
-\\
-\\
-TODO:
-\begin{itemize}
-\item discretizing the action space often suffers from the course of dimensionality
-\item naive extension of DPG with nns turns out to be unstable for challenging problems
-\end{itemize}
 
 
 \section{Improvements for DDPG}
-Despite it's good performance on many simulated tasks there is still some room to improve the DDPG algorithm. We show some possible extensions for it in this section.
-\subsection{Using importance sampling to sample from the replay-buffer}
-In practice the algorithm is limited by the maximum storage size $\mathit{N}$ of the replay-buffer $\mathit{D}$. Overwriting older samples by current ones does nowhere differentiate between more or less important experiences, because uniform random samples does weight all experiences equally. One could use a technique similar to \textit{prioritized sweeping} [\cite{moore1993prioritized}] which uses \textit{importance sampling} [\cite{glynn1989importance}] to prefer transitions which are more important over ones that have less value for the training process. 
-\subsection{Using Action Noise in Parameter Space}
-Instead of adding noise to the action space to ensure exploration, one could add adaptive noise directly to the parameters of the neural network [\cite{plappert2017parameter}]. This would add some randomness into the parameters of the agent and therefore into the decision it makes, while still always fully depending on it's current observation about it's environment. This parameter noise makes an agent's exploration more consistent and results in a more effective exploration, increased performance and smoother behavior. 
-\subsection{Evolutionary Approaches}
-One can consider an even more extreme case of the above mentioned extension, which would be the use of \textit{Evolutionary Strategies} to approximate the gradient of our objective function [\cite{salimans2017evolution}]. This does not require back-propagation at all and is competitive with sate of the art RL.
-\subsection{Improvements of the Deep Neural Network Architectures}
-TODO
-\label{sec:1}
+\label{sec:improvements}
+Despite its good performance on many simulated tasks there, is still some room to improve the algorithm's data efficiency and overcome its instabilities during training. We present some possible extensions for it in this section.\\
+In practice, the algorithm is limited by the maximum storage size $\mathit{N}$ of the replay-buffer $\mathit{D}$. Overwriting older samples by current ones when the maximum size is reached, does not differentiate between more or less important experiences because uniform random sampling does weight all experiences equally. One could use a technique similar to \textit{prioritized sweeping} \citep{moore1993prioritized}, which uses \textit{importance sampling} \citep{glynn1989importance} to prefer transitions that are more important over ones that have less value for the training process. This could be implemented by using non-uniform priorities, as in \citep{schaul2015prioritized,barth2018distributed}.\\
+Instead of adding noise to the action space to ensure exploration, one could add adaptive noise directly to the parameters of the neural network \citep{plappert2017parameter}. This would add some randomness into the parameters of the agent and therefore into the decision it makes, while still always fully depending on it's current observation about it's environment. This parameter noise makes an agent's exploration more consistent and results in a more effective exploration, increased performance and smoother behavior. 
+It can be seen as a less extreme case of the use of \textit{Evolutionary Strategies} to approximate the gradient of our objective function \citep{salimans2017evolution}. These would not require back-propagation at all and might still be competitive with state of the art reinforcement learning algorithms.\\
+The actor and critic updates rely completely on sampling from the experience replay buffer. Therefore, this process could be parallelized using multiple independent actor, all writing to the same buffer. Significant time-savings could be achieved by this parallelization in the \textit{Distributed Distributional Deterministic Policy Gradient} (D4PG) algorithm  \citep{barth2018distributed}.\\
+This algorithm did furthermore adopt a distributional version of the critic update from \citep{bellemare2017distributional}. These distributions model the randomness due to intrinsic factors, including the underlying uncertainty from using function approximation in a continuous space. These distributional updates result in better gradients and therefore improve the performance and stability of the learning progress \citep{barth2018distributed}.\\
+Instead of only using the return of the successor state, one could also use the \textit{n-step return} when estimating the temporal difference error \citep{barth2018distributed}. We hypothesize one could go even further and utilize the \textit{TD($\lambda$)-return} by using \textit{eligibility traces} \citep{tesauro1995temporal}.\\
+The last point of this section addresses the use of neural networks to approximate the actor and the critic. The mentioned papers use relatively simple network architectures that leave a lot of room for improvement, especially when using convolutional neural networks for processing high-dimensional image data in pixel space. A lot of techniques have been implemented in the deep-learning community which might also help in our case, e.g. the use of \textit{weight sharing} \citep{nowlan1992simplifying}, \textit{pooling layers} \citep{zeiler2013stochastic} or \textit{dropout layers} \citep{srivastava2014dropout}. One could experiment with much more complex network architectures, e.g. the \textit{AlexNet}, \textit{VGGNet} or \textit{GoogLenet}, with \textit{ResNet} \citep{he2016deep}, or even with \textit{recurrent neural networks} \citep{haykin1994neural} to process sequences of states instead of single ones. 
+
 
 \section{Conclusion}
 \label{sec:conclusion}
+We presented a state of the art reinforcement learning algorithm DDPG that evolved from the successful DQN algorithm by combining it in an actor-critic fashion with the DPG theorem. The algorithm is already able to solve a lot of simulated and real physical tasks and has several advantages over other reinforcement learning methods, e.g. the output of a fully deterministic policy and the ability to deal with the exploration-exploitation dilemma completely separated from the learning algorithm by implementing suiting action noises for exploration. Though it still suffers from a poor sample efficiency and instabilities during the learning progress. These issues could be addressed by our presented improvements, many of which have already been realized in the D4PG algorithm. Further evaluations are needed to prove the improvements [...] that we expect from those methods.
 
+\newpage
 %\begin{acknowledgements}
 %If you'd like to thank anyone, place your comments here
 %and remove the percent signs.

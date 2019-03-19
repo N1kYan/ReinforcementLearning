@@ -1,4 +1,4 @@
-\begin{thebibliography}{13}
+\begin{thebibliography}{24}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{{#1}}
 \providecommand{\urlprefix}{URL }
@@ -8,9 +8,32 @@
   \urlstyle{rm}\Url}\fi
 \providecommand{\eprint}[2][]{\url{#2}}
 
+\bibitem[{Barth-Maron et~al.(2018)Barth-Maron, Hoffman, Budden, Dabney, Horgan,
+  Muldal, Heess, and Lillicrap}]{barth2018distributed}
+Barth-Maron G, Hoffman MW, Budden D, Dabney W, Horgan D, Muldal A, Heess N,
+  Lillicrap T (2018) Distributed distributional deterministic policy gradients.
+  arXiv preprint arXiv:180408617
+
+\bibitem[{Bellemare et~al.(2017)Bellemare, Dabney, and
+  Munos}]{bellemare2017distributional}
+Bellemare MG, Dabney W, Munos R (2017) A distributional perspective on
+  reinforcement learning. In: Proceedings of the 34th International Conference
+  on Machine Learning-Volume 70, JMLR. org, pp 449--458
+
 \bibitem[{Glynn and Iglehart(1989)}]{glynn1989importance}
 Glynn PW, Iglehart DL (1989) Importance sampling for stochastic simulations.
   Management Science 35(11):1367--1392
+
+\bibitem[{Haykin(1994)}]{haykin1994neural}
+Haykin S (1994) Neural networks, vol~2. Prentice hall New York
+
+\bibitem[{He et~al.(2016)He, Zhang, Ren, and Sun}]{he2016deep}
+He K, Zhang X, Ren S, Sun J (2016) Deep residual learning for image
+  recognition. In: Proceedings of the IEEE conference on computer vision and
+  pattern recognition, pp 770--778
+
+\bibitem[{Howard(1960)}]{howard1960dynamic}
+Howard RA (1960) Dynamic programming and markov processes.
 
 \bibitem[{Kingma and Ba(2014)}]{kingma2014adam}
 Kingma DP, Ba J (2014) Adam: A method for stochastic optimization. arXiv
@@ -42,11 +65,19 @@ Mnih V, Kavukcuoglu K, Silver D, Rusu AA, Veness J, Bellemare MG, Graves A,
 Moore AW, Atkeson CG (1993) Prioritized sweeping: Reinforcement learning with
   less data and less time. Machine learning 13(1):103--130
 
+\bibitem[{Nowlan and Hinton(1992)}]{nowlan1992simplifying}
+Nowlan SJ, Hinton GE (1992) Simplifying neural networks by soft weight-sharing.
+  Neural computation 4(4):473--493
+
 \bibitem[{Plappert et~al.(2017)Plappert, Houthooft, Dhariwal, Sidor, Chen,
   Chen, Asfour, Abbeel, and Andrychowicz}]{plappert2017parameter}
 Plappert M, Houthooft R, Dhariwal P, Sidor S, Chen RY, Chen X, Asfour T, Abbeel
   P, Andrychowicz M (2017) Parameter space noise for exploration. arXiv
   preprint arXiv:170601905
+
+\bibitem[{Ricciardi and Sacerdote(1979)}]{ricciardi1979ornstein}
+Ricciardi LM, Sacerdote L (1979) The ornstein-uhlenbeck process as a model for
+  neuronal activity. Biological cybernetics 35(1):1--9
 
 \bibitem[{Riedmiller(2005)}]{riedmiller2005neural}
 Riedmiller M (2005) Neural fitted q iteration--first experiences with a data
@@ -59,15 +90,34 @@ Salimans T, Ho J, Chen X, Sidor S, Sutskever I (2017) Evolution strategies as a
   scalable alternative to reinforcement learning. arXiv preprint
   arXiv:170303864
 
+\bibitem[{Schaul et~al.(2015)Schaul, Quan, Antonoglou, and
+  Silver}]{schaul2015prioritized}
+Schaul T, Quan J, Antonoglou I, Silver D (2015) Prioritized experience replay.
+  arXiv preprint arXiv:151105952
+
 \bibitem[{Silver et~al.(2014)Silver, Lever, Heess, Degris, Wierstra, and
   Riedmiller}]{silver2014deterministic}
 Silver D, Lever G, Heess N, Degris T, Wierstra D, Riedmiller M (2014)
   Deterministic policy gradient algorithms. In: ICML
 
+\bibitem[{Srivastava et~al.(2014)Srivastava, Hinton, Krizhevsky, Sutskever, and
+  Salakhutdinov}]{srivastava2014dropout}
+Srivastava N, Hinton G, Krizhevsky A, Sutskever I, Salakhutdinov R (2014)
+  Dropout: a simple way to prevent neural networks from overfitting. The
+  Journal of Machine Learning Research 15(1):1929--1958
+
 \bibitem[{Sutton and Barto(2018)}]{sutton2018reinforcement}
 Sutton RS, Barto AG (2018) Reinforcement learning: An introduction. MIT press
 
+\bibitem[{Tesauro(1995)}]{tesauro1995temporal}
+Tesauro G (1995) Temporal difference learning and td-gammon. Communications of
+  the ACM 38(3):58--69
+
 \bibitem[{Watkins and Dayan(1992)}]{watkins1992q}
 Watkins CJ, Dayan P (1992) Q-learning. Machine learning 8(3-4):279--292
+
+\bibitem[{Zeiler and Fergus(2013)}]{zeiler2013stochastic}
+Zeiler MD, Fergus R (2013) Stochastic pooling for regularization of deep
+  convolutional neural networks. arXiv preprint arXiv:13013557
 
 \end{thebibliography}
