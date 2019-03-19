@@ -5,6 +5,7 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{multicol}
 
 \begin{document}
 	
@@ -12,8 +13,12 @@
 	\subtitle{Yannik Frisch\\Tabea Wilke\\Maximilian Gehrke \\Group 19 Oleg Arenz}
 	
 	\author[Yannik Frisch et al.]{Yannik Frisch, Tabea Wilke and Maximilian Gehrke}
-	\institute[IAS]{Institute for Autonomous Systems, TU Darmstadt}
-	
+	\institute[IAS TU Darmstadt | Group 19]{Institute for Intelligent 
+	Autonomous 
+	Systems, TU Darmstadt}
+
+
+	\logo{\includegraphics{iasLogo}}
 	% \logo{\color{tudtextaccent}\large IFP}
 	
 	\date{March 22, 2019}
@@ -25,25 +30,59 @@
 	\begin{frame}
 		\frametitle{Deep Deterministic Policy Gradient}
 		\begin{itemize}
-			\item Actor-Critic Method
-			\item Deep Q-Learning
-			\item Deterministic Policy Gradient
+			\item \textbf{Actor-Critic Method}
+			\begin{itemize}
+				\item Approximated critic $Q(s,a|\theta^Q)$
+				\item Approximated actor $\pi(s|\theta^\pi)$
+			\end{itemize}
+			\item \textbf{Deep Q-Learning}
+			\begin{itemize}
+				\item Q-Learning with approximated critic by nn
+				\item $\nabla_{\theta^Q}L(\theta^Q)={\rm I\!E} \left[\left(r+\gamma \max_{a'} Q(s', 
+				a'|\theta^Q)-Q(s,a|\theta^Q)\right)\nabla_{\theta^Q}Q(s,a|\theta^Q)\right] $
+				\item Experience Replay Buffer
+				\item Target Network(s)
+			\end{itemize}
+			\item \textbf{Deterministic Policy Gradient}
+			\begin{itemize}
+				\item $\nabla_{\theta^\pi}J(\theta^\pi)\approx {\rm I\!E}\left[\nabla_aQ(s,a)|_{a=\pi(s|\theta^\pi)} \nabla_{\theta^\pi}\pi(s|\theta^\pi)\right]$
+				\item Enables to learn a deterministic policy while following a stochastic exploratory policy
+			\end{itemize}
 		\end{itemize}
 	\end{frame}
 	\begin{frame}
 		\frametitle{DDPG Pseudocode}
+		\includegraphics[scale=0.28]{ddpg_pseudocode.png}
 	\end{frame}
 	\begin{frame}
 		\frametitle{Improvements for DDPG}
 		\begin{itemize}
-			\item D4PG
+			\item \textbf{D4PG}
 			\begin{itemize}
 				\item Importance Weighted Experience Sampling
 				\item Utilizing N-Step return
 				\item Parallelized Actors
 			\end{itemize}
-			\item Parameter Noise for Exploration
-			\item Deep Changes
 		\end{itemize}
+		\begin{multicols}{2}
+			\begin{itemize}
+				\item \textbf{Parameter Noise for Exploration}
+				\\
+				\hspace*{0.5 cm}\includegraphics[scale=0.2]{parameter_noise.png}
+				\item \textbf{Deep Changes}
+				\\
+				\vspace*{0.5cm}\includegraphics[scale=0.12]{googlenet.png} 
+			\end{itemize}
+		\end{multicols}
+	\end{frame}
+	\begin{frame}
+		\frametitle{Sources}
+		\begin{itemize}
+			\item For publication references please see our paper "Deep Deterministic Policy Gradients: Components and Extensions"
+			\item GoogLenet: https://towardsdatascience.com/an-intuitive-guide-to-deep-network-architectures-65fdc477db41
+			\item Parameter noise for exploration:
+			https://openai.com/blog/better-exploration-with-parameter-noise/			
+		\end{itemize}
+
 	\end{frame}
 \end{document}
