@@ -232,7 +232,7 @@ The algorithm was evaluated on more than 20 simulated physical tasks using the s
 The most challenging issues of the approach are his still poor sample efficiency and instabilities during learning. We present some possible extensions to DDPG in the next chapter which might improve on these issues.
 \begin{algorithm} [H]
 	\caption{Deep Deterministic Policy Gradient (DDPG)}\label{DDPG-algo}
-	\begin{algorithmic}
+	\begin{algorithmic}[1]
 		\REQUIRE Replay buffer $\mathit{D}$ with high capacity
 		\REQUIRE Critic network $Q(s,a|\theta^Q)$ and actor network $\pi(s|\theta^\pi)$ with random weights $\theta^Q$ and $\theta^\pi$
 		\REQUIRE Initialize target networks $Q'$ and $\pi'$ with weights $\theta^{Q'}\leftarrow\theta^Q$ and $\theta^{\pi'}\leftarrow\theta^\pi$
