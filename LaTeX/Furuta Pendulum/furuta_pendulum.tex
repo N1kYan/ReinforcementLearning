@@ -244,12 +244,12 @@ the derivation according to time $\dot{q}(t)^T =
 	Together, this
 	leads 
 to 
-\begin{align*}
+\begin{align}
 \frac{\partial^2 L}{\partial t\partial \dot{\phi}}-\frac{\partial 
-	L}{\partial \phi}&=\tau - B_a\dot{\phi}\\
+	L}{\partial \phi}&=\tau - B_a\dot{\phi} \label{eq:f1}\\
 \frac{\partial^2 L}{\partial t\partial \dot{\theta}}-\frac{\partial 
-	L}{\partial \theta}&=-B_p\dot{\theta}.
-\end{align*}
+	L}{\partial \theta}&=-B_p\dot{\theta}\label{eq:f2}.
+\end{align}
 The partial derivations of the Lagrangian for the generalized coordinates are:
 
 \begin{align*}
@@ -317,37 +317,38 @@ substituting non-linear parts \citep{hamza2015genetic}, Jacobian
 linearization \citep{al2013experimental} or optimal linearization 
 \citep{zhang2011optimal}.
  For a linearization in the state-space the equation 
-$\dot{x}=Ax+Bu$ is used. The linearization is done around the 
+$\dot{x}=Ax+Bu$ with $x=[\phi\ \theta\ \dot{\phi}\ \dot{\theta}]$ is used. The 
+linearization is done around the 
 operating point \citep{furuta1992swing}, which is the vertical inverted 
-state and, therefore, uses $\theta = 0$ and $\dot{\theta}=0$. This results in 
+state and, therefore, uses $x_0=[0 \ 0\ 0\ 0]^T$. This results in 
 the following equations: 
 \begin{align}
-\begin{bmatrix}
-	\dot{\phi}\\
-	\ddot{\phi}\\
-	\dot{\theta}\\
-	\ddot{\theta}
-\end{bmatrix}=
+\dot{x}=
 \begin{bmatrix}
 0	& 0 &1  &0  \\ 
-0	&  0& 0 &  0\\ 
-0	& 0 & 0 &1  \\ 
-0	& 0 & 0 & 0
+0	&  0& 0 &  1\\ 
+\frac{\partial f_1(x,\tau)}{\partial \phi}\Big|_{x=x_0}	& \frac{\partial 
+f_1(x,\tau)}{\partial \theta}\Big|_{x=x_0} & \frac{\partial 
+f_1(x,\tau)}{\partial 
+\dot{\phi}}\Big|_{x=x_0} & \frac{\partial f_1(x,\tau)}{\partial 
+\dot{\theta}}\Big|_{x=x_0} \\ 
+\frac{\partial f_2(x,\tau)}{\partial \phi}\Big|_{x=x_0}	& \frac{\partial 
+	f_2(x,\tau)}{\partial \theta}\Big|_{x=x_0} & \frac{\partial 
+	f_2(x,\tau)}{\partial 
+	\dot{\phi}}\Big|_{x=x_0} & \frac{\partial f_2(x,\tau)}{\partial 
+	\dot{\theta}}\Big|_{x=x_0} 
 \end{bmatrix} 
-\begin{bmatrix}
-	\phi\\ 
-	\theta\\ 
-	\dot{\phi}\\ 
-	\dot{\theta}
-\end{bmatrix} +
+x +
 \begin{bmatrix}
 0	\\ 
 0	\\ 
-0	\\ %TODO Formel richtig machen
-0
+\frac{\partial f_1(x,\tau)}{\partial 
+	\tau}\Big|_{x=x_0} 	\\
+\frac{\partial f_2(x,\tau)}{\partial 
+	\tau}\Big|_{x=x_0} 
 \end{bmatrix} \tau
 \label{eq:liner}
-\end{align}
+\end{align} with $f_1$ as Eq. \eqref{eq:f1} and $f_2$ as Eq. \eqref{eq:f2}.\\
 The result is a linear form of the equations of motion which are very close to 
 the system's description by the non-linear model. For an angle of 
 $\theta<25\degree$  
@@ -430,7 +431,7 @@ The cost function can be defined with $x=[\phi \ \theta \ \dot{\phi}\
 \[J=\int_{0}^{\infty}\left(x^TQx+u^TRu\right)\text{d}t.\]
 The constraint for the cost function is the systems dynamic in form of a 
 differential equation derived from the linearization $\dot{x}=Ax+Bu$, see 
-Eq. \ref{eq:liner}. To solve 
+Eq. \eqref{eq:liner}. To solve 
 the cost function linear state feedback with a constant gain matrix $K$ is 
 used: $u(t)=-Kx(t)$ with $K=-R^{-1}B^TP$. $P(t)$ is the 
 solution matrix which will stabilize ($\dot{P}(t)=0$) for a convergent system 
@@ -503,7 +504,6 @@ reinforcement learning \citep{wang2004minimum}.\\
 It was possible to learn a good policy with many different reinforcement 
 learning algorithms in simulation through a project of the TU Darmstadt. Much 
 more complicated was the usage on the real robot.
-
 
 \bibliographystyle{spbasic}      % basic style, author-year citations
 \bibliography{furuta.bib}   % name your BibTeX data base
