@@ -1,0 +1,49 @@
+\documentclass[accentcolor=tud1d,colorbacktitle,inverttitle,landscape,german,presentation,t]{tudbeamer}
+\usepackage[latin1]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+
+\begin{document}
+	
+	\title[DDPG]{Deep Deterministic Policy Gradients -\\ Components and Extensions}
+	\subtitle{Yannik Frisch\\Tabea Wilke\\Maximilian Gehrke \\Group 19 Oleg Arenz}
+	
+	\author[Yannik Frisch et al.]{Yannik Frisch, Tabea Wilke and Maximilian Gehrke}
+	\institute[IAS]{Institute for Autonomous Systems, TU Darmstadt}
+	
+	% \logo{\color{tudtextaccent}\large IFP}
+	
+	\date{March 22, 2019}
+	
+
+\begin{titleframe}
+\end{titleframe}
+\section{Deep Deterministic Policy Gradient}
+	\begin{frame}
+		\frametitle{Deep Deterministic Policy Gradient}
+		\begin{itemize}
+			\item Actor-Critic Method
+			\item Deep Q-Learning
+			\item Deterministic Policy Gradient
+		\end{itemize}
+	\end{frame}
+	\begin{frame}
+		\frametitle{DDPG Pseudocode}
+	\end{frame}
+	\begin{frame}
+		\frametitle{Improvements for DDPG}
+		\begin{itemize}
+			\item D4PG
+			\begin{itemize}
+				\item Importance Weighted Experience Sampling
+				\item Utilizing N-Step return
+				\item Parallelized Actors
+			\end{itemize}
+			\item Parameter Noise for Exploration
+			\item Deep Changes
+		\end{itemize}
+	\end{frame}
+\end{document}
