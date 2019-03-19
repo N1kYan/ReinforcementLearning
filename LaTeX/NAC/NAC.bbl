@@ -80,12 +80,6 @@ Filip Jur{\v{c}}{\'\i}{\v{c}}ek, Blaise Thomson, and Steve Young.
 \newblock {\em ACM Transactions on Speech and Language Processing (TSLP)},
   7(3):6, 2011.
 
-\bibitem{kakade2002natural}
-Sham~M Kakade.
-\newblock A natural policy gradient.
-\newblock In {\em Advances in neural information processing systems}, pages
-  1531--1538, 2002.
-
 \bibitem{kim2010impedance}
 Byungchan Kim, Jooyoung Park, Shinsuk Park, and Sungchul Kang.
 \newblock Impedance learning for robotic contact tasks using natural

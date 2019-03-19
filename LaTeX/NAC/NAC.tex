@@ -168,7 +168,7 @@ Equation \ref{eq:3} will help us understand how the NAC algorithm in section \re
 \section{Natural Gradient}
 \label{sec:NG}
 
-The natural gradient was first introduced by Amari in 1998 \cite{amari1998natural}. The difference between the natural gradient and the ordinary vanilla gradient, is the direction it points to. The ordinary vanilla gradient only points to the steepest direction, if the parameter space has an Euclidean character \citep{amari1987differential}. The natural gradient, however, points to the steepest direction of a Riemann parameter space (e.g. neural networks  \citep{amari1998natural}).
+The natural gradient was first introduced by Amari in 1998 \cite{amari1998natural}. The difference between the natural gradient and the ordinary vanilla gradient, is the direction it points to. The ordinary vanilla gradient only points to the steepest direction, if the parameter space is orthonormal and has an Euclidean character \citep{amari1987differential}. The natural gradient, however, points to the steepest direction of a Riemann parameter space (e.g. neural networks  \citep{amari1998natural}).
 \\\\
 A Riemann parameter space is a differentiable manifold, where for each tangent space an inner product $<\cdot , \cdot >$ exists. For two tangent vectors $\mathbf{u}$ and $\mathbf{v}$, the inner product $<\mathbf{u}, \mathbf{v}>$ yields a real number. This makes it possible to define notions such as length, areas, angles or volumes. To calculate the gradient, we need to be able to calculate the squared length of a small incremental vector $d\textbf{w}$ connecting a point $\textbf{w}$ and $\textbf{w} + d\textbf{w}$. Equation \ref{eq:riem} shows the formula for Riemann spaces on the left and the formula for Euclidean spaces on the right:
 
@@ -203,6 +203,7 @@ which solution yields equation \ref{eq:ngradient}, applied with the FIM $F_\thet
 	\x \parTitle{1st order method} he natural gradient is a first order method, but implements second order advantages \cite{pascanu2013revisiting}. This is especially relevant for problems, where the cost function is accessible indirectly \cite{desjardins2013metric}.
 	\x \parTitle{Better \& faster convergence} In many cases the NG converge faster than vanilla gradient algorithms \cite{sohl2012natural, amari1998natural} and avoids getting stuck in plateaus \cite{amari1998efficiently, amari1998natural}.
 	\x \parTitle{Drawbacks} The Riemanian metric tensor needs to be nonsingular and invertible. This is not always the case and even if, the inversion of a matrix is very costly. In addition, by applying the NG, the policy variance might reduce to zero. This poses a problem, which is dealt with in the TRPO \& PPO algorithms.
+	\x 	Look at Berkley slides
 \end{itemize}
 
 \iffalse
@@ -213,8 +214,7 @@ which solution yields equation \ref{eq:ngradient}, applied with the FIM $F_\thet
 	\parTitle{Better \& faster convergence}
 	In many cases natural gradient algorithms converge faster than vanilla gradient algorithms \cite{sohl2012natural, amari1998natural}. This is due to the fact that a metric is used which removes the dependencies and differences in scaling between the parameters. This means that the parameter spaces are perpendicular to each other and their space can be explored more efficiently \cite{sohl2012natural}. Using the natural gradient instead of the vanilla gradient avoids getting stuck in local optima during optimization, but jumping out of plateaus \cite{amari1998efficiently, amari1998natural}.
 	\\\\
-	\subsection{More properties}
-	Look at Berkley slides
+
 	\\\\
 \fi
 
@@ -265,8 +265,8 @@ where $N$ is the number of steps executed in a trajectory. If we assume $\gamma 
 One of the key aspects of the NAC algorithm is the use of a compatible function approximation $A_w(s, a)$ to estimate $A(s, a)$ \citep{sutton2000policy}, which by definition has the property that it's gradient can be expressed in terms of the policy. This also means, that we can express the advantage function by taking the derivative w.r.t. the policy and multiplying it by $w$:
 
 \begin{align}
-	\nabla_w A_w(s,a) &= \nabla_{\theta} \log \pi_{\theta}(s|a)\label{eq:adv1}\\
-	A_w(s,a) &= \nabla_{\theta} \log \pi_{\theta}(s|a)w. \label{eq:adv2}
+	\nabla_w A_w(s,a) &= \nabla_{\theta} \log \pi_{\theta}(a|s)\label{eq:adv1}\\
+	A_w(s,a) &= \nabla_{\theta} \log \pi_{\theta}(a|s)w. \label{eq:adv2}
 \end{align}
 
  Inserting this and bringing the cost function $J(\theta)$ to the left hand side:
@@ -279,8 +279,8 @@ This is exactly the equation, which we solve in algorithm \ref{enac-algo} by tak
 \\\\
 The update of the policy parameters in direction of the critic parameters can also be explained by the compatible function approximation (equation \ref{eq:adv2}). With this the natural policy gradient [REF: EQUATION] simplifies:
 \begin{align}
-\nabla_\theta J(\theta) &= \E_{\pi_{\theta}} \left[\nabla_{\theta} \log \pi_{\theta}(s|a) A_w(s,a)\right]\\
-&= \E_{\pi_{\theta}}  \left[\nabla_{\theta} \log \pi_{\theta}(s|a) \nabla_{\theta} \log \pi_{\theta}(s|a)^T w\right]\\
+\nabla_\theta J(\theta) &= \E_{\pi_{\theta}} \left[\nabla_{\theta} \log \pi_{\theta}(a|s) A_w(s, a)\right]\\
+&= \E_{\pi_{\theta}}  \left[\nabla_{\theta} \log \pi_{\theta}(a|s) \nabla_{\theta} \log \pi_{\theta}(a|s)^T w\right]\\
 &= G_\theta w\\
 \widetilde{\nabla}_{\theta} J(\theta) &= w
 \end{align}

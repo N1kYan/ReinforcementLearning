@@ -13,45 +13,45 @@ Repeated entry---line 345 of file NAC-bibliography.bib.bib
 I'm skipping whatever remains of this entry
 Warning--empty journal in howard1960dynamic
 Warning--empty journal in nemirovski2005efficient
-You've used 36 entries,
+You've used 35 entries,
             2118 wiz_defined-function locations,
-            700 strings with 9703 characters,
-and the built_in function-call counts, 13203 in all, are:
-= -- 1344
-> -- 523
-< -- 16
-+ -- 210
-- -- 170
-* -- 847
-:= -- 2066
-add.period$ -- 113
-call.type$ -- 36
-change.case$ -- 190
+            696 strings with 9637 characters,
+and the built_in function-call counts, 12748 in all, are:
+= -- 1295
+> -- 516
+< -- 15
++ -- 206
+- -- 168
+* -- 825
+:= -- 2008
+add.period$ -- 110
+call.type$ -- 35
+change.case$ -- 186
 chr.to.int$ -- 0
-cite$ -- 38
-duplicate$ -- 559
-empty$ -- 1084
-format.name$ -- 170
-if$ -- 2864
+cite$ -- 37
+duplicate$ -- 534
+empty$ -- 1040
+format.name$ -- 168
+if$ -- 2755
 int.to.chr$ -- 0
-int.to.str$ -- 36
-missing$ -- 39
-newline$ -- 183
-num.names$ -- 72
-pop$ -- 223
+int.to.str$ -- 35
+missing$ -- 38
+newline$ -- 178
+num.names$ -- 70
+pop$ -- 216
 preamble$ -- 1
-purify$ -- 157
+purify$ -- 154
 quote$ -- 0
-skip$ -- 431
+skip$ -- 408
 stack$ -- 0
-substring$ -- 930
-swap$ -- 174
-text.length$ -- 16
+substring$ -- 884
+swap$ -- 161
+text.length$ -- 15
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 138
+type$ -- 134
 warning$ -- 2
-while$ -- 139
-width$ -- 38
-write$ -- 394
+while$ -- 134
+width$ -- 37
+write$ -- 383
 (There were 2 error messages)
