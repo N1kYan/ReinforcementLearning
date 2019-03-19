@@ -4,44 +4,48 @@ The top-level auxiliary file: DDPG.aux
 The style file: spbasic.bst
 Database file #1: ddpg.bib.bib
 Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
-You've used 15 entries,
+`journal' is a missing field, not a string, for entry howard1960dynamic
+while executing---line 1649 of file spbasic.bst
+Warning--empty journal in howard1960dynamic
+You've used 24 entries,
             3269 wiz_defined-function locations,
-            752 strings with 7607 characters,
-and the built_in function-call counts, 18954 in all, are:
-= -- 1699
-> -- 648
-< -- 10
-+ -- 224
-- -- 207
-* -- 1701
-:= -- 2580
-add.period$ -- 15
-call.type$ -- 15
-change.case$ -- 148
-chr.to.int$ -- 15
-cite$ -- 15
-duplicate$ -- 1653
-empty$ -- 1691
-format.name$ -- 264
-if$ -- 3979
+            802 strings with 9050 characters,
+and the built_in function-call counts, 27615 in all, are:
+= -- 2486
+> -- 870
+< -- 18
++ -- 304
+- -- 276
+* -- 2428
+:= -- 3766
+add.period$ -- 23
+call.type$ -- 24
+change.case$ -- 219
+chr.to.int$ -- 24
+cite$ -- 25
+duplicate$ -- 2430
+empty$ -- 2501
+format.name$ -- 358
+if$ -- 5809
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 171
-newline$ -- 55
-num.names$ -- 60
-pop$ -- 431
+missing$ -- 258
+newline$ -- 82
+num.names$ -- 96
+pop$ -- 637
 preamble$ -- 1
-purify$ -- 128
+purify$ -- 187
 quote$ -- 0
-skip$ -- 319
+skip$ -- 497
 stack$ -- 0
-substring$ -- 2110
-swap$ -- 372
-text.length$ -- 2
+substring$ -- 3040
+swap$ -- 567
+text.length$ -- 5
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 132
-warning$ -- 0
-while$ -- 140
+type$ -- 210
+warning$ -- 1
+while$ -- 208
 width$ -- 0
-write$ -- 167
+write$ -- 263
+(There was 1 error message)
