@@ -6,6 +6,11 @@ Shun-ichi Amari.
   systems—riemannian metric, dual affine connections, and divergence.
 \newblock {\em Mathematical systems theory}, 20(1):53--82, 1987.
 
+\bibitem{amari1998efficiently}
+Shun-Ichi Amari.
+\newblock Natural gradient works efficiently in learning.
+\newblock {\em Neural computation}, 10(2):251--276, 1998.
+
 \bibitem{amari1998natural}
 Shun-Ichi Amari and Scott~C Douglas.
 \newblock Why natural gradient?
@@ -13,11 +18,23 @@ Shun-Ichi Amari and Scott~C Douglas.
   Acoustics, Speech and Signal Processing, ICASSP'98 (Cat. No. 98CH36181)},
   volume~2, pages 1213--1216. IEEE, 1998.
 
+\bibitem{bhatnagar1998two}
+Shalabh Bhatnagar and Vivek~S Borkar.
+\newblock A two timescale stochastic approximation scheme for simulation-based
+  parametric optimization.
+\newblock {\em Probability in the Engineering and Informational Sciences},
+  12(4):519--531, 1998.
+
 \bibitem{bhatnagar2008incremental}
 Shalabh Bhatnagar, Mohammad Ghavamzadeh, Mark Lee, and Richard~S Sutton.
 \newblock Incremental natural actor-critic algorithms.
 \newblock In {\em Advances in neural information processing systems}, pages
   105--112, 2008.
+
+\bibitem{boyan1999least}
+Justin~A Boyan.
+\newblock Least-squares temporal difference learning.
+\newblock In {\em ICML}, pages 49--56, 1999.
 
 \bibitem{boyan2002technical}
 Justin~A Boyan.
@@ -51,12 +68,23 @@ Ronald~A Howard.
 \newblock Dynamic programming and markov processes.
 \newblock 1960.
 
+\bibitem{iwaki2019implicit}
+Ryo Iwaki and Minoru Asada.
+\newblock Implicit incremental natural actor critic algorithm.
+\newblock {\em Neural Networks}, 109:103--112, 2019.
+
 \bibitem{jurvcivcek2011natural}
 Filip Jur{\v{c}}{\'\i}{\v{c}}ek, Blaise Thomson, and Steve Young.
 \newblock Natural actor and belief critic: Reinforcement algorithm for learning
   parameters of dialogue systems modelled as pomdps.
 \newblock {\em ACM Transactions on Speech and Language Processing (TSLP)},
   7(3):6, 2011.
+
+\bibitem{kakade2002natural}
+Sham~M Kakade.
+\newblock A natural policy gradient.
+\newblock In {\em Advances in neural information processing systems}, pages
+  1531--1538, 2002.
 
 \bibitem{kim2010impedance}
 Byungchan Kim, Jooyoung Park, Shinsuk Park, and Sungchul Kang.
@@ -105,6 +133,17 @@ Jan Peters and Stefan Schaal.
 \newblock Natural actor-critic.
 \newblock {\em Neurocomputing}, 71(7-9):1180--1190, 2008.
 
+\bibitem{peters2008reinforcement}
+Jan Peters and Stefan Schaal.
+\newblock Reinforcement learning of motor skills with policy gradients.
+\newblock {\em Neural networks}, 21(4):682--697, 2008.
+
+\bibitem{peters2003reinforcement}
+Jan Peters, Sethu Vijayakumar, and Stefan Schaal.
+\newblock Reinforcement learning for humanoid robotics.
+\newblock In {\em Proceedings of the third IEEE-RAS international conference on
+  humanoid robots}, pages 1--20, 2003.
+
 \bibitem{peters2005natural}
 Jan Peters, Sethu Vijayakumar, and Stefan Schaal.
 \newblock Natural actor-critic.
@@ -135,11 +174,23 @@ Richard~S Sutton, David~A McAllester, Satinder~P Singh, and Yishay Mansour.
 \newblock In {\em Advances in neural information processing systems}, pages
   1057--1063, 2000.
 
+\bibitem{tamar2014implicit}
+Aviv Tamar, Panos Toulis, Shie Mannor, and Edoardo~M Airoldi.
+\newblock Implicit temporal differences.
+\newblock {\em arXiv preprint arXiv:1412.6734}, 2014.
+
 \bibitem{thomas2014bias}
 Philip Thomas.
 \newblock Bias in natural actor-critic algorithms.
 \newblock In {\em International Conference on Machine Learning}, pages
   441--448, 2014.
+
+\bibitem{toulis2014statistical}
+Panagiotis Toulis, Edoardo Airoldi, and Jason Rennie.
+\newblock Statistical analysis of stochastic gradient methods for generalized
+  linear models.
+\newblock In {\em International Conference on Machine Learning}, pages
+  667--675, 2014.
 
 \bibitem{williams1992simple}
 Ronald~J Williams.
@@ -154,5 +205,11 @@ Andreas Witsch, Roland Reichle, Kurt Geihs, Sascha Lange, and Martin
   regularisation term to stabilize learning of control structures.
 \newblock In {\em 2011 IEEE Symposium on Adaptive Dynamic Programming and
   Reinforcement Learning (ADPRL)}, pages 156--163. IEEE, 2011.
+
+\bibitem{xu2002efficient}
+Xin Xu, Han-gen He, and Dewen Hu.
+\newblock Efficient reinforcement learning using recursive least-squares
+  methods.
+\newblock {\em Journal of Artificial Intelligence Research}, 16:259--292, 2002.
 
 \end{thebibliography}
