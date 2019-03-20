@@ -1,4 +1,4 @@
-\begin{thebibliography}{24}
+\begin{thebibliography}{27}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{{#1}}
 \providecommand{\urlprefix}{URL }
@@ -34,6 +34,12 @@ He K, Zhang X, Ren S, Sun J (2016) Deep residual learning for image
 
 \bibitem[{Howard(1960)}]{howard1960dynamic}
 Howard RA (1960) Dynamic programming and markov processes.
+
+\bibitem[{Jaakkola et~al.(1994)Jaakkola, Jordan, and
+  Singh}]{jaakkola1994convergence}
+Jaakkola T, Jordan MI, Singh SP (1994) Convergence of stochastic iterative
+  dynamic programming algorithms. In: Advances in neural information processing
+  systems, pp 703--710
 
 \bibitem[{Kingma and Ba(2014)}]{kingma2014adam}
 Kingma DP, Ba J (2014) Adam: A method for stochastic optimization. arXiv
@@ -75,6 +81,11 @@ Plappert M, Houthooft R, Dhariwal P, Sidor S, Chen RY, Chen X, Asfour T, Abbeel
   P, Andrychowicz M (2017) Parameter space noise for exploration. arXiv
   preprint arXiv:170601905
 
+\bibitem[{Ribeiro and Szepesv{\'a}ri(1996)}]{ribeiro1996q}
+Ribeiro C, Szepesv{\'a}ri C (1996) Q-learning combined with spreading:
+  Convergence and results. In: Procs. of the ISRF-IEE International Conf. on
+  Intelligent and Cognitive Systems (Neural Networks Symposium), pp 32--36
+
 \bibitem[{Ricciardi and Sacerdote(1979)}]{ricciardi1979ornstein}
 Ricciardi LM, Sacerdote L (1979) The ornstein-uhlenbeck process as a model for
   neuronal activity. Biological cybernetics 35(1):1--9
@@ -108,6 +119,12 @@ Srivastava N, Hinton G, Krizhevsky A, Sutskever I, Salakhutdinov R (2014)
 
 \bibitem[{Sutton and Barto(2018)}]{sutton2018reinforcement}
 Sutton RS, Barto AG (2018) Reinforcement learning: An introduction. MIT press
+
+\bibitem[{Szegedy et~al.(2015)Szegedy, Liu, Jia, Sermanet, Reed, Anguelov,
+  Erhan, Vanhoucke, and Rabinovich}]{szegedy2015going}
+Szegedy C, Liu W, Jia Y, Sermanet P, Reed S, Anguelov D, Erhan D, Vanhoucke V,
+  Rabinovich A (2015) Going deeper with convolutions. In: Proceedings of the
+  IEEE conference on computer vision and pattern recognition, pp 1--9
 
 \bibitem[{Tesauro(1995)}]{tesauro1995temporal}
 Tesauro G (1995) Temporal difference learning and td-gammon. Communications of

@@ -7,45 +7,45 @@ Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
 `journal' is a missing field, not a string, for entry howard1960dynamic
 while executing---line 1649 of file spbasic.bst
 Warning--empty journal in howard1960dynamic
-You've used 24 entries,
+You've used 27 entries,
             3269 wiz_defined-function locations,
-            802 strings with 9050 characters,
-and the built_in function-call counts, 27615 in all, are:
-= -- 2486
-> -- 870
-< -- 18
-+ -- 304
-- -- 276
-* -- 2428
-:= -- 3766
-add.period$ -- 23
-call.type$ -- 24
-change.case$ -- 219
-chr.to.int$ -- 24
-cite$ -- 25
-duplicate$ -- 2430
-empty$ -- 2501
-format.name$ -- 358
-if$ -- 5809
+            815 strings with 9655 characters,
+and the built_in function-call counts, 31298 in all, are:
+= -- 2812
+> -- 1002
+< -- 22
++ -- 349
+- -- 318
+* -- 2738
+:= -- 4255
+add.period$ -- 26
+call.type$ -- 27
+change.case$ -- 254
+chr.to.int$ -- 27
+cite$ -- 28
+duplicate$ -- 2740
+empty$ -- 2823
+format.name$ -- 411
+if$ -- 6598
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 258
-newline$ -- 82
-num.names$ -- 96
-pop$ -- 637
+missing$ -- 293
+newline$ -- 91
+num.names$ -- 108
+pop$ -- 733
 preamble$ -- 1
-purify$ -- 187
+purify$ -- 213
 quote$ -- 0
-skip$ -- 497
+skip$ -- 587
 stack$ -- 0
-substring$ -- 3040
-swap$ -- 567
-text.length$ -- 5
+substring$ -- 3399
+swap$ -- 659
+text.length$ -- 8
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 210
+type$ -- 237
 warning$ -- 1
-while$ -- 208
+while$ -- 240
 width$ -- 0
-write$ -- 263
+write$ -- 296
 (There was 1 error message)
