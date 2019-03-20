@@ -1,11 +1,5 @@
 \begin{thebibliography}{10}
 
-\bibitem{amari1987differential}
-Shun-ichi Amari.
-\newblock Differential geometry of a parametric family of invertible linear
-  systems—riemannian metric, dual affine connections, and divergence.
-\newblock {\em Mathematical systems theory}, 20(1):53--82, 1987.
-
 \bibitem{amari1998efficiently}
 Shun-Ichi Amari.
 \newblock Natural gradient works efficiently in learning.
@@ -80,13 +74,6 @@ Filip Jur{\v{c}}{\'\i}{\v{c}}ek, Blaise Thomson, and Steve Young.
 \newblock {\em ACM Transactions on Speech and Language Processing (TSLP)},
   7(3):6, 2011.
 
-\bibitem{kim2010impedance}
-Byungchan Kim, Jooyoung Park, Shinsuk Park, and Sungchul Kang.
-\newblock Impedance learning for robotic contact tasks using natural
-  actor-critic algorithm.
-\newblock {\em IEEE Transactions on Systems, Man, and Cybernetics, Part B
-  (Cybernetics)}, 40(2):433--443, 2010.
-
 \bibitem{lagoudakis2003least}
 Michail~G Lagoudakis and Ronald Parr.
 \newblock Least-squares policy iteration.
@@ -116,21 +103,10 @@ Razvan Pascanu and Yoshua Bengio.
 \newblock Revisiting natural gradient for deep networks.
 \newblock {\em arXiv preprint arXiv:1301.3584}, 2013.
 
-\bibitem{peters2007applying}
-Jan Peters and Stefan Schaal.
-\newblock Applying the episodic natural actor-critic architecture to motor
-  primitive learning.
-\newblock In {\em ESANN}, pages 295--300, 2007.
-
 \bibitem{peters2008natural}
 Jan Peters and Stefan Schaal.
 \newblock Natural actor-critic.
 \newblock {\em Neurocomputing}, 71(7-9):1180--1190, 2008.
-
-\bibitem{peters2008reinforcement}
-Jan Peters and Stefan Schaal.
-\newblock Reinforcement learning of motor skills with policy gradients.
-\newblock {\em Neural networks}, 21(4):682--697, 2008.
 
 \bibitem{peters2003reinforcement}
 Jan Peters, Sethu Vijayakumar, and Stefan Schaal.
@@ -149,6 +125,17 @@ Silvia Richter, Douglas Aberdeen, and Jin Yu.
 \newblock Natural actor-critic for road traffic optimisation.
 \newblock In {\em Advances in neural information processing systems}, pages
   1169--1176, 2007.
+
+\bibitem{schulman2015trust}
+John Schulman, Sergey Levine, Pieter Abbeel, Michael~I Jordan, and Philipp
+  Moritz.
+\newblock Trust region policy optimization.
+\newblock In {\em Icml}, volume~37, pages 1889--1897, 2015.
+
+\bibitem{schulman2017proximal}
+John Schulman, Filip Wolski, Prafulla Dhariwal, Alec Radford, and Oleg Klimov.
+\newblock Proximal policy optimization algorithms.
+\newblock {\em arXiv preprint arXiv:1707.06347}, 2017.
 
 \bibitem{sohl2012natural}
 Jascha Sohl-Dickstein.

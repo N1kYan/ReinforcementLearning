@@ -3,55 +3,55 @@ Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
 The top-level auxiliary file: NAC.aux
 The style file: plain.bst
 Database file #1: NAC-bibliography.bib.bib
-Repeated entry---line 221 of file NAC-bibliography.bib.bib
+Repeated entry---line 237 of file NAC-bibliography.bib.bib
  : @inproceedings{richter2007natural
  :                                  ,
 I'm skipping whatever remains of this entry
-Repeated entry---line 345 of file NAC-bibliography.bib.bib
+Repeated entry---line 361 of file NAC-bibliography.bib.bib
  : @article{amari1998natural
  :                          ,
 I'm skipping whatever remains of this entry
 Warning--empty journal in howard1960dynamic
 Warning--empty journal in nemirovski2005efficient
-You've used 35 entries,
+You've used 33 entries,
             2118 wiz_defined-function locations,
-            696 strings with 9637 characters,
-and the built_in function-call counts, 12748 in all, are:
-= -- 1295
+            685 strings with 9299 characters,
+and the built_in function-call counts, 12216 in all, are:
+= -- 1232
 > -- 516
-< -- 15
+< -- 16
 + -- 206
-- -- 168
-* -- 825
-:= -- 2008
-add.period$ -- 110
-call.type$ -- 35
-change.case$ -- 186
+- -- 170
+* -- 787
+:= -- 1924
+add.period$ -- 104
+call.type$ -- 33
+change.case$ -- 181
 chr.to.int$ -- 0
-cite$ -- 37
-duplicate$ -- 534
-empty$ -- 1040
-format.name$ -- 168
-if$ -- 2755
+cite$ -- 35
+duplicate$ -- 513
+empty$ -- 981
+format.name$ -- 170
+if$ -- 2642
 int.to.chr$ -- 0
-int.to.str$ -- 35
-missing$ -- 38
-newline$ -- 178
-num.names$ -- 70
+int.to.str$ -- 33
+missing$ -- 36
+newline$ -- 168
+num.names$ -- 66
 pop$ -- 216
 preamble$ -- 1
-purify$ -- 154
+purify$ -- 151
 quote$ -- 0
-skip$ -- 408
+skip$ -- 396
 stack$ -- 0
-substring$ -- 884
-swap$ -- 161
-text.length$ -- 15
+substring$ -- 813
+swap$ -- 162
+text.length$ -- 16
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 134
+type$ -- 126
 warning$ -- 2
-while$ -- 134
-width$ -- 37
-write$ -- 383
+while$ -- 124
+width$ -- 35
+write$ -- 361
 (There were 2 error messages)
