@@ -74,7 +74,8 @@ grestore
 
 %\titlerunning{Short form of title}        % if too long for running head
 
-\author{Tabea A. Wilke \and Yannik P. Frisch \and Maximilian A. Gehrke }
+\author{Tabea A. Wilke \and Yannik P. Frisch \and \\Maximilian A. Gehrke
+}
 
 %\authorrunning{Wilke, Gehrke, Frisch} % if too long for running head
 
@@ -104,17 +105,18 @@ of big interest in control system theory. It consists of one controllable arm
 rotating in the horizontal plane and one pendulum, which is attached to the end 
 of this arm, moving uncontrollably in the vertical plane.\\
 The non-linearities result from an interplay between gravitational, coriolis, 
-centrifugal forces and friction. They can be modelled through equations of 
+centrifugal forces and friction. They can be modeled through equations of 
 motion through the Euler-Lagrange method.\\
-We present an overview over it's technical details and discuss algorithms to 
+We present an overview over its technical details and discuss algorithms to 
 solve the control problem.
-\keywords{Furuta Pendulum \and Reinforcement Learning \and Equations of motion}
+\keywords{Furuta Pendulum \and Reinforcement Learning \and Equations of 
+motion}
 % \PACS{PACS code1 \and PACS code2 \and more}
 % \subclass{MSC code1 \and MSC code2 \and more}
 \end{abstract}
 \section{Introduction}
 Many examples in the field of control engineering like aircraft landing or 
-aircraft stabilizing can be well modelled by an inverted 
+aircraft stabilizing can be well modeled by an inverted 
 pendulum \citep{akhtaruzzaman2010modeling}. As a reaction to problems with the 
 limited movement of the cart from 
 the inverted pendulum, the Furuta pendulum (also called rotary inverted 
@@ -125,7 +127,7 @@ it
 needs less space and one moving arm is directly linked to the motor. Therefore, 
 the dynamics is less unmodeled thanks to a power transmission mechanism 
 \citep{furuta1992swing}. \\
-The Furuta pendulum is an underactuated system. An underacted system is 
+The Furuta pendulum is an underactuated system. An underactuated system is 
 characterized by the difference of the degrees of freedom and the number of 
 actuators. If there are more degrees of freedom, the system is trivially 
 underactuated \citep{tedrake2009underactuated}.Therefore, it is not possible to 
@@ -194,9 +196,9 @@ method. The Lagrangian function is given by the difference of the
 kinetic and potential energies $L=T-V$, with $T$ as the total sum of the 
 kinetic energies in the system and $V$ the total potential energies.\\
 The only potential energy in the system is the one of the pendulum:
-\[V_{total}=V_{pendulum}=m_pgz= m_pgl_{p}\cos\theta\]
+\[V_{total}=V_{pendulum}=m_pgz= m_pgl_{p}\cos\theta.\]
 Kinetic energy is available both in the arm and in the pendulum and is composed 
-of the the sum of translation energy and rotational energy. The translation 
+of the sum of translation energy and rotational energy. The translation 
 energy $T=\frac{1}{2}mv^2$ uses the squared velocity. This is defined by  the 
 scalar product 
 of the squared velocities in all directions:
@@ -213,26 +215,26 @@ T_{pendulum}&=\frac{1}{2}J_p\dot{\theta}^2+\frac{1}{2}m_pv^2\\
 T_{total}&= 
 \frac{1}{2}J_a\dot{\phi}^2+\frac{1}{2}J_p\dot{\theta_0}^2+\frac{1}{2}m_p\left((l_a^2+l_p^2\
 \sin^2\theta)\dot{\phi}^2+l_p^2\dot{\theta}^2+2l_al_p\dot{\phi}\dot{\theta}\cos 
-\theta\right)
+\theta\right).
 \end{align*}
 From this the Lagrange Function arises:
 \begin{align*}
 L &=T_{total}-V_{total}\\
 \begin{split}&=\frac{1}{2}J_a\dot{\phi}^2+\frac{1}{2}J_p\dot{\theta}^2+\frac{1}{2}m_p\left((l_a^2+l_p^2\
 \sin^2\theta)\dot{\phi}^2+l_p^2\dot{\theta}^2+2l_al_p\dot{\phi}\dot{\theta}\cos 
-\theta\right) \\&\quad - m_pgl_{p}\cos\theta\end{split}
+\theta\right) \\&\quad - m_pgl_{p}\cos\theta.\end{split}
 \end{align*}
  Lagrange's 
 Equation follows \[ 
 \frac{d}{dt}\left(\frac{\partial L(q, \dot{q},t)}{\partial 
 	\dot{q_i}}\right)-\frac{\partial 
 	L(q, \dot{q},t)}{\partial 
-	q_i}+\frac{\partial F(q, \dot{q}, t)}{\partial \dot{q_i}} =0\] Thereby, 
+	q_i}+\frac{\partial F(q, \dot{q}, t)}{\partial \dot{q_i}} =0.\] Thereby, 
 	the 
 	variables 
 	$q_i$ are called 
 	generalized coordinates. $F$ is the friction in 
-	the system which can be described with the damping coefficients 
+	the system, which can be described with the damping coefficients 
 	$(B_a, B_p)$ by $B_p\dot{\theta}$ and $ 
 	B_a\dot{\phi}$.
 	For 
@@ -268,7 +270,7 @@ The partial derivations of the Lagrangian for the generalized coordinates are:
 		\dot{\theta}}&=\dot{\theta}(J_p+m_pl_p^2)+\dot{\phi}(m_pl_al_p\cos\theta)\\
 	\frac{\partial^2 L}{\partial t \partial 
 	\dot{\theta}}&=\ddot{\theta}(J_p+m_pl_p^2)+\ddot{\phi}m_pl_al_p\cos\theta-\dot{\phi}
-	\dot{\theta}m_pl_al_p\sin\theta
+	\dot{\theta}m_pl_al_p\sin\theta.
 \end{align*}
 With this equations it is possible to derive the equations for the 
 Euler-Lagrange's Equation:
@@ -280,7 +282,7 @@ L}{\partial\dot{\phi}}&=\ddot{\phi}(J_a+m_p(l_a^2+l_p^2\sin^2
 \theta\ddot{\theta}-sin\theta \dot{\theta}^2)\\
 \frac{\partial^2 L}{\partial t\partial\dot{\theta}}-\frac{\partial 
 L}{\partial\dot{\theta}}&=\ddot{\theta}(J_p+m_pl_p^2)+\ddot{\phi}m_pl_al_p\cos\theta-\frac{1}{2}\dot{\phi}^2m_pl_p^2\sin(2\theta)-m_pgl_psin\theta
-\end{align*}
+.\end{align*}
 Putting this into a matrix form and filling in the friction, this results in 
 the nonlinear equations of motion (EOM) for the Furuta pendulum:
 \begin{align*}
@@ -309,7 +311,7 @@ m_pl_p^2\sin(2\theta)\dot{\theta}+ B_a& \quad -m_pl_al_p\sin \theta
 0
 \end{bmatrix}.
 \end{align*}
-\subsection{Linearization of the state-space model}
+\subsection{Linearization of the State-Space Model}
 As all equations of motion contain a part of a trigonometric function, the 
 equations are non-linear. There are several different methods to transform the 
 non-linear equations to linear ones, for example Taylor expansion with 
@@ -372,11 +374,11 @@ example be defined by \citep{hamza2019current}:
 |E-E_r|< 0.04 \ \text{Joule}\ &\text{and}\  \dot{\theta} < 2.62\  \text{rad/sec}
 \end{cases}\\
 \text{swing-up} & \text{otherwise}
-\end{cases}
+\end{cases}.
 \end{align*}
 \subsection{Swing-Up}
 There are many different approaches for solving the swing-up task of the Furuta 
-pendulum, linear ones which use the linearized equations of motion, non-linear 
+pendulum: linear ones which use the linearized equations of motion, non-linear 
 ones and model-free approaches. The classical way of solving the swing-up task 
 is 
 an approach with energy control \citep{seman2013swinging}. Therefore, the sum 
@@ -401,7 +403,7 @@ selected by an aggressivity factor and the difference of actual and desired
 system energy $k_a(E-E_0)$, with $E_0=0$ as the system should have zero energy 
 at the end. The aggressivity factor handles the amount of input 
 and thereby the number of oscillations which are needed to achieve the 
-swing-up \cite{awtar2002inverted}. Often there is also a saturation function 
+swing-up \citep{awtar2002inverted}. Often there is also a saturation function 
 which 
 limits the signal to the maximum acceleration of the pendulum. This is done 
 with a linear function, in the following described as a wildcard $sat$. The 
@@ -415,7 +417,7 @@ There are many different approaches for solving the stabilization problem as
 well. The most common one is the linear quadratic regulation (LQR) because it 
 guarantees the optimal solution \citep{hamza2019current}. Also the 
 proportional integral derivative (PID) is often used because of its simplicity 
-and robustness and also because of its usage in the industry 
+and robustness and also because of its usage in industry 
 \citep{hassanzadeh2011controller}. Nevertheless, there are a lot of other 
 algorithms from sliding modes \citep{izutsu2008swing} to particle swarm 
 optimization and other evolutionary algorithms 
@@ -469,14 +471,14 @@ handles the power of the system.\\
 The "Application of Reinforcement Learning Methods" course of the TU Darmstadt 
 implemented different reinforcement learning algorithms on different platforms. 
 Some of the algorithms were also tested on the qube simulation of the Quanser 
-system which is identical to the Furuta pendulum. The maximum reward per 
+system, which is identical to the Furuta pendulum. The maximum reward per 
 episode was 6.0 with an maximum episode length of 300 steps. The results can be 
 found in Fig. \ref{fig:rewards} with a simulation evaluation of 100 episodes. 
 None of the different algorithms clearly outperform the others. They have very 
 similar results.\\
 Further on, two groups managed to run their algorithm on the real Qube Quanser 
 robot platform and received 4.88 (PPO, 25 evaluated episodes) and 4.2 (DQN, 10 
-evaluated episodes) out of 6.0 possible reward.  
+evaluated episodes) out of 6.0 possible rewards.  
 
  \begin{figure}[h]
  	\centering
@@ -499,7 +501,7 @@ equations of motion are needed. Depending on the construction of the pendulum,
 there are different formulations of the problem. The different algorithms show 
 very different approaches from very simple ones to complex or reinforcement 
 learning approaches. Many of them have the problem that they do not perform a 
-stable result. This problem should be tackled by using or using more 
+stable result. This problem should be tackled by using more 
 reinforcement learning \citep{wang2004minimum}.\\
 It was possible to learn a good policy with many different reinforcement 
 learning algorithms in simulation through a project of the TU Darmstadt. Much 
