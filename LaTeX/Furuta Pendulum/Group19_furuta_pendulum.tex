@@ -124,7 +124,8 @@ the inverted pendulum, the Furuta pendulum (also called rotary inverted
 pendulum) 
 has been developed by 
 \cite{furuta1992swing}. The advantages of the Furuta pendulum are its smaller 
-need for space and one moving arm is directly linked to the motor. Therefore, 
+need for space and that one moving arm is directly linked to the motor. 
+Therefore, 
 the dynamics is less unmodeled thanks to a power transmission mechanism 
 \citep{furuta1992swing}. \\
 The Furuta pendulum is an underactuated system which is 
@@ -320,7 +321,9 @@ substituting non-linear parts \citep{hamza2015genetic}, Jacobian
 linearization \citep{al2013experimental} or optimal linearization 
 \citep{zhang2011optimal}.
  For a linearization in the state-space the equation 
-$\dot{x}=Ax+Bu$ with $x=[\phi\ \theta\ \dot{\phi}\ \dot{\theta}]$ is used. The 
+\({\dot{x}=Ax+Bu}\) with \({x=[\phi\ \theta\ \dot{\phi}\ \dot{\theta}]}\) is 
+used. 
+The 
 linearization is done around the 
 operating point \citep{furuta1992swing}, which is the vertical inverted 
 state and, therefore, uses $x_0=[0 \ 0\ 0\ 0]^T$. This results in 
@@ -480,7 +483,7 @@ found in Fig. \ref{fig:rewards} with a simulation evaluation of 100 episodes.
 None of the different algorithms clearly outperform the others. They have very 
 similar results.\\
 Further on, two groups managed to run their algorithm on the physical Furuta 
-Pendulum from Quanser Robots and received received a cumulative reward of 4.88 
+Pendulum from Quanser Robots and received a cumulative reward of 4.88 
 (PPO, 25 evaluated episodes) and 4.2 (DQN, 10 
 evaluated episodes).  
 
@@ -511,6 +514,7 @@ It was possible to learn a good policy with many different reinforcement
 learning algorithms in simulation through a project of the TU Darmstadt. Much 
 more complicated was the usage on the real robot.
 
+\newpage
 \bibliographystyle{spbasic}      % basic style, author-year citations
 \bibliography{furuta.bib}   % name your BibTeX data base
 
