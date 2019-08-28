@@ -46,9 +46,11 @@ state_space = (np.linspace(-np.pi, np.pi, STATE_SPACE_SIZE[0]),
 # [[radians, velocity, counter], ... ].
 reward_is_none = []
 
+
 # ----- TODOS ---- #
 # TODO: Use two (!) dimensional stochastic transition function
 # TODO: Take out either pi or -pi
+
 
 def discretize_index(state):
     """
@@ -126,7 +128,7 @@ def learn_discrete_rewards():
     # Check if the enivornment landed in a final state (end of trajectory)
     done = False
 
-    while (True):
+    while True:
         # If the enviornment lands in a final state (end of trajectory) we have
         # to restart our environment to simulate its real behaviour
         if done:
@@ -169,6 +171,7 @@ def learn_discrete_rewards():
     print(rewards)
 
     return True
+
 
 # input state: continous
 # e.g. std=1
@@ -233,22 +236,21 @@ def get_probs(state, std):
     probs_list = [x * (1/np.sum(probs_list)) for x in probs_list]
     return i_interval, probs_list
 
-"""
-    For now, this function only looks at the first dimension of our state space
-    for the pendulum this means, that we only look at the position  of our
-    pendulum (in radians).
-"""
 
 # TODO: Stochastic reward is only 1 dimensional, also we have a 2-dim state
 # For now we just care about the first dimension (degree in radians) and
 # copy the second dimension (velocity) as it is in the state we are coming from
 def stochastic_reward(s_dash, V, true_model_reward, discrete_rewards, sigma):
+    """
+        For now, this function only looks at the first dimension of our state space
+        for the pendulum this means, that we only look at the position  of our
+        pendulum (in radians).
+    """
     exp_reward = 0
     index = discretize_index(s_dash)
     s_indices, probs = get_probs(state_space, s_dash, sigma)
 
-
-    #iterate over all possible states
+    # iterate over all possible states
     for i, s_index in enumerate(s_indices):
         immediate_reward = discrete_rewards[s_index][index[1]]
         # If in our simulation of the environment no action landed in state
@@ -263,7 +265,7 @@ def stochastic_reward(s_dash, V, true_model_reward, discrete_rewards, sigma):
             # So we try to choose a velocity a little more to 0 which has a
             # reward. The velocity is anyway just copied from the starting
             # state.
-            for num in range(1,4):
+            for num in range(1, 4):
                 if velocity > 0:
                     immediate_reward = discrete_rewards[s_index][index[1]-num]
                 else:
@@ -277,8 +279,7 @@ def stochastic_reward(s_dash, V, true_model_reward, discrete_rewards, sigma):
             # For debugging/printing put in global list
             not_yet_in_list = True
             for l, rin in enumerate(reward_is_none):
-                if rin[0] == state_space[0][s_index] \
-                    and rin[1] == state_space[1][index[1]]:
+                if rin[0] == state_space[0][s_index] and rin[1] == state_space[1][index[1]]:
                     reward_is_none[l] = [rin[0], rin[1], rin[2]+1]
                     not_yet_in_list = False
                     break
@@ -294,6 +295,7 @@ def stochastic_reward(s_dash, V, true_model_reward, discrete_rewards, sigma):
         exp_reward += probs[i] * R
 
     return exp_reward
+
 
 def value_iteration(state_space, action_space, stochastic=True, sigma=1):
 
@@ -311,7 +313,7 @@ def value_iteration(state_space, action_space, stochastic=True, sigma=1):
 
     loop_num = 0
 
-    while(True):
+    while True:
 
         loop_num += 1
         print("Getting VF, Loop {} ... ".format(loop_num), end='')
