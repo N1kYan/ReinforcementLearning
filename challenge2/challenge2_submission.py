@@ -34,9 +34,9 @@ will be manually analyzed to identify outstanding submissions.
 
 import numpy as np
 import torch
-import DQN
+#import challenge2.DQN
 import pickle
-import LSPI
+import challenge2.LSPI
 import sys
 
 
@@ -57,7 +57,7 @@ def load_dqn_policy():
     """
     print("LOAD DQN")
     model = torch.load("model.pt")
-    return lambda s: DQN.model_to_action(model, s)
+    return lambda s: challenge2.DQN.model_to_action(model, s)
 
 
 def train_dqn_policy(env):
@@ -70,9 +70,8 @@ def train_dqn_policy(env):
     :return: function pi: s -> a
     """
     print("RUN DQN")
-    model = DQN.run_dqn(env)
-    return lambda s: DQN.model_to_action(model, s, env, 10)
-    #return lambda obs: np.array([2.7183])
+    model = challenge2.DQN.run_dqn(env)
+    return lambda s: challenge2.DQN.model_to_action(model, s, env, 10)
 
 
 def load_lspi_policy():
@@ -86,7 +85,7 @@ def load_lspi_policy():
     """
     print("LOAD LSPI")
     w_star = pickle.load(open("lspi_weights.p", "rb"))
-    return lambda obs: LSPI.pi(obs, w_star)
+    return lambda obs: challenge2.LSPI.pi(obs, w_star)
 
 
 def train_lspi_policy(env):
@@ -99,8 +98,8 @@ def train_lspi_policy(env):
     :return: function pi: s -> a
     """
     print("RUN LSPI")
-    w_star = LSPI.train(my_env=env)
-    return lambda obs: LSPI.pi(obs, w_star)
+    w_star = challenge2.LSPI.train(my_env=env)
+    return lambda obs: challenge2.LSPI.pi(obs, w_star)
 
 
 # ==== Example evaluation
@@ -137,14 +136,14 @@ def main():
         env.close()
 
     # DQN I: Check learned policy
-    env = Monitor(gym.make('CartpoleSwingShort-v0'), 'dqn_eval', force=True)
-    policy = load_dqn_policy()
-    check(env, policy)
+    # env = Monitor(gym.make('CartpoleSwingShort-v0'), 'dqn_eval', force=True)
+    # policy = load_dqn_policy()
+    # check(env, policy)
 
     # DQN II: Check learning procedure
-    env = Monitor(gym.make('CartpoleSwingShort-v0'), 'dqn_train', video_callable=False, force=True)
-    policy = train_dqn_policy(env)
-    check(env, policy)
+    # env = Monitor(gym.make('CartpoleSwingShort-v0'), 'dqn_train', video_callable=False, force=True)
+    # policy = train_dqn_policy(env)
+    # check(env, policy)
 
     # LSPI I: Check learned policy
     env = Monitor(gym.make('CartpoleStabShort-v0'), 'lspi_eval')

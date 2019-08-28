@@ -13,11 +13,11 @@ class DiscreteActionSpace(gym.Space):
         self.high = high
         self.low = low
         self.n = number
-        self.space = np.linspace(self.low, self.high, self.n)
+        self.space = np.linspace(self.low, self.high, self.n).reshape(-1)
         # self.space =[-24, -12, -2, 0, 2, 12, 24]
 
     def sample(self):
-        return np.array([np.random.choice(self.space)])
+        return np.array(np.random.choice(self.space))
 
     def contains(self, x):
         """
@@ -266,11 +266,11 @@ def train(my_env, sample_epochs=30, gamma=0.9999, epsilon=1e-1, save_flag=False)
     global env
     env = my_env
     # Sample from environment
-    # print("Sampling ... ", end='')
+    print("Sampling ... ", end='')
     sys.stdout.flush()
     D = sample(epochs=sample_epochs)
     np.random.shuffle(D)
-    # print("Done!")
+    print("Done!")
 
     # Initialize weights
     w_0 = np.zeros(shape=(len(basis_functions()), 1))
@@ -278,10 +278,9 @@ def train(my_env, sample_epochs=30, gamma=0.9999, epsilon=1e-1, save_flag=False)
         w_0[i] = np.random.uniform(low=-1, high=1)
 
     # Run LSPI algorithm
-    # print("Learning ... ")
+    print("Learning ... ")
     w_star = lspi(D=D, phi=basis_functions(), gamma=gamma, epsilon=epsilon, w_0=w_0)
-    # print("w*:", w_star)
-    # print(" ... Done!")
+    print(" ... Done!")
 
     # Save learned weights in text file
     if save_flag:
@@ -292,22 +291,22 @@ def train(my_env, sample_epochs=30, gamma=0.9999, epsilon=1e-1, save_flag=False)
 
 
 def main():
-    w_star = train(env=env)
+    w_star = train(my_env=env)
     evaluate(w_star=w_star)
     # evaluate()
 
 # Define gym environment
 global env
 env = gym.make('CartpoleStabShort-v0')
-# print(env.spec)
-# print("State Space Low:", env.observation_space.low)
-# print("State Space High:", env.observation_space.high)
+print(env.spec)
+#print("State Space Low:", env.observation_space.low)
+#print("State Space High:", env.observation_space.high)
 
 # Set discrete action space
 global A
-A = DiscreteActionSpace(low=env.action_space.low, high=env.action_space.high, number=3)
+A = DiscreteActionSpace(low=env.action_space.low, high=env.action_space.high, number=5)
 env.action_space = A
-# print("Discrete Action Space: ", A.space)
+print("Discrete Action Space: ", A.space)
 
 if __name__ == '__main__':
     main()
